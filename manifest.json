@@ -1,0 +1,33 @@
+{
+  "name": "v_jstools",
+  "version": "0.0.0",
+  "description": "v_jstools js hook工具",
+  "permissions": ["storage", "activeTab", "tabs", "debugger", "storage"],
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "run_at": "document_start",
+      "js": ["inject.js"],
+      "all_frames": true
+    }
+  ],
+
+  // 暂时用不上
+  // "commands": {
+  //   "attach-debugger": {
+  //     "suggested_key": {
+  //       "default": "Alt+Shift+D"
+  //     },
+  //     "description": "Attach"
+  //   }
+  // },
+
+  "manifest_version": 2
+}
