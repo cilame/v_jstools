@@ -1,2 +1,1 @@
 // background.js
-
