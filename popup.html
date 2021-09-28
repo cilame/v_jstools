@@ -7,13 +7,15 @@
   <title>Document</title>
 </head>
 <body style="width: 600px;">
+  <label ><input type="checkbox" data-key="config-hook-global">是否挂钩总开关</label> 
+  <br/>
   <label ><input type="checkbox" data-key="config-hook-test">test</label> 
   <br/>
-  <label ><input type="checkbox" data-key="config-hook-console">hook-console</label> 
+  <label ><input type="checkbox" data-key="config-hook-console">hook-console（使用 v_log 替换 console.log 并将其他属性设置为空函数）</label> 
   <br/>
   <label ><input type="checkbox" data-key="config-hook-Function">hook-Function</label> 
   <br/>
-  <label ><input type="checkbox" data-key="config-hook-eval">hook-eval</label> 
+  <label ><input type="checkbox" data-key="config-hook-eval">hook-eval（eval函数会记录上下文，若 eval 用到封闭的上下文参数可能报错）</label> 
   <br/>
   <label ><input type="checkbox" data-key="config-hook-remove-dyn-debugger">remove-dyn-debugger(need selected "hook-Function" or "hook-eval")</label> 
   <br/>
@@ -41,20 +43,29 @@
   <br/>
   <label ><input type="checkbox" data-key="config-hook-domobj">hook-domobj</label> 
   <br/>
-
-
-
-
-
+  <label ><input type="checkbox" data-key="config-hook-domobj-get"> - hook-domobj-显示get输出</label> 
+  <br/>
+  <label ><input type="checkbox" data-key="config-hook-domobj-set"> - hook-domobj-显示set输出</label> 
+  <br/>
+  <label ><input type="checkbox" data-key="config-hook-domobj-func"> - hook-domobj-显示func输出</label> 
+  <br/>
 
 
   <br/>
-  <div>这里暂时考虑是用来做 ast 解混淆的</div>
-  <textarea style="width: 593px; height: 400px">
+  <div>AST解密混淆</div>
+
+  <button id='ob'>解密ob混淆</button>
+  <button id='obnormal'>普通解混淆</button>
+  <button id='uglify'>仅变量压缩</button>
+  <button id='uglify_mini'>完全压缩脚本</button>
+  <br/>
+  <textarea id='txt' style="width: 593px; height: 500px">
 
 </textarea>
   <br/>
   <script src="popup.js"></script>
-  <script src="babel_asttool.js"></script> 
+  <script src="tools/babel_asttool.js"></script>
+  <script src="tools/uglify_es.js"></script>
+  <script src="tools/popup_utils.js"></script>
 </body>
 </html>
