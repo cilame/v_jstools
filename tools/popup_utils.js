@@ -1,11 +1,11 @@
 
-var obtn = document.getElementById('ob')
+var sojsontn = document.getElementById('sojson')
 var obnormalbtn = document.getElementById('obnormal')
 var uglifybtn = document.getElementById('uglify')
 var uglify_minibtn = document.getElementById('uglify_mini')
 var txt = document.getElementById('txt')
 
-obtn.addEventListener('click', function(e){
+sojsontn.addEventListener('click', function(e){
   try{
     txt.value = muti_process_obdefusion(txt.value)
   }catch(e){
