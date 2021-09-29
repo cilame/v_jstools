@@ -18,6 +18,34 @@ function injectfunc(e, window) {
   if (e["config-hook-test"]) {
     debugger
   }
+
+  var toggle = true
+  if (e["config-hook-alt-w"]) {
+    document.onkeydown = function(event){
+      if (event.key == 'w' && event.altKey){
+        toggle = !toggle
+        e["config-hook-domobj"] = toggle
+        e["config-hook-Function"] = toggle
+        e["config-hook-eval"] = toggle
+        e["config-hook-cookie"] = toggle
+        e["config-hook-settimeout"] = toggle
+        e["config-hook-setinterval"] = toggle
+        e["config-hook-JSON.parse"] = toggle
+        e["config-hook-JSON.stringify"] = toggle
+        e["config-hook-decodeURI"] = toggle
+        e["config-hook-decodeURIComponent"] = toggle
+        e["config-hook-encodeURI"] = toggle
+        e["config-hook-encodeURIComponent"] = toggle
+        e["config-hook-escape"] = toggle
+        e["config-hook-unescape"] = toggle
+        if (toggle){
+          window.v_log('开启日志')
+        }else{
+          window.v_log('关闭日志')
+        }
+      }
+    }
+  }
   if (e["config-hook-console"]){
     Object.keys(console).map(function(e){console[e] = eval(`saf(function ${e}(){})`)})
   }
@@ -188,18 +216,7 @@ function injectfunc(e, window) {
   if (e["config-hook-escape"]){ escape = saf(function escape(){ return e["config-hook-escape"]?v_logs('[escape]:', arguments, v_escape.apply(this, arguments)):v_escape.apply(this, arguments) }) }
   if (e["config-hook-unescape"]){ unescape = saf(function unescape(){ return e["config-hook-unescape"]?v_logs('[unescape]:', arguments, v_unescape.apply(this, arguments)):v_unescape.apply(this, arguments) }) }
 
-  if (e["config-hook-alt-w"]) {
-    document.onkeydown = function(event){
-      if (event.key == 'w' && event.altKey){
-        e["config-hook-domobj"] = !e["config-hook-domobj"]
-        if (e["config-hook-domobj"]){
-          window.v_log('开启 domobj 日志')
-        }else{
-          window.v_log('关闭 domobj 日志')
-        }
-      }
-    }
-  }
+
   if (e["config-hook-domobj"]){
     $domobj_placeholder
   }
