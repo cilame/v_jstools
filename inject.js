@@ -200,8 +200,10 @@ function make_domhooker_funcs(){
       var v_model = `
       !function(){
         // hook ${obname}.prototype.${name} get set
-        try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name} }catch(e){ return }
-        var _old_get = _desc.get, _old_set = _desc.set
+        try{ 
+          var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name} 
+          var _old_get = _desc.get, _old_set = _desc.set
+        }catch(e){ return }
         var _new_get = saf(function get(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"]){ window.v_log('[${obname} ${name} get]', r) }
