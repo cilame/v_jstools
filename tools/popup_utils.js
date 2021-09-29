@@ -13,6 +13,14 @@ sojsontn.addEventListener('click', function(e){
   }
 })
 
+obnormal.addEventListener('click', function(e){
+  try{
+    txt.value = muti_process_defusion(txt.value)
+  }catch(e){
+    txt.value = e.stack
+  }
+})
+
 uglifybtn.addEventListener('click', function(e){
   var r = UglifyJS.minify(txt.value, {
       compress: { 
