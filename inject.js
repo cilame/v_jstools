@@ -188,6 +188,8 @@ function injectfunc(e, window) {
   var v_encodeURIComponent = encodeURIComponent
   var v_escape = escape
   var v_unescape = unescape
+  var v_atob = atob
+  var v_btoa = btoa
   var util = (typeof require!=='undefined')?require('util'):{
     inspect:function(e){
       var r;
@@ -207,15 +209,19 @@ function injectfunc(e, window) {
     window.v_log('  (*)', a, util.inspect(b), '===>', c)
     return c
   }
-  if (e["config-hook-JSON.parse"]){ JSON.parse = saf(function parse(){ return e["config-hook-JSON.parse"]?v_logs('[JSON.parse]:', arguments, v_parse.apply(this, arguments)):v_parse.apply(this, arguments) }) }
-  if (e["config-hook-JSON.stringify"]){ JSON.stringify = saf(function stringify(){ return e["config-hook-JSON.stringify"]?v_logs('[JSON.stringify]:', arguments, v_stringify.apply(this, arguments)):v_stringify.apply(this, arguments) }) }
-  if (e["config-hook-decodeURI"]){ decodeURI = saf(function decodeURI(){ return e["config-hook-decodeURI"]?v_logs('[decodeURI]:', arguments, v_decodeURI.apply(this, arguments)):v_decodeURI.apply(this, arguments) }) }
-  if (e["config-hook-decodeURIComponent"]){ decodeURIComponent = saf(function decodeURIComponent(){ return e["config-hook-decodeURIComponent"]?v_logs('[decodeURIComponent]:', arguments, v_decodeURIComponent.apply(this, arguments)):v_decodeURIComponent.apply(this, arguments) }) }
-  if (e["config-hook-encodeURI"]){ encodeURI = saf(function encodeURI(){ return e["config-hook-encodeURI"]?v_logs('[encodeURI]:', arguments, v_encodeURI.apply(this, arguments)):v_encodeURI.apply(this, arguments) }) }
-  if (e["config-hook-encodeURIComponent"]){ encodeURIComponent = saf(function encodeURIComponent(){ return e["config-hook-encodeURIComponent"]?v_logs('[encodeURIComponent]:', arguments, v_encodeURIComponent.apply(this, arguments)):v_encodeURIComponent.apply(this, arguments) }) }
-  if (e["config-hook-escape"]){ escape = saf(function escape(){ return e["config-hook-escape"]?v_logs('[escape]:', arguments, v_escape.apply(this, arguments)):v_escape.apply(this, arguments) }) }
-  if (e["config-hook-unescape"]){ unescape = saf(function unescape(){ return e["config-hook-unescape"]?v_logs('[unescape]:', arguments, v_unescape.apply(this, arguments)):v_unescape.apply(this, arguments) }) }
 
+  if (e["config-hook-encrypt-normal"]){
+    if (e["config-hook-JSON.parse"]){ JSON.parse = saf(function parse(){ return e["config-hook-JSON.parse"]?v_logs('[JSON.parse]:', arguments, v_parse.apply(this, arguments)):v_parse.apply(this, arguments) }) }
+    if (e["config-hook-JSON.stringify"]){ JSON.stringify = saf(function stringify(){ return e["config-hook-JSON.stringify"]?v_logs('[JSON.stringify]:', arguments, v_stringify.apply(this, arguments)):v_stringify.apply(this, arguments) }) }
+    if (e["config-hook-decodeURI"]){ decodeURI = saf(function decodeURI(){ return e["config-hook-decodeURI"]?v_logs('[decodeURI]:', arguments, v_decodeURI.apply(this, arguments)):v_decodeURI.apply(this, arguments) }) }
+    if (e["config-hook-decodeURIComponent"]){ decodeURIComponent = saf(function decodeURIComponent(){ return e["config-hook-decodeURIComponent"]?v_logs('[decodeURIComponent]:', arguments, v_decodeURIComponent.apply(this, arguments)):v_decodeURIComponent.apply(this, arguments) }) }
+    if (e["config-hook-encodeURI"]){ encodeURI = saf(function encodeURI(){ return e["config-hook-encodeURI"]?v_logs('[encodeURI]:', arguments, v_encodeURI.apply(this, arguments)):v_encodeURI.apply(this, arguments) }) }
+    if (e["config-hook-encodeURIComponent"]){ encodeURIComponent = saf(function encodeURIComponent(){ return e["config-hook-encodeURIComponent"]?v_logs('[encodeURIComponent]:', arguments, v_encodeURIComponent.apply(this, arguments)):v_encodeURIComponent.apply(this, arguments) }) }
+    if (e["config-hook-escape"]){ escape = saf(function escape(){ return e["config-hook-escape"]?v_logs('[escape]:', arguments, v_escape.apply(this, arguments)):v_escape.apply(this, arguments) }) }
+    if (e["config-hook-unescape"]){ unescape = saf(function unescape(){ return e["config-hook-unescape"]?v_logs('[unescape]:', arguments, v_unescape.apply(this, arguments)):v_unescape.apply(this, arguments) }) }
+    if (e["config-hook-atob"]){ atob = saf(function atob(){ return e["config-hook-atob"]?v_logs('[atob]:', arguments, v_atob.apply(this, arguments)):v_atob.apply(this, arguments) }) }
+    if (e["config-hook-btoa"]){ btoa = saf(function btoa(){ return e["config-hook-btoa"]?v_logs('[btoa]:', arguments, v_btoa.apply(this, arguments)):v_btoa.apply(this, arguments) }) }
+  }
 
   if (e["config-hook-domobj"]){
     $domobj_placeholder
@@ -295,6 +301,7 @@ chrome.storage.sync.get([
   "config-hook-cookie",
   "config-hook-settimeout",
   "config-hook-setinterval",
+  "config-hook-encrypt-normal",
   "config-hook-JSON.parse",
   "config-hook-JSON.stringify",
   "config-hook-decodeURI",
@@ -303,6 +310,8 @@ chrome.storage.sync.get([
   "config-hook-encodeURIComponent",
   "config-hook-escape",
   "config-hook-unescape",
+  "config-hook-atob",
+  "config-hook-btoa",
   "config-hook-alt-w",
   "config-hook-domobj",
   "config-hook-domobj-get",
