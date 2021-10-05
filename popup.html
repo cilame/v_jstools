@@ -19,7 +19,25 @@
   <br/>
   <label ><input type="checkbox" data-key="config-hook-remove-dyn-debugger">remove-dyn-debugger(need selected "hook-Function" or "hook-eval")</label> 
   <br/>
+  <div style="border: 1px solid red; margin: 5px">
+    <div style="margin: 5px; color: red">
+      此处的两个配置会影响后面的全部挂钩操作
+    </div>
+    <div style="margin: 5px">
+      <label >通过正则匹配URL实现日志输出仅针对你关心的js文件</label> 
+    </div>
+    <div style="margin: 5px">
+      <input style="width: 98%" type="text" data-key="config-hook-regexp-url">
+    </div>
+    <div style="margin: 5px">
+      <label ><input type="checkbox" data-key="config-hook-log-at">hook-log-at（是否输出函数触发地址）</label> 
+    </div>
+  </div>
   <label ><input type="checkbox" data-key="config-hook-cookie">hook-cookie</label> 
+  <br/>
+  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-get">hook-cookie-get</label> 
+  <br/>
+  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-set">hook-cookie-set</label> 
   <br/>
   <label ><input type="checkbox" data-key="config-hook-settimeout">hook-settimeout</label> 
   <br/>

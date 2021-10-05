@@ -11,12 +11,24 @@ function sendMessageToContentScript(message, callback){
 
 document.querySelectorAll("input").forEach(function(v){
   chrome.storage.sync.get([v.dataset.key], function (result) {
-    v.checked = result[v.dataset.key];
+    if (v.type == 'checkbox'){
+      v.checked = result[v.dataset.key];
+    }
+    if (v.type == 'text'){
+      v.value = result[v.dataset.key] || '';
+    }
   })
   v.addEventListener("change", function (e) {
     sendMessageToContentScript({[e.target.dataset.key]: e.target.checked})
-    chrome.storage.sync.set({
-      [e.target.dataset.key]: e.target.checked
-    })
+    if (v.type == 'checkbox'){
+      chrome.storage.sync.set({
+        [e.target.dataset.key]: e.target.checked
+      })
+    }
+    if (v.type == 'text'){
+      chrome.storage.sync.set({
+        [e.target.dataset.key]: e.target.value
+      })
+    }
   })
 })

@@ -19,6 +19,10 @@ function injectfunc(e, window) {
     debugger
   }
 
+  var expurl = RegExp((e["config-hook-regexp-url"] || '').trim())
+  var expstr = ''
+  var attoggle = e["config-hook-log-at"]
+
   var toggle = true
   if (e["config-hook-alt-w"]) {
     document.onkeydown = function(event){
@@ -120,8 +124,13 @@ function injectfunc(e, window) {
         if (window.v_cookie_get){
           window.v_cookie_get(r)
         }else{ 
-          if (e["config-hook-cookie"]){
-            window.v_log('[cookie get]', r) 
+          if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
+            if (expurl.test(expstr=Error().stack.split('\n')[2])){
+              window.v_log('[cookie get]', r) 
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
           }
         }
         return r
@@ -131,8 +140,13 @@ function injectfunc(e, window) {
         if (window.v_cookie_set){
           window.v_cookie_set(arguments)
         }else{ 
-          if (e["config-hook-cookie"]){
-            window.v_log('[cookie set]', v) 
+          if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
+            if (expurl.test(expstr=Error().stack.split('\n')[2])){
+              window.v_log('[cookie set]', v) 
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
           }
         }
         return _old_cookie_set.apply(this, arguments)
@@ -155,7 +169,12 @@ function injectfunc(e, window) {
           window.v_settimeout(arguments)
         }else{ 
           if (e["config-hook-settimeout"]){
-            window.v_log('[settimeout]', ...arguments) 
+            if (expurl.test(expstr=Error().stack.split('\n')[2])){
+              window.v_log('[settimeout]', ...arguments) 
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
           }
         }
         _setTimeout.apply(this, arguments)
@@ -172,7 +191,12 @@ function injectfunc(e, window) {
           window.v_setinterval(arguments)
         }else{ 
           if (e["config-hook-setinterval"]){
-            window.v_log('[setinterval]', ...arguments) 
+            if (expurl.test(expstr=Error().stack.split('\n')[2])){
+              window.v_log('[setinterval]', ...arguments) 
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
           }
         }
         _setInterval.apply(this, arguments)
@@ -206,7 +230,12 @@ function injectfunc(e, window) {
     }
   }
   var v_logs = function (a, b, c) {
-    window.v_log('  (*)', a, util.inspect(b), '===>', c)
+    if (expurl.test(expstr=Error().stack.split('\n')[3])){
+      window.v_log('  (*)', a, util.inspect(b), '===>', c)
+      if (attoggle){
+        window.v_log(' '.repeat(30), expstr.trim())
+      }
+    }
     return c
   }
 
@@ -240,11 +269,25 @@ function make_domhooker_funcs(){
         }catch(e){ return }
         var _new_get = saf(function get(){
           var r = _old_get.apply(this, arguments)
-          if (e["config-hook-domobj"] && e["config-hook-domobj-get"]){ window.v_log('[${obname} ${name} get]', r) }
+          if (e["config-hook-domobj"] && e["config-hook-domobj-get"]){ 
+            if (expurl.test(expstr=Error().stack.split('\\n')[2])){
+              window.v_log('[${obname} ${name} get]', r)
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
+          }
           return r })
         if (_old_set){
           var _new_set = saf(function set(v){
-            if (e["config-hook-domobj"] && e["config-hook-domobj-set"]){ window.v_log('[${obname} ${name} set]', v) }
+            if (e["config-hook-domobj"] && e["config-hook-domobj-set"]){ 
+              if (expurl.test(expstr=Error().stack.split('\\n')[2])){
+                window.v_log('[${obname} ${name} set]', v)
+                if (attoggle){
+                  window.v_log(' '.repeat(30), expstr.trim())
+                }
+              }
+            }
             return _old_set.apply(this, arguments) })
         }else{ _new_set = undefined }
         Object.defineProperty(${obname}.prototype, '${name}', { get: _new_get, set: _new_set, enumerable: _desc['enumerable'], configurable: _desc['configurable'], })
@@ -262,7 +305,14 @@ function make_domhooker_funcs(){
       !function(){
         try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name}, _old_val = _desc.value }catch(e){ return }
         var _new_val = saf(function ${name}(){
-          if (e["config-hook-domobj"] && e["config-hook-domobj-func"]){ window.v_log('  (f) [${obname} ${name} func]', [].slice.call(arguments)) }
+          if (e["config-hook-domobj"] && e["config-hook-domobj-func"]){ 
+            if (expurl.test(expstr=Error().stack.split('\\n')[2])){
+              window.v_log('  (f) [${obname} ${name} func]', [].slice.call(arguments))
+              if (attoggle){
+                window.v_log(' '.repeat(30), expstr.trim())
+              }
+            }
+          }
           return _old_val.apply(this, arguments) })
         try{ Object.defineProperty(${obname}.prototype, '${name}', { value: _new_val, enumerable: _desc['enumerable'], configurable: _desc['configurable'], writable: _desc['writable'], })
         }catch(e){  }
@@ -299,6 +349,8 @@ chrome.storage.sync.get([
   "config-hook-eval",
   "config-hook-remove-dyn-debugger",
   "config-hook-cookie",
+  "config-hook-cookie-get",
+  "config-hook-cookie-set",
   "config-hook-settimeout",
   "config-hook-setinterval",
   "config-hook-encrypt-normal",
@@ -317,6 +369,8 @@ chrome.storage.sync.get([
   "config-hook-domobj-get",
   "config-hook-domobj-set",
   "config-hook-domobj-func",
+  "config-hook-regexp-url",
+  "config-hook-log-at",
 ], function (result) {
   var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
   script.text = `(${replacer_injectfunc})(${JSON.stringify(result)},window)`;
