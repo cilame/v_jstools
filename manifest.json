@@ -13,12 +13,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": [ "file:///*", "http://*/*", "https://*/*" ],
       "run_at": "document_start",
       "js": ["inject.js"],
       "all_frames": true
     }
   ],
+
+  "options_page": "options.html",
+  "options_ui": {
+    "chrome_style": false,
+    "open_in_tab": true,
+    "page": "options.html"
+  },
 
   // 暂时用不上
   // "commands": {
