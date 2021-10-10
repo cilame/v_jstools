@@ -22,6 +22,9 @@ function injectfunc(e, window) {
   var expurl = RegExp((e["config-hook-regexp-url"] || '').trim())
   var expstr = ''
   var attoggle = e["config-hook-log-at"]
+  function get_log_at(log_at){
+    return attoggle?(' '.repeat(30)+log_at):''
+  }
 
   var toggle = true
   if (e["config-hook-alt-w"]) {
@@ -126,10 +129,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
             if (expurl.test(expstr=Error().stack.split('\n')[2])){
-              window.v_log('[cookie get]', r) 
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('[cookie get]', r, get_log_at(expstr.trim()))
             }
           }
         }
@@ -142,10 +142,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
             if (expurl.test(expstr=Error().stack.split('\n')[2])){
-              window.v_log('[cookie set]', v) 
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('[cookie set]', v, get_log_at(expstr.trim())) 
             }
           }
         }
@@ -170,10 +167,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-settimeout"]){
             if (expurl.test(expstr=Error().stack.split('\n')[2])){
-              window.v_log('[settimeout]', ...arguments) 
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('[settimeout]', ...arguments, get_log_at(expstr.trim()))
             }
           }
         }
@@ -192,10 +186,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-setinterval"]){
             if (expurl.test(expstr=Error().stack.split('\n')[2])){
-              window.v_log('[setinterval]', ...arguments) 
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('[setinterval]', ...arguments, get_log_at(expstr.trim())) 
             }
           }
         }
@@ -231,10 +222,7 @@ function injectfunc(e, window) {
   }
   var v_logs = function (a, b, c) {
     if (expurl.test(expstr=Error().stack.split('\n')[3])){
-      window.v_log('  (*)', a, util.inspect(b), '===>', c)
-      if (attoggle){
-        window.v_log(' '.repeat(30), expstr.trim())
-      }
+      window.v_log('  (*)', a, util.inspect(b), '===>', c, get_log_at(expstr.trim()))
     }
     return c
   }
@@ -271,10 +259,7 @@ function make_domhooker_funcs(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"]){ 
             if (expurl.test(expstr=Error().stack.split('\\n')[2])){
-              window.v_log('[${obname} ${name} get]', r)
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('[${obname} ${name} get]', r, get_log_at(expstr.trim()))
             }
           }
           return r })
@@ -282,10 +267,7 @@ function make_domhooker_funcs(){
           var _new_set = saf(function set(v){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"]){ 
               if (expurl.test(expstr=Error().stack.split('\\n')[2])){
-                window.v_log('[${obname} ${name} set]', v)
-                if (attoggle){
-                  window.v_log(' '.repeat(30), expstr.trim())
-                }
+                window.v_log('[${obname} ${name} set]', v, get_log_at(expstr.trim()))
               }
             }
             return _old_set.apply(this, arguments) })
@@ -307,10 +289,7 @@ function make_domhooker_funcs(){
         var _new_val = saf(function ${name}(){
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"]){ 
             if (expurl.test(expstr=Error().stack.split('\\n')[2])){
-              window.v_log('  (f) [${obname} ${name} func]', [].slice.call(arguments))
-              if (attoggle){
-                window.v_log(' '.repeat(30), expstr.trim())
-              }
+              window.v_log('  (f) [${obname} ${name} func]', [].slice.call(arguments), get_log_at(expstr.trim()))
             }
           }
           return _old_val.apply(this, arguments) })
