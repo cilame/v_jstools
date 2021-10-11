@@ -339,7 +339,6 @@ function make_domhooker_funcs(){
   return ret.join('')
 }
 
-var script = document.createElement('script');
 var hookers = [
   "config-hook-global",
   "config-hook-test",
@@ -379,15 +378,6 @@ function add_config_hook(input){
 }
 add_config_hook(getsets)
 add_config_hook(funcs)
-chrome.storage.local.get(hookers, function (result) {
-  var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
-  script.text = `(${replacer_injectfunc})(${JSON.stringify(result)},window)`;
-  script.onload = function(){ 
-    script.parentNode.removeChild(script) 
-  }
-  var scriptin = (document.head || document.documentElement)
-  scriptin.appendChild(script);
-})
 
 function inject_script(code){
   var script = document.createElement("script");
@@ -399,8 +389,9 @@ function inject_script(code){
   (head || document.body).appendChild( script );
   (head || document.body).removeChild( script );
 }
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-  var key = Object.keys(request)[0]
-  var val = request[key]
-  inject_script(`window.globalConfig['${key}']=${val}`)
+
+chrome.storage.local.get(hookers, function (result) {
+  var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
+  inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
 })
+

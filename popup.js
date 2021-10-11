@@ -1,14 +1,3 @@
-// var background = chrome.extension.getBackgroundPage();
-// var gettabid = background.gettabid
-
-function sendMessageToContentScript(message, callback){
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-    chrome.tabs.sendMessage(tabs[0].id, message, function(response){
-      if(callback) callback(response);
-    });
-  });
-}
-
 document.querySelectorAll("input").forEach(function(v){
   chrome.storage.local.get([v.dataset.key], function (result) {
     if (v.type == 'checkbox'){
@@ -19,7 +8,6 @@ document.querySelectorAll("input").forEach(function(v){
     }
   })
   v.addEventListener("change", function (e) {
-    sendMessageToContentScript({[e.target.dataset.key]: e.target.checked})
     if (v.type == 'checkbox'){
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
