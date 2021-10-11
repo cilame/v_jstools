@@ -10,7 +10,7 @@ function sendMessageToContentScript(message, callback){
 }
 
 document.querySelectorAll("input").forEach(function(v){
-  chrome.storage.sync.get([v.dataset.key], function (result) {
+  chrome.storage.local.get([v.dataset.key], function (result) {
     if (v.type == 'checkbox'){
       v.checked = result[v.dataset.key];
     }
@@ -21,12 +21,12 @@ document.querySelectorAll("input").forEach(function(v){
   v.addEventListener("change", function (e) {
     sendMessageToContentScript({[e.target.dataset.key]: e.target.checked})
     if (v.type == 'checkbox'){
-      chrome.storage.sync.set({
+      chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
       })
     }
     if (v.type == 'text'){
-      chrome.storage.sync.set({
+      chrome.storage.local.set({
         [e.target.dataset.key]: e.target.value
       })
     }
