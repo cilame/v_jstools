@@ -20,3 +20,15 @@ document.querySelectorAll("input").forEach(function(v){
     }
   })
 })
+
+document.getElementById('showoptions').addEventListener('click', function(e){
+  function closePopup() {
+    window.close();
+    document.body.style.opacity = 0;
+    setTimeout(function() { history.go(0); }, 300);
+  }
+  closePopup()
+  chrome.tabs.create({
+    url: chrome.extension.getURL('options.html')
+  });
+})
