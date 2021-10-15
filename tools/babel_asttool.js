@@ -32516,55 +32516,70 @@ function CallToStr(path) {
     var objName = node.id.name;
     // 是否可删除该对象：发生替换时可删除，否则不删除
     var del_flag = false
-    objPropertiesList.forEach(prop => {
-        var key = prop.key.value;
+    var objkeys = {}
+    var objlist = objPropertiesList.map(function(prop){
+        var key = prop.key.value
         if(t.isFunctionExpression(prop.value)) {
             var retStmt = prop.value.body.body[0];
-            var fnPath = path.getFunctionParent() || path.scope.path;
-            fnPath.traverse({
-                CallExpression: function (_path) {
-                    var _node = _path.node.callee;
-                    if (!t.isMemberExpression(_path.node.callee))
-                        return;
-                    if (!t.isIdentifier(_node.object) || _node.object.name !== objName)
-                        return;
-                    if (!(t.isStringLiteral(_node.property) || t.isIdentifier(_node.property)))
-                        return;
-                    if (!(_node.property.value == key || _node.property.name == key))
-                        return;
-                    var args = _path.node.arguments;
-                    // 二元运算, 逻辑运算, 函数调用
-                    if (t.isBinaryExpression(retStmt.argument) && args.length===2) {
+            if (t.isBinaryExpression(retStmt.argument)) {
+                var repfunc = function(_path, args){
+                    if (args.length == 2){
                         _path.replaceWith(t.binaryExpression(retStmt.argument.operator, args[0], args[1]));
                     }
-                    else if(t.isLogicalExpression(retStmt.argument) && args.length==2) {
+                }
+            }
+            else if(t.isLogicalExpression(retStmt.argument)) {
+                var repfunc = function(_path, args){
+                    if (args.length == 2){
                         _path.replaceWith(t.logicalExpression(retStmt.argument.operator, args[0], args[1]));
                     }
-                    else if(t.isCallExpression(retStmt.argument) && t.isIdentifier(retStmt.argument.callee)) {
-                        _path.replaceWith(t.callExpression(args[0], args.slice(1)))
-                    }
-                    del_flag = true;
                 }
-            })
+            }
+            else if(t.isCallExpression(retStmt.argument) && t.isIdentifier(retStmt.argument.callee)) {
+                var repfunc = function(_path, args){
+                    _path.replaceWith(t.callExpression(args[0], args.slice(1)))
+                }
+            }
+            objkeys[key] = repfunc
         }
         else if (t.isStringLiteral(prop.value)){
             var retStmt = prop.value.value;
-            var fnPath = path.getFunctionParent() || path.scope.path;
-            fnPath.traverse({
-                MemberExpression:function (_path) {
-                    var _node = _path.node;
-                    if (!t.isIdentifier(_node.object) || _node.object.name !== objName)
-                        return;
-                    if (!(t.isStringLiteral(_node.property) || t.isIdentifier(_node.property)))
-                        return;
-                    if (!(_node.property.value == key || _node.property.name == key))
-                        return;
-                    _path.replaceWith(t.stringLiteral(retStmt))
-                    del_flag = true;
-                }
-            })
+            objkeys[key] = function(_path){
+                _path.replaceWith(t.stringLiteral(retStmt))
+            }
         }
-    });
+    })
+    var fnPath = path.getFunctionParent() || path.scope.path;
+    fnPath.traverse({
+        CallExpression: function (_path) {
+            var _node = _path.node.callee;
+            if (!t.isMemberExpression(_path.node.callee))
+                return;
+            if (!t.isIdentifier(_node.object) || _node.object.name !== objName)
+                return;
+            if (!(t.isStringLiteral(_node.property) || t.isIdentifier(_node.property)))
+                return;
+            if (!(objkeys[_node.property.value] || objkeys[_node.property.name]))
+                return;
+            var args = _path.node.arguments;
+            var func = objkeys[_node.property.value] || objkeys[_node.property.name]
+            func(_path, args)
+            del_flag = true;
+        },
+        MemberExpression:function (_path) {
+            var _node = _path.node;
+            if (!t.isIdentifier(_node.object) || _node.object.name !== objName)
+                return;
+            if (!(t.isStringLiteral(_node.property) || t.isIdentifier(_node.property)))
+                return;
+            if (!(objkeys[_node.property.value] || objkeys[_node.property.name]))
+                return;
+            var func = objkeys[_node.property.value] || objkeys[_node.property.name]
+            func(_path)
+            del_flag = true;
+        }
+    })
+
     if (del_flag) {
         // 如果发生替换，则删除该对象, 该处可能出问题，因为字典的内容未必会饱和使用
         path.remove();
@@ -32579,6 +32594,38 @@ function delExtra(path) {
     //   v
     // ["IcKrwp/Dlg==", 291];
     delete path.node.extra; 
+}
+
+function ClearDeadCode(path){
+    function clear(path, toggle){
+        if (toggle){
+            if (path.node.consequent.type == 'BlockStatement'){
+                path.replaceWithMultiple(path.node.consequent.body)
+            }else{
+                path.replaceWith(path.node.consequent)
+            }
+        }else{
+            if (path.node.alternate){
+                if (path.node.alternate.type == 'BlockStatement'){
+                    path.replaceWithMultiple(path.node.alternate.body)
+                }else{
+                    path.replaceWith(path.node.alternate)
+                }
+            }else{
+                path.remove()
+            }
+        }
+    }
+    var temps = ['StringLiteral', 'NumericLiteral', 'BooleanLiteral']
+    if (path.node.test.type === 'BinaryExpression'){
+        if (temps.indexOf(path.node.test.left.type) !== -1 && temps.indexOf(path.node.test.right.type) !== -1){
+            var left = JSON.stringify(path.node.test.left.value)
+            var right = JSON.stringify(path.node.test.right.value)
+            clear(path, eval(left + path.node.test.operator + right))
+        }
+    } else if (temps.indexOf(path.node.test.type) !== -1){
+        clear(path, eval(JSON.stringify(path.node.test.value)))
+    }
 }
 
 function AddCatchLog(path){
@@ -32745,6 +32792,7 @@ function muti_process_defusion(jscode){
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
+    traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
@@ -32769,6 +32817,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
+    traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
