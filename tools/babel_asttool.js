@@ -32822,3 +32822,13 @@ function muti_process_obdefusion(jscode){
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
+
+// const fs = require('fs');
+// var jscode = fs.readFileSync("./source.js", {
+//     encoding: "utf-8"
+// });
+// code = muti_process_obdefusion(jscode);
+// console.log(code);
+// fs.writeFileSync('./code.js', code, {
+//     encoding: "utf-8"
+// })
