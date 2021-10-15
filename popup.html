@@ -5,75 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+
+  <style type="text/css">
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+      transform: scale(.5, .5);
+    }
+    .switch input {display:none;}
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .05s;
+      transition: .05s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .05s;
+      transition: .05s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:focus + .slider {
+      box-shadow: 0 0 1px #2196F3;
+    }
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+  </style>
+  <style>
+    .button {
+      display: inline-block;
+      border-radius: 4px;
+      background-color: #f4511e;
+      border: none;
+      color: #FFFFFF;
+      text-align: center;
+      font-size: 15px;
+      padding: 10px;
+      width: 160px;
+      transition: all 0.5s;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .button span {
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+      transition: 0.5s;
+    }
+    .button span:after {
+      content: '»';
+      position: absolute;
+      opacity: 0;
+      top: 0;
+      right: -20px;
+      transition: 0.5s;
+    }
+    .button:hover span {
+      padding-right: 25px;
+    }
+    .button:hover span:after {
+      opacity: 1;
+      right: 0;
+    }
+    </style>
+
 </head>
-<body style="width: 600px;">
-  <label ><input type="checkbox" data-key="config-hook-global">是否挂钩总开关</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-alt-w">启动 alt + w 快捷键（快捷键开启/关闭日志，当前焦点需在网页上才有效）</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-console">hook-console（使用 v_log 替换 console.log 并将 console 的属性都设置为空函数）</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-Function">hook-Function</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-eval">hook-eval（eval函数会记录上下文，若 eval 用到封闭的上下文参数可能报错）</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-remove-dyn-debugger">remove-dyn-debugger(need selected "hook-Function" or "hook-eval")</label> 
-  <br/>
-  <div style="border: 1px solid red; margin: 5px">
-    <div style="margin: 5px; color: red">
-      此处的两个配置会影响后面的全部挂钩操作
-    </div>
-    <div style="margin: 5px">
-      <label >通过正则匹配URL实现日志输出仅针对你关心的js文件</label> 
-    </div>
-    <div style="margin: 5px">
-      <input style="width: 98%" type="text" data-key="config-hook-regexp-url">
-    </div>
-    <div style="margin: 5px">
-      <label ><input type="checkbox" data-key="config-hook-log-at">hook-log-at（是否输出函数触发地址）</label> 
-    </div>
+<body style="width: 180px;">
+  <label class="switch">
+    <input type="checkbox" data-key="config-hook-global"><div class="slider"></div>
+  </label>
+  <div style="float: right; padding: 10px">是否挂钩总开关</div>
+  <div>
+    <button id="showoptions" class="button" style="vertical-align:middle"><span>打开配置页面</span></button>
   </div>
-  <label ><input type="checkbox" data-key="config-hook-cookie">hook-cookie</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-get">hook-cookie-get</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-set">hook-cookie-set</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-settimeout">hook-settimeout</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-setinterval">hook-setinterval</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-encrypt-normal">hook-自带加解密函数</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-JSON.parse">hook-JSON.parse</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-JSON.stringify">hook-JSON.stringify</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-decodeURI">hook-decodeURI</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-decodeURIComponent">hook-decodeURIComponent</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-encodeURI">hook-encodeURI</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-encodeURIComponent">hook-encodeURIComponent</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-escape">hook-escape</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-unescape">hook-unescape</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-atob">hook-atob</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-btoa">hook-btoa</label> 
-  <br/>
-  <label ><input type="checkbox" data-key="config-hook-domobj">hook-domobj</label> <button id='showoptions'>打开 dom 对象配置页选择需要 hook 的对象（建议全选）</button>
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-get">hook-domobj-显示get输出</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-set">hook-domobj-显示set输出</label> 
-  <br/>
-  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-func">hook-domobj-显示func输出</label> 
-  <br/>
-<!--   <label ><input type="checkbox" data-key="config-hook-test">test（插件开发者测试用）</label> 
-  <br/> -->
+  <script src="popup.js"></script>
 </body>
 </html>

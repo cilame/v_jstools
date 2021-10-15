@@ -21,6 +21,75 @@
     </nav>
     <div id="container">
         <section class="tab">
+            <div>
+                  <label ><input type="checkbox" data-key="config-hook-global">是否挂钩总开关</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-alt-w">启动 alt + w 快捷键（快捷键开启/关闭日志，当前焦点需在网页上才有效）</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-console">hook-console（使用 v_log 替换 console.log 并将 console 的属性都设置为空函数）</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-Function">hook-Function</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-eval">hook-eval（eval函数会记录上下文，若 eval 用到封闭的上下文参数可能报错）</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-remove-dyn-debugger">remove-dyn-debugger(need selected "hook-Function" or "hook-eval")</label> 
+                  <br/>
+                  <div style="border: 1px solid red; margin: 1px">
+                    <div style="margin: 1px; color: red">
+                      此处的两个配置会影响后面的全部挂钩操作
+                    </div>
+                    <div style="margin: 1px">
+                      <label >通过正则匹配URL实现日志输出仅针对你关心的js文件</label> 
+                    </div>
+                    <div style="margin: 1px">
+                      <input style="width: 98%" type="text" data-key="config-hook-regexp-url">
+                    </div>
+                    <div style="margin: 1px">
+                      <label ><input type="checkbox" data-key="config-hook-log-at">hook-log-at（是否输出函数触发地址）</label> 
+                    </div>
+                  </div>
+                  <label ><input type="checkbox" data-key="config-hook-cookie">hook-cookie</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-get">hook-cookie-get</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-set">hook-cookie-set</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-settimeout">hook-settimeout</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-setinterval">hook-setinterval</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-encrypt-normal">hook-自带加解密函数</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-JSON.parse">hook-JSON.parse</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-JSON.stringify">hook-JSON.stringify</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-decodeURI">hook-decodeURI</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-decodeURIComponent">hook-decodeURIComponent</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-encodeURI">hook-encodeURI</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-encodeURIComponent">hook-encodeURIComponent</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-escape">hook-escape</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-unescape">hook-unescape</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-atob">hook-atob</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-btoa">hook-btoa</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-domobj">hook-domobj</label>
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-get">hook-domobj-显示get输出</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-set">hook-domobj-显示set输出</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-func">hook-domobj-显示func输出</label> 
+                  <br/>
+            </div>
+            <HR>
             <div id="getsets" style="float: left"></div>
             <div id="funcs" style="float: left"></div>
         </section>
@@ -29,7 +98,6 @@
             <button id='obnormal'>普通解混淆</button>
             <button id='uglify'>仅变量压缩</button>
             <button id='uglify_mini'>完全压缩脚本</button>
-            <button id='getobcode'>获取解混淆代码自己单独开发</button>
             <br/>
             <label>source</label>
             <textarea id='txt' style="width: 100%; height: 500px"></textarea>
