@@ -4,20 +4,21 @@ var obnormalbtn = document.getElementById('obnormal')
 var uglifybtn = document.getElementById('uglify')
 var uglify_minibtn = document.getElementById('uglify_mini')
 var txt = document.getElementById('txt')
+var txt2 = document.getElementById('txt2')
 
 sojsontn.addEventListener('click', function(e){
   try{
-    txt.value = muti_process_obdefusion(txt.value)
+    ;(txt2||txt).value = muti_process_obdefusion(txt.value)
   }catch(e){
-    txt.value = e.stack
+    ;(txt2||txt).value = e.stack
   }
 })
 
 obnormal.addEventListener('click', function(e){
   try{
-    txt.value = muti_process_defusion(txt.value)
+    ;(txt2||txt).value = muti_process_defusion(txt.value)
   }catch(e){
-    txt.value = e.stack
+    ;(txt2||txt).value = e.stack
   }
 })
 
@@ -44,10 +45,10 @@ uglifybtn.addEventListener('click', function(e){
           beautify: true,
       },
   })
-  txt.value = r.code?r.code:r.error;
+  ;(txt2||txt).value = r.code?r.code:r.error;
 })
 
 uglify_minibtn.addEventListener('click', function(e){
   var r = UglifyJS.minify(txt.value)
-  txt.value = r.code?r.code:r.error;
+  ;(txt2||txt).value = r.code?r.code:r.error;
 })

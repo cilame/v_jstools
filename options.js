@@ -1,6 +1,6 @@
 window.onload = function() {
     var nav = document.getElementById('nav');
-    var oNav = nav.getElementsByTagName('li');
+    var oNav = nav.getElementsByTagName('button');
     var container = document.getElementById('container');
     var oDiv = container.getElementsByClassName('tab');
     for (var i = 0; i < oNav.length; i++) {
@@ -19,38 +19,6 @@ window.onload = function() {
         }
     }
 }
-function _make_editor(ele){
-    var editor = CodeMirror(ele, {
-        lineNumbers: true,
-        mode: "javascript",
-        keyMap: "sublime",
-        autoCloseBrackets: true,
-        matchBrackets: true,
-        showCursorWhenSelecting: true,
-        theme: "monokai",
-        foldGutter: true,
-        lineWrapping: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-        scrollbarStyle: "simple",
-        tabSize: 2,
-        extraKeys: {
-            "F11": function(cm) {
-                cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-            },
-            "Esc": function(cm) {
-                if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-            },
-            "Ctrl-Q": function(cm){ 
-                cm.foldCode(cm.getCursor()); 
-            },
-        }
-    });
-}
-function _make_editors(){
-    _make_editor(document.body.getElementsByTagName("article")[0])
-    _make_editor(document.body.getElementsByTagName("article")[1])
-}
-_make_editors()
 
 
 

@@ -6,49 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <style>
-    nav li{
-        display: inline;
-        width: 24%;
-        text-decoration: none;
-        border:1px solid red;
-        padding: 15px;
+    .act{
+        background-color: #cbaeae;
     }
-    nav li: hover{
-        background-color: lightblue;
-    }
-    </style>
-
-    <link rel="stylesheet" href="./tools/codeedit/lib/codemirror.css">
-    <link rel="stylesheet" href="./tools/codeedit/addon/fold/foldgutter.css">
-    <link rel="stylesheet" href="./tools/codeedit/addon/dialog/dialog.css">
-    <link rel="stylesheet" href="./tools/codeedit/theme/monokai.css">
-    <link rel="stylesheet" href="./tools/codeedit/addon/display/fullscreen.css">
-    <link rel="stylesheet" href="./tools/codeedit/addon/scroll/simplescrollbars.css">
-    <script src="./tools/codeedit/lib/codemirror.js"></script>
-    <script src="./tools/codeedit/addon/search/searchcursor.js"></script>
-    <script src="./tools/codeedit/addon/search/search.js"></script>
-    <script src="./tools/codeedit/addon/dialog/dialog.js"></script>
-    <script src="./tools/codeedit/addon/edit/matchbrackets.js"></script>
-    <script src="./tools/codeedit/addon/edit/closebrackets.js"></script>
-    <script src="./tools/codeedit/addon/comment/comment.js"></script>
-    <script src="./tools/codeedit/addon/wrap/hardwrap.js"></script>
-    <script src="./tools/codeedit/addon/fold/foldcode.js"></script>
-    <script src="./tools/codeedit/addon/fold/brace-fold.js"></script>
-    <script src="./tools/codeedit/mode/javascript/javascript.js"></script>
-    <script src="./tools/codeedit/keymap/sublime.js"></script>
-    <script src="./tools/codeedit/addon/display/fullscreen.js"></script>
-    <script src="./tools/codeedit/addon/scroll/simplescrollbars.js"></script>
-    <style>
-        .CodeMirror {border-top: 1px solid #eee; border-bottom: 1px solid #eee; line-height: 1.3; height: 500px}
-        .CodeMirror-linenumbers { padding: 0 8px; }
     </style>
 
 </head>
 <body>
     <nav id="nav">
         <ul>
-            <li class="act">dom对象 hook 配置</li>
-            <li>AST混淆解密</li>
+            <button class="act">dom对象 hook 配置</li>
+            <button>AST混淆解密</li>
         </ul>
     </nav>
     <div id="container">
@@ -57,12 +25,22 @@
             <div id="funcs" style="float: left"></div>
         </section>
         <section class="tab">
-            <div>功能还在做</div>
-            <article></article>
-            <article></article>
+            <button id='sojson'>解密sojson混淆</button>
+            <button id='obnormal'>普通解混淆</button>
+            <button id='uglify'>仅变量压缩</button>
+            <button id='uglify_mini'>完全压缩脚本</button>
+            <button id='getobcode'>获取解混淆代码自己单独开发</button>
+            <br/>
+            <label>source</label>
+            <textarea id='txt' style="width: 100%; height: 500px"></textarea>
+            <label>code</label>
+            <textarea id='txt2' style="width: 100%; height: 2056px"></textarea>
         </section>
     </div>
     <script src="options.js"></script>
+    <script src="tools/babel_asttool.js"></script>
+    <script src="tools/uglify_es.js"></script>
+    <script src="tools/btn_utils.js"></script>
 
 </body>
 </html>
