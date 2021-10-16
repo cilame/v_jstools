@@ -43,7 +43,7 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
         }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
           if (result.body !== undefined){
-            var rescode = atob(result.body) // 收到的也是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再传入 body
+            var rescode = atob(result.body) // 收到的是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再传入 body
             console.log(rescode)
           }
           sendCommand("Fetch.fulfillRequest", {
