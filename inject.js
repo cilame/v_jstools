@@ -224,7 +224,8 @@ function injectfunc(e, window) {
   var v_unescape = unescape
   var v_atob = atob
   var v_btoa = btoa
-  var util = (typeof require!=='undefined')?require('util'):{
+  // var util = require('util')
+  var util = {
     inspect:function(e){
       var r;
       if (typeof e == 'string'){
