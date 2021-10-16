@@ -19,23 +19,11 @@
       "all_frames": true
     }
   ],
-
   "options_page": "options.html",
   "options_ui": {
     "chrome_style": false,
     "open_in_tab": true,
     "page": "options.html"
   },
-
-  // 暂时用不上
-  // "commands": {
-  //   "attach-debugger": {
-  //     "suggested_key": {
-  //       "default": "Alt+Shift+D"
-  //     },
-  //     "description": "Attach"
-  //   }
-  // },
-
   "manifest_version": 2
 }
