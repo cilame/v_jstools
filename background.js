@@ -17,7 +17,7 @@ chrome.contextMenus.create({
   }
 });
 function sendCommand(method, params, source, chainfun){
-  chrome.debugger.sendCommand(source, method, params, result => {
+  chrome.debugger.sendCommand(source, method, params, function(result){
     if (chrome.runtime.lastError) {
       console.error('chrome.runtime.lastError', chrome.runtime.lastError)
     } else {
@@ -32,7 +32,7 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
     case "Fetch.requestPaused":
       console.log("xmFetch","Fetch.requestPaused", params.request.url)
       var itheaders = params.responseHeaders;
-      if (itheaders.find(v => v.name == "Location")) {
+      if (itheaders.find(function(v){return v.name == "Location"})) {
         sendCommand("Fetch.continueRequest", { requestId: params.requestId, url: itheaders.value }, source);
         break;
       }
@@ -43,7 +43,9 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
         }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
           if (result.body !== undefined){
-            var rescode = atob(result.body) // 收到的是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再传入 body
+            // 收到的是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再用 base64 包一层再传入 body
+            // 注意，这里需要你指定一下 Disable cache 。否则可能收不到代码字符串。
+            var rescode = atob(result.body)
             console.log(rescode)
           }
           sendCommand("Fetch.fulfillRequest", {
