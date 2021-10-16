@@ -55,7 +55,10 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
       }
   }
 })
-var attached = false;
+chrome.debugger.onDetach.addListener(function(){
+  attached = false
+})
+var attached = false
 function AttachDebugger() {
   if (attached){ return }
   attached = true
@@ -64,7 +67,6 @@ function AttachDebugger() {
     function (tabs) {
       var tab = { tabId: tabs[0].id };
       chrome.debugger.attach(tab, "1.2", function () {
-        console.log('attached debugger.')
         sendCommand("Fetch.enable", { patterns: [
           {urlPattern:"*",resourceType:"Script",requestStage:"Response"} // 监听类型，目前主要监听 Script
         ] }, tab);
