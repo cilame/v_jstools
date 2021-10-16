@@ -1,14 +1,4 @@
 // background.js
-
-
-
-
-
-
-
-
-
-
 chrome.contextMenus.create({
   title: "打开 v_jstools 动态调试",
   contexts: ['all'],
