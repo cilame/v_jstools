@@ -16,8 +16,8 @@
     <nav id="nav">
         <ul>
             <button class="act">dom对象 hook 配置</button>
+            <button>高级 hook ，修改 response 返回值</button>
             <button>AST混淆解密</button>
-            <button>插件 hook 请求返回值并修改</button>
         </ul>
     </nav>
     <div id="container">
@@ -95,6 +95,16 @@
             <div id="funcs" style="float: left"></div>
         </section>
         <section class="tab">
+            <label>Fetch.enable</label>
+            <div>功能还没有做完，这里希望做成的功能是可以用插件的方式 hook 住代码，直接用插件的形式使用 ast 将原始的代码修改成期望的样子</div>
+            <div>能直接用插件的方式实现 ast 修改代码，用处还是非常大的。</div>
+            <HR>
+            <div>
+              请定义一个名字为 fetch_hook 函数，接受参数为 1.代码 2.类型 3.url，return 修改后的代码
+            </div>
+            <textarea id='fetch_hook' data-key="config-fetch_hook" style="width: 100%; height: 500px"></textarea>
+        </section>
+        <section class="tab">
             <button id='sojson'>解密sojson混淆</button>
             <button id='obnormal'>普通解混淆</button>
             <button id='uglify'>仅变量压缩</button>
@@ -104,16 +114,6 @@
             <textarea id='txt' style="width: 100%; height: 500px"></textarea>
             <label>code</label>
             <textarea id='txt2' style="width: 100%; height: 2056px"></textarea>
-        </section>
-        <section class="tab">
-            <label>Fetch.enable</label>
-            <div>功能还没有做完，这里希望做成的功能是可以用插件的方式 hook 住代码，直接用插件的形式使用 ast 将原始的代码修改成期望的样子</div>
-            <div>能直接用插件的方式实现 ast 修改代码，用处还是非常大的。</div>
-            <HR>
-            <div>
-              请定义一个名字为 fetch_hook 函数，接受参数为 1.代码 2.类型 3.url，return 修改后的代码
-            </div>
-            <textarea id='fetch_hook' data-key="config-fetch_hook" style="width: 100%; height: 500px"></textarea>
         </section>
     </div>
     <script src="options.js"></script>
