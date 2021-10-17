@@ -139,3 +139,13 @@ document.getElementById('funcs').addEventListener("change", function(v){
   })
   chrome.storage.local.set(wt)
 })
+
+var fetch_hook = document.getElementById('fetch_hook');
+chrome.storage.local.get([fetch_hook.dataset.key], function (result) {
+  fetch_hook.value = result[fetch_hook.dataset.key] || '';
+})
+fetch_hook.addEventListener("change", function(v){
+  chrome.storage.local.set({
+    [v.target.dataset.key]: v.target.value
+  })
+})

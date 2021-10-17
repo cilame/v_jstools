@@ -10,12 +10,14 @@ function sendCommand(method, params, source, chainfun){
   chrome.debugger.sendCommand(source, method, params, function(result){
     if (chrome.runtime.lastError) {
       console.error('chrome.runtime.lastError', chrome.runtime.lastError)
-    } else {
-      if (chainfun){
-        chainfun(result)
-      }
-    }
+    } else { if (chainfun){ chainfun(result) } }
   });
+}
+function fillresponse(params, source, body){
+  sendCommand("Fetch.fulfillRequest", {
+    requestId: params.requestId, responseCode: params.responseStatusCode, responseHeaders: params.responseHeaders,
+    body: body, // body 只能传 base64(指定代码) 
+  }, source);
 }
 chrome.debugger.onEvent.addListener(function (source, method, params){
   switch(method){
@@ -23,32 +25,24 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
       var itheaders = params.responseHeaders;
       if (itheaders.find(function(v){return v.name == "Location"})) {
         sendCommand("Fetch.continueRequest", { requestId: params.requestId, url: itheaders.value }, source);
-        break;
-      }
+        break; }
       if ((params.responseStatusCode || params.responseErrorReason)) {
         if (params.responseErrorReason) {
           sendCommand("Fetch.failRequest", { requestId: params.requestId, errorReason: params.responseErrorReason }, source);
-          break;
-        }
+          break; }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
-          if (result.body !== undefined){
-            // 收到的是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再用 base64 包一层再传入 body
-            var rescode = atob(result.body)
-            var resourceType = params.resourceType // 通过这里的类型对获取到的 body 信息进行处理
-            console.log(rescode.length, Object.keys(result), rescode.slice(0,100))
-          }
-          sendCommand("Fetch.fulfillRequest", {
-            requestId: params.requestId, responseCode: params.responseStatusCode, responseHeaders: params.responseHeaders,
-            body: result.body, // body 只能传 base64(指定代码) 
-          }, source);
+          if (result.body !== undefined){ // 收到的 result.body 是 base64(代码) 的代码，使用时需要解码一下
+            chrome.storage.local.get(["config-fetch_hook"], function (res) {
+              try{      fillresponse.bind(null, params, source)(btoa(eval((res["config-fetch_hook"]||'')+';fetch_hook')(atob(result.body), params.resourceType, params.request.url))) }
+              catch(e){ fillresponse.bind(null, params, source)(result.body) }
+            })
+            return }
+          fillresponse.bind(null, params, source)(result.body) // body 只能传 base64(指定代码) 
         }); 
-        break;
-      }
+        break; }
   }
 })
-chrome.debugger.onDetach.addListener(function(){
-  attached = false
-})
+chrome.debugger.onDetach.addListener(function(){ attached = false })
 var attached = false
 function AttachDebugger() {
   if (attached){ return }
@@ -61,8 +55,8 @@ function AttachDebugger() {
         // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
         sendCommand("Network.enable", {}, currtab, function(){ sendCommand("Network.setCacheDisabled", {cacheDisabled: true}, currtab)} ) // 确保 Fetch.getResponseBody 一定能收到东西
         sendCommand("Fetch.enable", { patterns: [
-          {urlPattern:"*",resourceType:"Script",requestStage:"Response"},
-          {urlPattern:"*",resourceType:"Document",requestStage:"Response"},
+          {urlPattern:"*",resourceType:"Script",requestStage:"Response"}, // 暂时先只 hook Script 类型的脚本
+          // {urlPattern:"*",resourceType:"Document",requestStage:"Response"}, 
         ] }, currtab);
       });
     }
