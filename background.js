@@ -50,14 +50,13 @@ chrome.debugger.onDetach.addListener(function(){
   attached = false
 })
 var attached = false
-var currtab;
 function AttachDebugger() {
   if (attached){ return }
   attached = true
   chrome.tabs.query(
     { active: true, currentWindow: true }, 
     function (tabs) {
-      currtab = { tabId: tabs[0].id };
+      var currtab = { tabId: tabs[0].id };
       chrome.debugger.attach(currtab, "1.2", function () {
         // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
         sendCommand("Network.enable", {}, currtab, function(){ sendCommand("Network.setCacheDisabled", {cacheDisabled: true}, currtab)} ) // 确保 Fetch.getResponseBody 一定能收到东西
