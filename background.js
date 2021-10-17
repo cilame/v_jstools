@@ -34,7 +34,6 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
           if (result.body !== undefined){
             // 收到的是 base64 的代码，base64 解一下就是原始代码，对这个代码处理一下后续再用 base64 包一层再传入 body
-            // 注意，这里需要你指定一下 Disable cache 。否则可能收不到代码字符串。
             var rescode = atob(result.body)
             console.log(rescode)
           }
@@ -59,8 +58,10 @@ function AttachDebugger() {
     function (tabs) {
       var tab = { tabId: tabs[0].id };
       chrome.debugger.attach(tab, "1.2", function () {
+        // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
         sendCommand("Fetch.enable", { patterns: [
-          {urlPattern:"*",resourceType:"Script",requestStage:"Response"} // 监听类型，目前主要监听 Script
+          {urlPattern:"*",resourceType:"Script",requestStage:"Response"},
+          {urlPattern:"*",resourceType:"Document",requestStage:"Response"},
         ] }, tab);
       });
     }
