@@ -10,6 +10,7 @@ function sendCommand(method, params, source, chainfun){
   chrome.debugger.sendCommand(source, method, params, function(result){
     if (chrome.runtime.lastError) {
       console.error('chrome.runtime.lastError', chrome.runtime.lastError)
+      if (chrome.runtime.lastError.message.indexOf('Cannot access a chrome://') != -1){ attached = false }
     } else { if (chainfun){ chainfun(result) } }
   });
 }
