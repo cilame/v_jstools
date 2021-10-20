@@ -149,3 +149,12 @@ fetch_hook.addEventListener("change", function(v){
     [v.target.dataset.key]: v.target.value
   })
 })
+
+var get_now = document.getElementById('get_now');
+get_now.addEventListener("click", function(){
+  var show_now = document.getElementById('show_now')
+  show_now.value = +new Date+''
+  chrome.storage.local.set({
+    [show_now.dataset.key]: show_now.value
+  })
+})

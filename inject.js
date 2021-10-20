@@ -42,6 +42,40 @@ function injectfunc(e, window) {
   function get_log_at(log_at){
     return attoggle?(' '.repeat(30)+log_at):''
   }
+  if (e["config-hook-random"] && e["config-hook-random-freeze"]){
+    Math.random = saf(function random(){ return 0.5 })
+  }
+  if (e["config-hook-random"] && e["config-hook-random-fake"]){
+    Math.random = saf((function(seed){ return function random() { return (seed = (seed * 9301 + 49297) % 233280) / 233280 } })(123))
+  }
+  if (e["config-hook-random"] && e["config-hook-time-freeze"]){
+    var v_Date = Date
+    var ftime = +e["config-hook-time-freeze-number"]
+    Date = function(_Date) {
+      var bind = Function.bind;
+      var unbind = bind.bind(bind);
+      function instantiate(constructor, args) {
+        return new (unbind(constructor, null).apply(null, args));
+      }
+      var names = Object.getOwnPropertyNames(_Date);
+      for (var i = 0; i < names.length; i++) {
+        if (names[i]in Date)
+          continue;
+        var desc = Object.getOwnPropertyDescriptor(_Date, names[i]);
+        Object.defineProperty(Date, names[i], desc);
+      }
+      return saf(Date);
+      function Date() {
+        var date = instantiate(_Date, [ftime]); // 固定返回某一个时间点
+        return date;
+      }
+    }(Date);
+    Date.now = saf(function now(){ return ftime })
+  }
+  if (e["config-hook-random"] && e["config-hook-time-performance"]){
+    var v_perfnow = 1024 // 固定返回一个数字
+    Performance.prototype.now = saf(function now(){ return v_perfnow })
+  }
 
   var toggle = true
   if (e["config-hook-alt-w"]) {
@@ -150,6 +184,7 @@ function injectfunc(e, window) {
             if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
             }
+            if (e["config-hook-cookie-add-debugger"]){ debugger }
           }
         }
         return r
@@ -163,6 +198,7 @@ function injectfunc(e, window) {
             if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
             }
+            if (e["config-hook-cookie-add-debugger"]){ debugger }
           }
         }
         return _old_cookie_set.apply(this, arguments)
@@ -347,11 +383,18 @@ var hookers = [
   "config-hook-Function",
   "config-hook-eval",
   "config-hook-remove-dyn-debugger",
-  "config-hook-cookie",
-  "config-hook-cookie-get",
-  "config-hook-cookie-set",
   "config-hook-settimeout",
   "config-hook-setinterval",
+  "config-hook-random",
+  "config-hook-random-freeze",
+  "config-hook-random-fake",
+  "config-hook-time-performance",
+  "config-hook-time-freeze",
+  "config-hook-time-freeze-number",
+  "config-hook-cookie",
+  "config-hook-cookie-add-debugger",
+  "config-hook-cookie-get",
+  "config-hook-cookie-set",
   "config-hook-encrypt-normal",
   "config-hook-JSON.parse",
   "config-hook-JSON.stringify",

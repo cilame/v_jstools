@@ -35,6 +35,24 @@
                   <br/>
                   <label ><input type="checkbox" data-key="config-hook-remove-dyn-debugger">remove-dyn-debugger(need selected "hook-Function" or "hook-eval")</label> 
                   <br/>
+                  <label ><input type="checkbox" data-key="config-hook-settimeout">hook-settimeout</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-setinterval">hook-setinterval</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-random">是否启用启用下面三种调试功能</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-random-freeze">config-hook-random（让 random 函数固定返回 0.5）</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-random-fake">config-hook-random（让 random 变成伪随机函数。如果已经配置了该伪随机，则会覆盖上面的 0.5）</label> 
+                  <br/>
+                  <label style="margin-left: 20px">
+                    <input type="checkbox" data-key="config-hook-time-freeze">config-hook-time（时间函数返回的值固定成一个数字）
+                    <input style="width: 150px" type="text" data-key="config-hook-time-freeze-number" id="show_now">
+                    <button style="padding: 0px" id="get_now">获取当前时间戳用于固定时间 (注意！！！由于固定时间可能会影响到cookie设置，所以请生成一个当前时间戳再行使用)</button>
+                  </label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-time-performance">config-hook-performance-now（这个时间函数返回的值固定成一个数字）</label> 
+                  <br/>
                   <div style="border: 1px solid red; margin: 1px">
                     <div style="margin: 1px; color: red">
                       此处的两个配置会影响后面的全部挂钩操作
@@ -45,21 +63,18 @@
                     <div style="margin: 1px">
                       <input style="width: 98%" type="text" data-key="config-hook-regexp-url">
                     </div>
-                    <div style="margin: 1px">
-                      <label ><input type="checkbox" data-key="config-hook-log-at">hook-log-at（是否输出函数触发地址）</label> 
-                    </div>
                   </div>
-                  <label ><input type="checkbox" data-key="config-hook-cookie">hook-cookie</label> 
+                  <label ><input type="checkbox" data-key="config-hook-log-at">是否在调试输出时，输出函数出发的地址</label> 
+                  <br/>
+                  <label ><input type="checkbox" data-key="config-hook-cookie">是否对 cookie 进行挂钩调试输出</label> 
+                  <br/>
+                  <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-add-debugger">hook-cookie-add-debugger</label> 
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-get">hook-cookie-get</label> 
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-cookie-set">hook-cookie-set</label> 
                   <br/>
-                  <label ><input type="checkbox" data-key="config-hook-settimeout">hook-settimeout</label> 
-                  <br/>
-                  <label ><input type="checkbox" data-key="config-hook-setinterval">hook-setinterval</label> 
-                  <br/>
-                  <label ><input type="checkbox" data-key="config-hook-encrypt-normal">hook-自带加解密函数</label> 
+                  <label ><input type="checkbox" data-key="config-hook-encrypt-normal">是否启用下面几个加解密函数挂钩输出功能</label> 
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-JSON.parse">hook-JSON.parse</label> 
                   <br/>
@@ -81,7 +96,7 @@
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-btoa">hook-btoa</label> 
                   <br/>
-                  <label ><input type="checkbox" data-key="config-hook-domobj">hook-domobj</label>
+                  <label ><input type="checkbox" data-key="config-hook-domobj">是否启用挂钩 DOM 对象的原型的功能调试输出</label>
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-domobj-get">hook-domobj-显示get输出</label> 
                   <br/>
