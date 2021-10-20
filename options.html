@@ -39,7 +39,7 @@
                   <br/>
                   <label ><input type="checkbox" data-key="config-hook-setinterval">hook-setinterval</label> 
                   <br/>
-                  <label ><input type="checkbox" data-key="config-hook-random">是否启用启用下面三种调试功能</label> 
+                  <label ><input type="checkbox" data-key="config-hook-random">是否启用启用下面四种调试功能（用于固定随机性，便于对比调试）</label> 
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-random-freeze">config-hook-random（让 random 函数固定返回 0.5）</label> 
                   <br/>
@@ -47,8 +47,8 @@
                   <br/>
                   <label style="margin-left: 20px">
                     <input type="checkbox" data-key="config-hook-time-freeze">config-hook-time（时间函数返回的值固定成一个数字）
-                    <input style="width: 150px" type="text" data-key="config-hook-time-freeze-number" id="show_now">
-                    <button style="padding: 0px" id="get_now">获取当前时间戳用于固定时间 (注意！！！由于固定时间可能会影响到cookie设置，所以请生成一个当前时间戳再行使用)</button>
+                    <input style="width: 150px; height: 12px" type="text" data-key="config-hook-time-freeze-number" id="show_now">
+                    <button style="padding: 0px; height: 20px" id="get_now">获取当前时间戳用于固定时间 (注意！！！由于固定时间可能会影响到cookie设置，所以请生成一个当前时间戳再行使用)</button>
                   </label> 
                   <br/>
                   <label style="margin-left: 20px"><input type="checkbox" data-key="config-hook-time-performance">config-hook-performance-now（这个时间函数返回的值固定成一个数字）</label> 
