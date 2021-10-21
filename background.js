@@ -36,10 +36,10 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
           if (result.body !== undefined){ // 收到的 result.body 是 base64(代码) 的代码，使用时需要解码一下
             chrome.storage.local.get(["config-fetch_hook"], function (res) {
               try{
-                var respboby = atob(result.body)
+                var respboby = decodeURIComponent(escape(atob(result.body)))
                 var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
                 if (params.resourceType == 'Script'){   var replbody = btoa(replacer(respboby, params.request.url)) }
-                if (params.resourceType == 'Document'){ var replbody = btoa(html_script_replacer(respboby, replacer, params.request.url)) }
+                if (params.resourceType == 'Document'){ var replbody = btoa(unescape(encodeURIComponent(html_script_replacer(respboby, replacer, params.request.url)))) }
                 fillfunc(replbody) }
               catch(e){ 
                 send_error_info_to_front(e.stack, currtab.tabId)
