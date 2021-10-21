@@ -13,8 +13,8 @@ function html_script_replacer(body, replacer, url){
       continue
     }
     var jscode = ''
-    for (var i = 0; i < script.children.length; i++) {
-      jscode += script.children[i].data
+    for (var j = 0; j < script.children.length; j++) {
+      jscode += script.children[j].data
     }
     if (!jscode){
       return
