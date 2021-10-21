@@ -32,13 +32,23 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
           sendCommand("Fetch.failRequest", { requestId: params.requestId, errorReason: params.responseErrorReason }, source);
           break; }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
+          var fillfunc = fillresponse.bind(null, params, source)
           if (result.body !== undefined){ // 收到的 result.body 是 base64(代码) 的代码，使用时需要解码一下
             chrome.storage.local.get(["config-fetch_hook"], function (res) {
-              try{      fillresponse.bind(null, params, source)(btoa(eval((res["config-fetch_hook"]||'')+';fetch_hook')(atob(result.body), params.resourceType, params.request.url))) }
-              catch(e){ fillresponse.bind(null, params, source)(result.body) }
+              try{
+                var respboby = atob(result.body)
+                var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
+                if (params.resourceType == 'Script'){   var replbody = btoa(replacer(respboby, params.request.url)) }
+                if (params.resourceType == 'Document'){ var replbody = btoa(html_script_replacer(respboby, replacer, params.request.url)) }
+                fillfunc(replbody) 
+              }
+              catch(e){ 
+                // hook 修改失败，将错误信息传入前端，直接在前端反馈错误信息
+                fillfunc(result.body) 
+              }
             })
             return }
-          fillresponse.bind(null, params, source)(result.body) // body 只能传 base64(指定代码) 
+          fillfunc(result.body) // body 只能传 base64(指定代码) 
         }); 
         break; }
   }
@@ -53,11 +63,11 @@ function AttachDebugger() {
     function (tabs) {
       var currtab = { tabId: tabs[0].id };
       chrome.debugger.attach(currtab, "1.2", function () {
-        // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
         sendCommand("Network.enable", {}, currtab, function(){ sendCommand("Network.setCacheDisabled", {cacheDisabled: true}, currtab)} ) // 确保 Fetch.getResponseBody 一定能收到东西
         sendCommand("Fetch.enable", { patterns: [
-          {urlPattern:"*",resourceType:"Script",requestStage:"Response"}, // 暂时先只 hook Script 类型的脚本
-          // {urlPattern:"*",resourceType:"Document",requestStage:"Response"}, 
+          // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
+          {urlPattern:"*",resourceType:"Script",requestStage:"Response"}, // 暂时先只 hook 少量携带 js 数据类型的请求
+          {urlPattern:"*",resourceType:"Document",requestStage:"Response"}, 
         ] }, currtab);
       });
     }
