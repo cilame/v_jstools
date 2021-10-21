@@ -40,12 +40,10 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
                 var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
                 if (params.resourceType == 'Script'){   var replbody = btoa(replacer(respboby, params.request.url)) }
                 if (params.resourceType == 'Document'){ var replbody = btoa(html_script_replacer(respboby, replacer, params.request.url)) }
-                fillfunc(replbody) 
-              }
+                fillfunc(replbody) }
               catch(e){ 
-                // hook 修改失败，将错误信息传入前端，直接在前端反馈错误信息
-                fillfunc(result.body) 
-              }
+                send_error_info_to_front(e.stack, currtab.tabId)
+                fillfunc(result.body) }
             })
             return }
           fillfunc(result.body) // body 只能传 base64(指定代码) 
@@ -55,13 +53,14 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
 })
 chrome.debugger.onDetach.addListener(function(){ attached = false })
 var attached = false
+var currtab;
 function AttachDebugger() {
   if (attached){ return }
   attached = true
   chrome.tabs.query(
     { active: true, currentWindow: true }, 
     function (tabs) {
-      var currtab = { tabId: tabs[0].id };
+      currtab = { tabId: tabs[0].id };
       chrome.debugger.attach(currtab, "1.2", function () {
         sendCommand("Network.enable", {}, currtab, function(){ sendCommand("Network.setCacheDisabled", {cacheDisabled: true}, currtab)} ) // 确保 Fetch.getResponseBody 一定能收到东西
         sendCommand("Fetch.enable", { patterns: [

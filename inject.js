@@ -439,3 +439,8 @@ chrome.storage.local.get(hookers, function (result) {
   inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
 })
 
+chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
+  if (msg.action.type == 'error'){
+    inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
+  }
+});
