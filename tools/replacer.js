@@ -12,6 +12,9 @@ function html_script_replacer(body, replacer, url){
     if (!script.children.length){
       continue
     }
+    if (script.attribs.type != 'text/javascript' && script.attribs.type !== undefined){
+      continue
+    }
     var jscode = ''
     for (var j = 0; j < script.children.length; j++) {
       jscode += script.children[j].data
