@@ -27,8 +27,6 @@ function injectfunc(e, window) {
     saf=function(n,m){return r(n,i,`function ${m?m:n.name||""}() { [native code] }`),n;};
   }();
 
-  if (e["config-hook-global"]) {
-  }else{return}
   if (e["config-hook-test"]) {
     debugger
   }
@@ -435,8 +433,10 @@ function inject_script(code){
 }
 
 chrome.storage.local.get(hookers, function (result) {
-  var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
-  inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
+  if (result["config-hook-global"]){
+    var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
+    inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
+  }
 })
 
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
