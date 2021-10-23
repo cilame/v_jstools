@@ -50,12 +50,22 @@
       }
       return r
     }
+    var unlogs = [
+      'undefined',
+    ]
+    // var unlimits = [
+    //   'module',
+    //   'define',
+    //   'global',
+    //   'process',
+    // ]
     var win = new Proxy(_win, {
       has: function(a,b){ return true },
       set: function(a,b,c){ return filter_log('window set', b, c), window[b]=c },
       get: function(a,b){
         var r = mainobj(b)
-        if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive)){ filter_log('window', 'get', b, r) }
+        if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive || unlogs.indexOf(b) != -1)){ filter_log('window', 'get', b, r) }
+        if (typeof r == 'function' && !r.prototype){ return r.bind(window) }
         return r
       },
     })
@@ -63,10 +73,10 @@
       has: function(a,b){ return true },
       set: function(a,b,c){ return filter_log('window set', b, c), window[b]=c },
       get: function(a,b){
-        if (!(b in window) && typeof b != 'symbol'){ throw ReferenceError(b + ' is not defined') } // win 和 interceptor 的区别在这里
+        // if (!(b in window) && typeof b != 'symbol' && unlimits.indexOf(b) == -1){ throw ReferenceError(b + ' is not defined') } // win 和 interceptor 的区别在这里
         var r = mainobj(b)
-        if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive)){ filter_log('window', 'get', b, r) }
-        if (typeof r == 'function'){ return r.bind(window) }
+        if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive || unlogs.indexOf(b) != -1)){ filter_log('window', 'get', b, r) }
+        if (typeof r == 'function' && !r.prototype){ return r.bind(window) }
         return r
       },
     })
