@@ -3,11 +3,12 @@
   var cache = {}
   function make_cache_hooker(obj, name){
     if (name in cache){ return cache[name] }
-    return cache[name] = new Proxy({}, {
-      set: function(a,b,c){ return filter_log('set', b, c), window[b]=c },
+    return cache[name] = new Proxy(obj, {
+      set: function(a,b,c){ return filter_log('set', b, c), obj[b]=c },
       get: function(a,b){
         var r = obj[b]
         if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive)){ filter_log(name, 'get', b, r) }
+        if (typeof r == 'function'){ return r.bind(obj) }
         return r
       },
     })
@@ -65,6 +66,7 @@
         if (!(b in window) && typeof b != 'symbol'){ throw ReferenceError(b + ' is not defined') } // win 和 interceptor 的区别在这里
         var r = mainobj(b)
         if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive)){ filter_log('window', 'get', b, r) }
+        if (typeof r == 'function'){ return r.bind(window) }
         return r
       },
     })
