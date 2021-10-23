@@ -38,7 +38,7 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
               try{
                 var respboby = decodeURIComponent(escape(atob(result.body)))
                 var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
-                if (params.resourceType == 'Script'){   var replbody = btoa(replacer(respboby, params.request.url)) }
+                if (params.resourceType == 'Script'){   var replbody = btoa(unescape(encodeURIComponent(replacer(respboby, params.request.url)))) }
                 if (params.resourceType == 'Document'){ var replbody = btoa(unescape(encodeURIComponent(html_script_replacer(respboby, replacer, params.request.url)))) }
                 fillfunc(replbody) }
               catch(e){ 
