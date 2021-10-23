@@ -42,7 +42,7 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
                 if (params.resourceType == 'Document'){ var replbody = btoa(unescape(encodeURIComponent(html_script_replacer(respboby, replacer, params.request.url)))) }
                 fillfunc(replbody) }
               catch(e){ 
-                send_error_info_to_front(e.stack, currtab.tabId)
+                send_error_info_to_front(e.stack, currtab.tabId, params.request.url)
                 fillfunc(result.body) }
             })
             return }
