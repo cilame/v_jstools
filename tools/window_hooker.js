@@ -81,26 +81,25 @@
       },
     })
     window.globalThisWindow = _win
+    window.globalThisInterceptor = interceptor
     return Object.defineProperty(_win, 'v_run', {set:function(v){ v.call(win, interceptor) }})
   }
   return make_fake_window()
-})().v_run = function(inter){
+})()
+
+
+// 第一种挂钩方式，能 hook 住最外层的 this ，不过有缺陷，this 也只能挂在最外一层，内层就基本挂钩不了。
+// 另外，因为代码都放在函数内部，导致函数定义只能在内部调用。跨脚本调用基本是别想了。
+window.globalThisWindow.v_run = function(inter){
 with (inter){
-/////////////////////////////////////////
-
-
-
-
-
-
-// 将需要被 window hook 的代码放在这里面
 console.log(this == window)
 console.log(window.a)
-
-
-
-
-
-
-/////////////////////////////////////////
 }},1
+
+
+
+// 第二种挂钩方式，直接放弃挂钩 this 的可能，这样函数定义可以跨脚本调用，某种程度上具有鲁棒性，不过 this 这块的很难绕过。
+with (window.globalThisInterceptor){
+console.log(this == window)
+console.log(window.a)
+}
