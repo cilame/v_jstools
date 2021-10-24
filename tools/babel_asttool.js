@@ -32302,7 +32302,7 @@ function FormatMember(path) {
         return;
     if(curNode.computed === undefined || !curNode.computed === true)
         return;
-    if (!/[a-zA-Z_$][0-9a-zA-Z_$]*/.test(curNode.property.value))
+    if (!/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(curNode.property.value))
         return;
     curNode.property = t.identifier(curNode.property.value);
     curNode.computed = false;
