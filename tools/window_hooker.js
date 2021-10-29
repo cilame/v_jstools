@@ -1,4 +1,21 @@
 // 暂时还在考虑的一种 window hook 方式。需要配合全局 ast 代码修改的方式
+function fetch_hook(code){
+  var newn = t.ConditionalExpression(
+    t.BinaryExpression('===', t.ThisExpression(), t.Identifier('v_window')), 
+    t.Identifier('v_win'), 
+    t.ThisExpression()
+  )
+  function protect_this(path){
+    var node = path.node
+    path.replaceWith(newn)
+    path.stop()
+  }
+  var ast = parser.parse(code, {allowReturnOutsideFunction: true});
+  traverse(ast, {ThisExpression: protect_this});
+  var { code } = generator(ast, { jsescOption: { minimal: true, } });
+  return `
+
+// 暂时还在考虑的一种 window hook 方式。需要配合全局 ast 代码修改的方式
 ;(function(){
   var cache = {}
   function make_cache_hooker(obj, name){
@@ -14,8 +31,8 @@
     })
   }
   var filter_log = console.log
-  function make_fake_window(){
-    if (window.globalThisWindow){ return window.globalThisWindow }
+  !function make_fake_window(){
+    if (window.v_win){ return }
     var _win = {}
     function mainobj(b, r){
       switch(b){
@@ -52,13 +69,9 @@
     }
     var unlogs = [
       'undefined',
+      'v_window',
     ]
-    // var unlimits = [
-    //   'module',
-    //   'define',
-    //   'global',
-    //   'process',
-    // ]
+    var localeval = eval
     var win = new Proxy(_win, {
       has: function(a,b){ return true },
       set: function(a,b,c){ return filter_log('window set', b, c), window[b]=c },
@@ -70,36 +83,27 @@
       },
     })
     var interceptor = new Proxy(_win, { 
-      has: function(a,b){ return true },
+      has: function(a,b){ return b in window }, // win 和 interceptor 的区别在这里
       set: function(a,b,c){ return filter_log('window set', b, c), window[b]=c },
       get: function(a,b){
-        // if (!(b in window) && typeof b != 'symbol' && unlimits.indexOf(b) == -1){ throw ReferenceError(b + ' is not defined') } // win 和 interceptor 的区别在这里
+        if (!(b in window) && typeof b != 'symbol'){ throw ReferenceError(b + ' is not defined') } // win 和 interceptor 的区别在这里
         var r = mainobj(b)
         if (!(b == Symbol.unscopables || b == Symbol.toStringTag || b == Symbol.toPrimitive || unlogs.indexOf(b) != -1)){ filter_log('window', 'get', b, r) }
         if (typeof r == 'function' && !r.prototype){ return r.bind(window) }
         return r
       },
     })
-    window.globalThisWindow = _win
-    window.globalThisInterceptor = interceptor
-    return Object.defineProperty(_win, 'v_run', {set:function(v){ v.call(win, interceptor) }})
-  }
-  return make_fake_window()
+    window.v_win = win
+    window.v_interceptor = interceptor
+    window.v_window = window
+    // window.v_eval = eval
+  }()
 })()
 
 
-// 第一种挂钩方式，能 hook 住最外层的 this ，不过有缺陷，this 也只能挂在最外一层，内层就基本挂钩不了。
-// 另外，因为代码都放在函数内部，导致函数定义只能在内部调用。跨脚本调用基本是别想了。
-window.globalThisWindow.v_run = function(inter){
-with (inter){
-console.log(this == window)
-console.log(window.a)
-}},1
+with (window.v_interceptor){
+${code}
+}
 
-
-
-// 第二种挂钩方式，直接放弃挂钩 this 的可能，这样函数定义可以跨脚本调用，某种程度上具有鲁棒性，不过 this 这块的很难绕过。
-with (window.globalThisInterceptor){
-console.log(this == window)
-console.log(window.a)
+`
 }
