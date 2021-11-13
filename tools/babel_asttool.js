@@ -32628,6 +32628,16 @@ function ClearDeadCode(path){
     }
 }
 
+function And2If(path){
+    if (path.node.expression.type === 'LogicalExpression'){
+        var left = path.node.expression.left
+        var right = path.node.expression.right
+        if (path.node.expression.operator == '&&'){
+            path.replaceWith(t.IfStatement(left, t.BlockStatement([t.ExpressionStatement(right)])))
+        }
+    }
+}
+
 function AddCatchLog(path){
     var err_name = path.node.param.name
     path.node.body.body.unshift({
@@ -32788,6 +32798,7 @@ function muti_process_defusion(jscode){
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
+    traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
     traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
@@ -32813,6 +32824,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
+    traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
     traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
