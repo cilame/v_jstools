@@ -52,3 +52,8 @@ uglify_minibtn.addEventListener('click', function(e){
   var r = UglifyJS.minify(txt.value)
   ;(txt2||txt).value = r.code?r.code:r.error;
 })
+
+var envb = document.getElementById('env');
+envb.addEventListener('dblclick', function(e){
+  ;(txt2||txt).value = '!'+v_mk+'()';
+})
