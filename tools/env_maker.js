@@ -1379,6 +1379,21 @@ window[_y].getComputedStyle = function(element, pseudoElt){
   return element.style
 }
 
+HTMLScriptElement._init = function(_this){
+  _this[_y].src = ''
+  _this[_y].type = ''
+  _this[_y].noModule = false
+  _this[_y].charset = 
+  _this[_y].async = true
+  _this[_y].defer = false
+  _this[_y].crossOrigin = null
+  _this[_y].text = ''
+  _this[_y].referrerPolicy = null
+  _this[_y].event = ''
+  _this[_y].htmlFor = ''
+  _this[_y].integrity = ''
+}
+
 window[_y].listeners = {} // 全部监听事件，方便管理
 function v_hook_getElement(e){
   e[_y].getElementById = function(){return window[_y].v_getele(...arguments)}
