@@ -959,7 +959,7 @@ window[_y].parent            = window
 window[_y].self              = window
 window[_y].top               = window
 window[_y].caches            = init_CacheStorage('caches')
-window[_y].clientInformation = init_Navigator('clientInformation')
+window[_y].clientInformation = init_Navigator('navigator')
 window[_y].cookieStore       = init_CookieStore('cookieStore')
 window[_y].crypto            = init_Crypto('crypto')
 window[_y].customElements    = init_CustomElementRegistry('customElements')
@@ -970,7 +970,7 @@ window[_y].indexedDB         = init_IDBFactory('indexedDB')
 window[_y].localStorage      = v_hook_storage(init_Storage('localStorage'), 'localStorage')
 window[_y].locationbar       = init_BarProp('locationbar')
 window[_y].menubar           = init_BarProp('menubar')
-window[_y].navigator         = init_Navigator('navigator')
+window[_y].navigator         = window[_y].clientInformation
 window[_y].performance       = init_Performance('performance')
 window[_y].personalbar       = init_BarProp('personalbar')
 window[_y].screen            = init_Screen('screen')
@@ -2086,12 +2086,15 @@ Reflect.ownKeys = saf(function ownKeys(){
   }
 })
 
+document[_y].visibilityState = 'visible'
 document[_y].body[_y].clientTop = 0
 document[_y].body[_y].clientLeft = 0
 document[_y].body[_y].clientHeight = 2416
 document[_y].body[_y].clientWidth = 1707
 document[_y].body[_y].scrollTop = 0
 document[_y].body[_y].scrollLeft = 0
+document[_y].documentElement[_y].clientHeight = 1273
+document[_y].documentElement[_y].clientWidth = 2543
 
 // 通过一个函数挂钩所有以下的内置函数，通过修改 window[_y].v_getele 函数做对应代码的定制处理
 // getElementById
