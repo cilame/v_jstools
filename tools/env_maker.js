@@ -317,7 +317,7 @@ var _m = function(){try{
     var linfo = Error()
     var line = linfo.stack.split('\\n')[4]
     var lines = /([^\\(\\) ]+):\\d+:\\d+/.exec(line)
-    var line = lines?line.replace(lines[0], lines[0].replace(lines[1], encodeURI('file:///' + lines[1].replace(/\\\\/g, '/')))):''
+    var line = lines?line.replace(lines[0], lines[0].replace(lines[1], v_encodeURI('file:///' + lines[1].replace(/\\\\/g, '/')))):''
   }else{
     var line = ''
   }
@@ -2100,8 +2100,8 @@ window[_y].v_getlist = []
 window[_y].v_getele = function(a,b,c,d,e){
   a = a.toLowerCase()
   // 定制处理
-  for (var i = 0; i < window.v_getlist.length; i++) {
-    var t = window.v_getlist[i]
+  for (var i = 0; i < window[_y].v_getlist.length; i++) {
+    var t = window[_y].v_getlist[i]
     if (t[0] == a){
       return t[1](a)
     }
@@ -2119,8 +2119,8 @@ window[_y].v_getele = function(a,b,c,d,e){
 window[_y].v_getlists = []
 window[_y].v_geteles = function(a,b,c,d,e){
   a = a.toLowerCase()
-  for (var i = 0; i < window.v_getlists.length; i++) {
-    var t = window.v_getlists[i]
+  for (var i = 0; i < window[_y].v_getlists.length; i++) {
+    var t = window[_y].v_getlists[i]
     if (t[0] == a){
       return t[1](a)
     }
@@ -2172,7 +2172,7 @@ window = cilame(this)
 
 // 注入全局，方便后面搞成库直接用 require 就能拿到内容。
 window.v_getlist = window[_y].v_getlist
-window.v_getlists = window[_y].v_getlist
+window.v_getlists = window[_y].v_getlists
 window.v_requests = {
   'xmllist': window[_y].XMLHttpRequestList,
   'xmlsend': window[_y].XMLHttpRequestListSend,
