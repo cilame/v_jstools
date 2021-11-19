@@ -1804,15 +1804,25 @@ WebGLRenderingContext._init = function(_this){
       get UNMASKED_VENDOR_WEBGL(){_bl('  >>> get UNMASKED_VENDOR_WEBGL 37445');_this[_y]._toggle[37445]=1;return 37445}
       get UNMASKED_RENDERER_WEBGL(){_bl('  >>> get UNMASKED_RENDERER_WEBGL 37446');_this[_y]._toggle[37446]=1;return 37446}
     }
+    saf_class(WebGLDebugRendererInfo)
     class EXTTextureFilterAnisotropic{}
+    class WebGLLoseContext{
+    	loseContext(){_bl('  (*) loseContext ===> return undefined')}
+    	restoreContext(){_bl('  (*) restoreContext ===> return undefined')}
+    }
+    saf_class(WebGLLoseContext)
     // 这里补着有点累，就随便了
     if (key == 'WEBGL_debug_renderer_info'){
       var r = new WebGLDebugRendererInfo
     }
-    if (key == 'EXT_texture_filter_anisotropic'){
+    else if (key == 'EXT_texture_filter_anisotropic'){
       var r = new EXTTextureFilterAnisotropic
     }
-    var r = new WebGLDebugRendererInfo
+    else if (key == 'WEBGL_lose_context'){
+    	var r = new WebGLLoseContext
+    }else{
+    	var r = new WebGLDebugRendererInfo
+    }
     return hook_obj(r)
   }
   _this[_y].getParameter = function(key){
