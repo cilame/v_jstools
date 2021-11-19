@@ -294,8 +294,9 @@ var _odt = Object.defineProperty
 var _ojk = Object.keys
 var _sfy = JSON.stringify
 var _iar = Array.isArray
-var _tpe = function(x){var r=TypeError(x);r.stack=\`Uncaught TypeError: Illegal invocation\\n    at \${location[_y].origin+'/fake.js'}:4:9\\n    at \${location[_y].origin+'/fake.js'}:599:2\`;return r}
-var _ntpe = function(r){r = new TypeError('Illegal constructor');r.stack=\`Uncaught TypeError: Illegal constructor\\n    at \${location[_y].origin+'/fake.js'}:4:9\\n    at \${location[_y].origin+'/fake.js'}:599:2\`;return r}
+var _ter = TypeError
+var _tpe = function(x){var r=_ter(x);r.stack=`Uncaught TypeError: ${x}\n    at ${location[_y].origin+'/fake.js'}:4:9\n    at ${location[_y].origin+'/fake.js'}:599:2`;return r}
+var _ntpe = function(x){var r=_ter(x);r.stack=`Uncaught TypeError: ${x}\n    at ${location[_y].origin+'/fake.js'}:4:9\n    at ${location[_y].origin+'/fake.js'}:599:2`;return r}
 var _buf = Buffer
 var _w = 'writable'
 var _e = 'enumerable'
@@ -947,7 +948,7 @@ function v_hook_storage(e){
   e[_y].key        = function(key){       return Object.keys(e)[key||0];} 
   e[_y].removeItem = function(key){       delete e[key];}
   _odt(e[_y], 'length', {get: function(){
-    if(e===Storage.prototype){ throw TypeError('Illegal invocation') }return Object.keys(e).length
+    if(e===Storage.prototype){ throw _tpe('Illegal invocation') }return Object.keys(e).length
   }})
   return new Proxy(e,{ set:function(a,b,c){ return a[b]=String(c)}, get:function(a,b){ return a[b]},})
 }
@@ -1234,31 +1235,31 @@ delete console.Console
 console.memory = MemoryInfo._new()
 
 // performance 的时间校准模拟
-performance[_y].timeOrigin = _ti + 0.333
-performance[_y].timing[_y].navigationStart = _ti
-performance[_y].timing[_y].unloadEventStart = _ti + 11
-performance[_y].timing[_y].unloadEventEnd = _ti + 11
-performance[_y].timing[_y].redirectStart = 0
-performance[_y].timing[_y].redirectEnd = 0
-performance[_y].timing[_y].fetchStart = _ti + 1
-performance[_y].timing[_y].domainLookupStart = _ti + 1
-performance[_y].timing[_y].domainLookupEnd = _ti + 1
-performance[_y].timing[_y].connectStart = _ti + 1
-performance[_y].timing[_y].connectEnd = _ti + 1
-performance[_y].timing[_y].secureConnectionStart = 0
-performance[_y].timing[_y].requestStart = _ti + 5
-performance[_y].timing[_y].responseStart = _ti + 7
-performance[_y].timing[_y].responseEnd = _ti + 8
-performance[_y].timing[_y].domLoading = _ti + 15
-performance[_y].timing[_y].domInteractive = _ti + 50
-performance[_y].timing[_y].domContentLoadedEventStart = _ti + 50
-performance[_y].timing[_y].domContentLoadedEventEnd = _ti + 50
-performance[_y].timing[_y].domComplete = _ti + 50
-performance[_y].timing[_y].loadEventStart = _ti + 51
-performance[_y].timing[_y].loadEventEnd = _ti + 51
+_odt(performance[_y], 'timeOrigin', {get(){return _ti + 0.333}})
+_odt(performance[_y].timing[_y], 'navigationStart', {get(){return _ti}})
+_odt(performance[_y].timing[_y], 'unloadEventStart', {get(){return _ti + 11}})
+_odt(performance[_y].timing[_y], 'unloadEventEnd', {get(){return _ti + 11}})
+_odt(performance[_y].timing[_y], 'redirectStart', {get(){return 0}})
+_odt(performance[_y].timing[_y], 'redirectEnd', {get(){return 0}})
+_odt(performance[_y].timing[_y], 'fetchStart', {get(){return _ti + 1}})
+_odt(performance[_y].timing[_y], 'domainLookupStart', {get(){return _ti + 1}})
+_odt(performance[_y].timing[_y], 'domainLookupEnd', {get(){return _ti + 1}})
+_odt(performance[_y].timing[_y], 'connectStart', {get(){return _ti + 1}})
+_odt(performance[_y].timing[_y], 'connectEnd', {get(){return _ti + 1}})
+_odt(performance[_y].timing[_y], 'secureConnectionStart', {get(){return 0}})
+_odt(performance[_y].timing[_y], 'requestStart', {get(){return _ti + 5}})
+_odt(performance[_y].timing[_y], 'responseStart', {get(){return _ti + 7}})
+_odt(performance[_y].timing[_y], 'responseEnd', {get(){return _ti + 8}})
+_odt(performance[_y].timing[_y], 'domLoading', {get(){return _ti + 15}})
+_odt(performance[_y].timing[_y], 'domInteractive', {get(){return _ti + 50}})
+_odt(performance[_y].timing[_y], 'domContentLoadedEventStart', {get(){return _ti + 50}})
+_odt(performance[_y].timing[_y], 'domContentLoadedEventEnd', {get(){return _ti + 50}})
+_odt(performance[_y].timing[_y], 'domComplete', {get(){return _ti + 50}})
+_odt(performance[_y].timing[_y], 'loadEventStart', {get(){return _ti + 51}})
+_odt(performance[_y].timing[_y], 'loadEventEnd', {get(){return _ti + 51}})
 performance[_y].getEntriesByType = function(key){
   if (key === undefined){
-    throw TypeError(\`Failed to execute 'getEntriesByType' on 'Performance': 1 argument required, but only 0 present.\`)
+    throw _tpe(\`Failed to execute 'getEntriesByType' on 'Performance': 1 argument required, but only 0 present.\`)
   }
   return []
 }
@@ -1301,7 +1302,7 @@ window[_y].performance[_y]['cache'] = [PerformanceNavigationTiming._new()]
 window[_y].performance[_y].mark = function(name){
   var _this = window[_y].performance
   if (name === undefined){
-    throw TypeError(\`Failed to execute 'mark' on 'Performance': 1 argument required, but only 0 present.\`)
+    throw _tpe(\`Failed to execute 'mark' on 'Performance': 1 argument required, but only 0 present.\`)
   }
   var r = PerformanceMark._new()
   r[_y].detail = null
@@ -1354,7 +1355,7 @@ HTMLCollection._init = function(_this){
   }})
   _this[_y].item = function(e){
     if (!arguments.length){
-      throw TypeError("Failed to execute 'item' on 'HTMLCollection': 1 argument required, but only 0 present.")
+      throw _tpe("Failed to execute 'item' on 'HTMLCollection': 1 argument required, but only 0 present.")
     }
     return _this[e] || null
   }
@@ -2167,6 +2168,42 @@ window[_y].v_load = function(){
   }
 }
 
+window[_y].v_blocktime = function(t){
+  if (typeof t == 'undefined'){
+    throw Error('pls input a timestamp in first args.')
+  }
+  var ftime = t
+  window.Date = function(_Date) {
+    var bind = Function.bind;
+    var unbind = bind.bind(bind);
+    function instantiate(constructor, args) {
+      return new (unbind(constructor, null).apply(null, args));
+    }
+    var names = Object.getOwnPropertyNames(_Date);
+    for (var i = 0; i < names.length; i++) {
+      if (names[i]in Date)
+        continue;
+      var desc = Object.getOwnPropertyDescriptor(_Date, names[i]);
+      _odt(Date, names[i], desc);
+    }
+    return saf(Date);
+    function Date() {
+      var date = instantiate(_Date, [ftime]); // 固定返回某一个时间点
+      return date;
+    }
+  }(Date);
+  Date.now = saf(function now(){ return ftime })
+  _ti = ftime
+}
+window[_y].v_blockrandom = function(r){
+  if (typeof r == 'undefined'){
+    throw Error('pls input a number (0~1) in first args.')
+  }
+  Math.random = saf(function random(){
+    return r
+  })
+}
+
 return window
 `
 
@@ -2190,7 +2227,8 @@ window.v_requests = {
 window.v_listeners = window[_y].listeners
 window.v_load = window[_y].v_load
 window.v_mouse = window[_y].v_mouse
-
+window.v_blocktime = window[_y].v_blocktime
+window.v_blockrandom = window[_y].v_blockrandom
 
 location.href = 'http://pls_init_href_first/test1/test2'
 // document[_y].referrer = 'http://newhref'
