@@ -903,6 +903,10 @@ PluginArray._init = function(_this){
   })
 }
 
+// 确保 _tmp_plugins 内正常，这里初始化一次
+new MimeTypeArray
+new PluginArray
+
 URL.createObjectURL = saf(function createObjectURL(){return _fu("URL.createObjectURL(*)", arguments, this[_y].addEventListener?this[_y].addEventListener(...arguments):void 0)})
 URL.revokeObjectURL = saf(function revokeObjectURL(){return _fu("URL.revokeObjectURL(*)", arguments, this[_y].addEventListener?this[_y].addEventListener(...arguments):void 0)})
 
@@ -1493,6 +1497,8 @@ document[_y].scripts[1] = document.createElement('script')
 document[_y].forms = HTMLCollection._new()
 document[_y].forms[0] = document.createElement('form')
 document[_y].forms[1] = document.createElement('form')
+
+_odt(document[_y], 'URL', {get(){return location[_y].href}})
 
 Image._init = function(_this){
   _this[_y].style = CSSStyleDeclaration._new()
