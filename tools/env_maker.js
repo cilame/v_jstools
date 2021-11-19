@@ -295,8 +295,8 @@ var _ojk = Object.keys
 var _sfy = JSON.stringify
 var _iar = Array.isArray
 var _ter = TypeError
-var _tpe = function(x){var r=_ter(x);r.stack=`Uncaught TypeError: ${x}\n    at ${location[_y].origin+'/fake.js'}:4:9\n    at ${location[_y].origin+'/fake.js'}:599:2`;return r}
-var _ntpe = function(x){var r=_ter(x);r.stack=`Uncaught TypeError: ${x}\n    at ${location[_y].origin+'/fake.js'}:4:9\n    at ${location[_y].origin+'/fake.js'}:599:2`;return r}
+var _tpe = function(x){var r=TypeError(x);r.stack=\`Uncaught TypeError: \${x}\n    at \${location[_y].origin+'/fake.js'}:4:9\n    at \${location[_y].origin+'/fake.js'}:599:2\`;return r}
+var _ntpe = function(x){var r=TypeError(x);r.stack=\`Uncaught TypeError: \${x}\n    at \${location[_y].origin+'/fake.js'}:4:9\n    at \${location[_y].origin+'/fake.js'}:599:2\`;return r}
 var _buf = Buffer
 var _w = 'writable'
 var _e = 'enumerable'
