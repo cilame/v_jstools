@@ -32638,6 +32638,36 @@ function And2If(path){
     }
 }
 
+function calcBinary(path){
+    var tps = ['StringLiteral', 'BooleanLiteral', 'NumericLiteral']
+    var nod = path.node
+    function judge(e){
+        return (tps.indexOf(e.type) != -1) || (e.type == 'UnaryExpression' && tps.indexOf(e.argument.type) != -1)
+    }
+    function make_rep(e){
+        if (typeof e == 'number'){ return t.NumericLiteral(e) }
+        if (typeof e == 'string'){ return t.StringLiteral(e) }
+        if (typeof e == 'boolean'){ return t.BooleanLiteral(e) }
+        throw Error('unknown type' + typeof e)
+    }
+    if (judge(nod.left) && judge(nod.right)){
+        path.replaceWith(make_rep(eval(path+'')))
+    }
+}
+
+function clearNotuseFunc(path){
+    var id = path.node.id;
+    var binding = path.scope.getBinding(id.name);
+    //如果变量被修改过，则不能进行删除动作。
+    if (!binding || binding.constantViolations.length > 0) {
+        return;
+    }
+    //长度为0，说明变量没有被使用过。
+    if (binding.referencePaths.length === 0) {
+        path.remove();
+    }
+}
+
 function AddCatchLog(path){
     var err_name = path.node.param.name
     path.node.body.body.unshift({
@@ -32683,7 +32713,7 @@ function AddCatchLog(path){
 
 
 
-function get_ob_enc(ast) {
+function get_sojson_enc(ast) {
     var first_idx = 0
     for (var i = 0; i < ast.program.body.length; i++) {
         if (ast.program.body[i].type != 'EmptyStatement'){
@@ -32703,7 +32733,7 @@ function get_ob_enc(ast) {
     return ast
 }
 
-function pas_ob_enc(ast) {
+function pas_sojson_enc(ast) {
     eval(global_code)
     traverse(ast, {
         CallExpression: funToStr,
@@ -32777,6 +32807,104 @@ function ReplaceWhile(path) {
 
 
 
+function pas_ob_encfunc(ast){
+    // 找到关键的函数
+    var obfuncstr = []
+    var obdecname;
+    var obsortname;
+    function findobsortfunc(path){
+        if (!path.getFunctionParent()){
+            function get_obsort(path){
+                obsortname = path.node.arguments[0].name
+                path.stop()
+            }
+            obfuncstr.push(generator(path.node, {minified:true}).code)
+            path.traverse({CallExpression: get_obsort})
+            path.stop()
+            path.remove()
+        }
+    }
+    function findobsortlist(path){
+        if (path.node.id.name == obsortname){
+           obfuncstr.push(generator(path.node, {minified:true}).code)
+            path.stop()
+            path.remove()
+        }
+    }
+    function findobfunc(path){
+        var t = path.node.body.body[0]
+        if (t && t.type === 'VariableDeclaration'){
+            var g = t.declarations[0].init
+            if (g && g.type == 'CallExpression' && g.callee.name == obsortname){
+                obdecname = path.node.id.name
+                obfuncstr.push(generator(path.node, {minified:true}).code)
+                path.stop()
+                path.remove()
+            }
+        }
+    }
+    traverse(ast, {ExpressionStatement: findobsortfunc})
+    traverse(ast, {FunctionDeclaration: findobsortlist})
+    traverse(ast, {FunctionDeclaration: findobfunc})
+    eval(obfuncstr.join(';'))
+    // 收集必要的函数进行批量还原
+    var collects = []
+    var collect_names = []
+    var collect_removes = []
+    function judge(path){
+        return path.node.body.body.length == 1
+            && path.node.body.body[0].type == 'ReturnStatement'
+            && path.node.body.body[0].argument.type == 'CallExpression'
+            && path.node.body.body[0].argument.callee.type == 'Identifier'
+            && path.node.params.length == 5
+            && path.node.id
+    }
+    function collect_alldecfunc(path){
+        if (judge(path)){
+            var t = generator(path.node, {minified:true}).code
+            if (collects.indexOf(t) == -1){
+                collects.push(t)
+                collect_names.push(path.node.id.name)
+            }
+        }
+    }
+    traverse(ast, {FunctionDeclaration: collect_alldecfunc})
+    eval(collects.join(';'))
+    function parse_values(path){
+        var name = path.node.callee.name
+        if (path.node.callee && collect_names.indexOf(path.node.callee.name) != -1){
+            try{
+                path.replaceWith(t.StringLiteral(eval(path+'')))
+                collect_removes.push(name)
+            }catch(e){}
+        }
+    }
+    traverse(ast, {CallExpression: parse_values})
+    function collect_removefunc(path){
+        if (judge(path) && collect_removes.indexOf(path.node.id.name) != -1
+            ){
+            path.remove()
+        }
+    }
+    traverse(ast, {FunctionDeclaration: collect_removefunc})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -32785,13 +32913,6 @@ function ReplaceWhile(path) {
 
 function muti_process_defusion(jscode){
     var ast = parser.parse(jscode);
-
-    // ob 解混淆处理部分
-    // ast = get_ob_enc(ast)
-    // ast = pas_ob_enc(ast)
-    // traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
-    // traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
-    // traverse(ast, {WhileStatement: {exit: [ReplaceWhile]},});   // 反控制流平坦化
 
     // 通用解混淆部分
     traverse(ast, {StringLiteral: delExtra,})                   // 清理二进制显示内容
@@ -32804,18 +32925,20 @@ function muti_process_defusion(jscode){
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
 
-function muti_process_obdefusion(jscode){
+function muti_process_sojsondefusion(jscode){
     var ast = parser.parse(jscode);
 
     // ob 解混淆处理部分
-    ast = get_ob_enc(ast)
-    ast = pas_ob_enc(ast)
+    ast = get_sojson_enc(ast)
+    ast = pas_sojson_enc(ast)
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
     traverse(ast, {WhileStatement: {exit: [ReplaceWhile]},});   // 反控制流平坦化
 
@@ -32830,7 +32953,35 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
+    var { code } = generator(ast, { jsescOption: { minimal: true, } });
+    return code;
+}
+
+function muti_process_obdefusion(jscode){
+    var ast = parser.parse(jscode);
+
+    // ob 解混淆处理部分
+    pas_ob_encfunc(ast)
+    traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})
+    traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
+    traverse(ast, {WhileStatement: {exit: [ReplaceWhile]},});   // 反控制流平坦化
+
+    // 通用解混淆部分
+    traverse(ast, {StringLiteral: delExtra,})                   // 清理二进制显示内容
+    traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
+    traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
+    traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
+    traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
+    traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
+    traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
+    traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
+    traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
+    // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 删除未被使用的代码 // 该功能直接使用 Uglify 优化删除即可
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
@@ -32839,7 +32990,7 @@ function muti_process_obdefusion(jscode){
 // var jscode = fs.readFileSync("./source.js", {
 //     encoding: "utf-8"
 // });
-// code = muti_process_obdefusion(jscode);
+// code = muti_process_sojsondefusion(jscode);
 // console.log(code);
 // fs.writeFileSync('./code.js', code, {
 //     encoding: "utf-8"

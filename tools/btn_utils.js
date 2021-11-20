@@ -1,5 +1,6 @@
 
 var sojsontn = document.getElementById('sojson')
+var obtn = document.getElementById('ob')
 var obnormalbtn = document.getElementById('obnormal')
 var uglifybtn = document.getElementById('uglify')
 var uglify_minibtn = document.getElementById('uglify_mini')
@@ -7,6 +8,14 @@ var txt = document.getElementById('txt')
 var txt2 = document.getElementById('txt2')
 
 sojsontn.addEventListener('click', function(e){
+  try{
+    ;(txt2||txt).value = muti_process_sojsondefusion(txt.value)
+  }catch(e){
+    ;(txt2||txt).value = e.stack
+  }
+})
+
+obtn.addEventListener('click', function(e){
   try{
     ;(txt2||txt).value = muti_process_obdefusion(txt.value)
   }catch(e){
