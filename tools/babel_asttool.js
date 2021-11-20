@@ -32928,7 +32928,131 @@ function pas_ob_encfunc(ast){
     traverse(ast, {VariableDeclarator: collect_removevars})
 }
 
-
+function del_ob_extra(ast){
+    var setinterval_func;
+    function find_gar_outfunc(path){
+        if (!path.getFunctionParent()){
+            function judge(path){
+                if ( path.node.callee.type == 'MemberExpression'
+                  && path.node.callee.property
+                  && path.node.callee.property.type == 'Identifier'
+                  && path.node.callee.property.name == 'apply'
+                  && path.node.callee.object.type == 'CallExpression'
+                  && path.node.callee.object.arguments
+                  && path.node.callee.object.arguments[0]
+                  && path.node.callee.object.arguments[0].value == 'debugger'
+                  && path.node.arguments[0]
+                  && path.node.arguments[0].value == 'stateObject'
+                    ){
+                    var func = path.getFunctionParent().getFunctionParent()
+                    setinterval_func = func.node.id.name
+                    func.remove()
+                }
+            }
+            path.traverse({CallExpression: judge})
+        }
+    }
+    function remove_setinterval_func(path){
+        if (!path.getFunctionParent() && path.node.callee.type == 'Identifier' && path.node.callee.name == 'setInterval'){
+            function judge(path){
+                if (path.node.callee.type == 'Identifier' && path.node.callee.name == setinterval_func){
+                    path.getFunctionParent().parentPath.remove()
+                }
+            }
+            path.traverse({CallExpression: judge})
+        }
+    }
+    var once = false
+    function remove_a(path){
+        if ( path.node.value == '(((.+)+)+)+$' 
+          && path.parentPath.node.type == 'CallExpression'
+          && path.parentPath.node.callee.type == 'MemberExpression'
+          && path.parentPath.node.callee.property.type == 'Identifier'
+          && path.parentPath.node.callee.property.name == 'search'
+          && !once
+          ){
+            var a = path.getFunctionParent().parentPath
+            var b = a.parentPath
+            var c = b.getFunctionParent()
+            var ra = a.node.callee.name
+            var rb = b.node.id.name
+            function remove_a1(path){
+                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                    path.remove()
+                }
+            }
+            function remove_a2(path){
+                if (path.node.callee.name == rb && path.getFunctionParent() == c){
+                    path.remove()
+                }
+            }
+            c.traverse({
+                VariableDeclarator: remove_a1,
+                CallExpression: remove_a2
+            })
+            try{
+                b.remove()
+            }catch(e){}
+            once = true
+        }
+    }
+    function remove_b(path){
+        if (path.node.value == "\\+\\+ *(?:[a-zA-Z_$][0-9a-zA-Z_$]*)"){
+            var a = path.getFunctionParent().parentPath
+            var b = a.getFunctionParent()
+            var c = b.getFunctionParent()
+            var ra = a.node.callee.name
+            function remove_b1(path){
+                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                    path.remove()
+                }
+            }
+            c.traverse({VariableDeclarator: remove_b1})
+            try{
+                b.parentPath.remove()
+            }catch(e){}
+        }
+    }
+    function remove_c(path){
+        if ( path.node.value == "return (function() {}.constructor(\"return this\")( ));" ){
+            var a = path.getFunctionParent().parentPath
+            while (!a.node.callee){
+                a = a.parentPath
+            }
+            var b = a.parentPath
+            var c = b.getFunctionParent()
+            var ra = a.node.callee.name
+            var rb = b.node.id.name
+            function remove_a1(path){
+                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                    path.remove()
+                }
+            }
+            function remove_a2(path){
+                if (path.node.callee.name == rb && path.getFunctionParent() == c){
+                    path.remove()
+                }
+            }
+            c.traverse({
+                VariableDeclarator: remove_a1,
+                CallExpression: remove_a2
+            })
+            try{
+                b.remove()
+            }catch(e){}
+            once = true
+        }
+    }
+    try{
+        traverse(ast, {FunctionDeclaration: find_gar_outfunc})
+        traverse(ast, {CallExpression: remove_setinterval_func})
+        traverse(ast, {StringLiteral: remove_a})
+        traverse(ast, {StringLiteral: remove_b})
+        traverse(ast, {StringLiteral: remove_c})
+    }catch(e){
+        console.log('自动去除ob附加检测代码')
+    }
+}
 
 
 
@@ -33031,6 +33155,10 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
     // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 该处有问题 // 该处可以使用 Uglify 库优化功能自动删除
+
+    // ob 解混淆部分，去除我额外代码
+    del_ob_extra(ast)
+
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
