@@ -32358,19 +32358,27 @@ function ConditionVarToIf(path) {
     // } else {
     //   var a = 22;
     // }
-    let {id, init} = path.node;
-    if (!t.isConditionalExpression(init)) return;
-    const ParentPath = path.parentPath;
-    const ParentNode = path.parent;
-    if (!t.isVariableDeclaration(ParentNode)) return;
-    if (t.isForStatement(ParentPath.parentPath)) return;
-    let kind = ParentNode.kind;
-    let {test, consequent, alternate} = init;
-    ParentPath.replaceWith(t.ifStatement(
-        test,
-        t.blockStatement([t.variableDeclaration(kind, [t.variableDeclarator(id, consequent)]),]),
-        t.blockStatement([t.variableDeclaration(kind, [t.variableDeclarator(id, alternate)]),])
-    ));
+    if (t.isForStatement(path.parentPath)) return;
+    var decl = path.node.declarations
+    var rpls = []
+    var togg = false
+    for (var i = 0; i < decl.length; i++) {
+        if (t.isConditionalExpression(decl[i].init)){
+            togg = true
+            let {test, consequent, alternate} = decl[i].init;
+            rpls.push(t.ifStatement(
+                test,
+                t.blockStatement([t.variableDeclaration(path.node.kind, [t.variableDeclarator(decl[i].id, consequent)]),]),
+                t.blockStatement([t.variableDeclaration(path.node.kind, [t.variableDeclarator(decl[i].id, alternate)]),])
+            ))
+        }else{
+            rpls.push(t.VariableDeclaration(path.node.kind, [decl[i]]))
+        }
+    }
+    if (togg){
+        path.replaceWithMultiple(rpls)
+        path.stop()
+    }
 }
 
 function RemoveComma(path) {
@@ -32920,7 +32928,7 @@ function muti_process_defusion(jscode){
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
     traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
-    traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
@@ -32948,7 +32956,7 @@ function muti_process_sojsondefusion(jscode){
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
     traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
-    traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
@@ -32974,7 +32982,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
-    traverse(ast, {VariableDeclarator: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
