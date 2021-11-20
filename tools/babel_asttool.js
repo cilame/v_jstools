@@ -32834,17 +32834,17 @@ function pas_ob_encfunc(ast){
         if (!path.getFunctionParent()){
             function get_obsort(path){
                 obsortname = path.node.arguments[0].name
+                obfuncstr.push('!'+generator(path.node, {minified:true}).code)
                 path.stop()
+                path.remove()
             }
-            obfuncstr.push(generator(path.node, {minified:true}).code)
             path.traverse({CallExpression: get_obsort})
             path.stop()
-            path.remove()
         }
     }
     function findobsortlist(path){
         if (path.node.id.name == obsortname){
-           obfuncstr.push(generator(path.node, {minified:true}).code)
+            obfuncstr.push(generator(path.node, {minified:true}).code)
             path.stop()
             path.remove()
         }
@@ -32875,7 +32875,7 @@ function pas_ob_encfunc(ast){
             && path.node.body.body[0].type == 'ReturnStatement'
             && path.node.body.body[0].argument.type == 'CallExpression'
             && path.node.body.body[0].argument.callee.type == 'Identifier'
-            && path.node.params.length == 5
+            // && path.node.params.length == 5
             && path.node.id
     }
     function collect_alldecfunc(path){
