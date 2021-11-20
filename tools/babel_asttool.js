@@ -32974,15 +32974,21 @@ function del_ob_extra(ast){
             var a = path.getFunctionParent().parentPath
             var b = a.parentPath
             var c = b.getFunctionParent()
+            if (!c){
+                c = b
+                while (c.parentPath){
+                    c = c.parentPath
+                }
+            }
             var ra = a.node.callee.name
             var rb = b.node.id.name
             function remove_a1(path){
-                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                if (path.node.id.name == ra && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
                     path.remove()
                 }
             }
             function remove_a2(path){
-                if (path.node.callee.name == rb && path.getFunctionParent() == c){
+                if (path.node.callee.name == rb && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
                     path.remove()
                 }
             }
@@ -33001,9 +33007,15 @@ function del_ob_extra(ast){
             var a = path.getFunctionParent().parentPath
             var b = a.getFunctionParent()
             var c = b.getFunctionParent()
+            if (!c){
+                c = b
+                while (c.parentPath){
+                    c = c.parentPath
+                }
+            }
             var ra = a.node.callee.name
             function remove_b1(path){
-                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                if (path.node.id.name == ra && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
                     path.remove()
                 }
             }
@@ -33021,15 +33033,21 @@ function del_ob_extra(ast){
             }
             var b = a.parentPath
             var c = b.getFunctionParent()
+            if (!c){
+                c = b
+                while (c.parentPath){
+                    c = c.parentPath
+                }
+            }
             var ra = a.node.callee.name
             var rb = b.node.id.name
             function remove_a1(path){
-                if (path.node.id.name == ra && path.getFunctionParent() == c){
+                if (path.node.id.name == ra && path.getFunctionParent() == c || path.getFunctionParent() == null){
                     path.remove()
                 }
             }
             function remove_a2(path){
-                if (path.node.callee.name == rb && path.getFunctionParent() == c){
+                if (path.node.callee.name == rb && path.getFunctionParent() == c || path.getFunctionParent() == null){
                     path.remove()
                 }
             }
@@ -33050,7 +33068,8 @@ function del_ob_extra(ast){
         traverse(ast, {StringLiteral: remove_b})
         traverse(ast, {StringLiteral: remove_c})
     }catch(e){
-        console.log('自动去除ob附加检测代码')
+        console.log('自动去除 ob 检测处理失败')
+        console.log(e)
     }
 }
 
