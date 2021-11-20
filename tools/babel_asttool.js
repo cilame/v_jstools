@@ -32529,6 +32529,7 @@ function CallToStr(path) {
         var key = prop.key.value
         if(t.isFunctionExpression(prop.value)) {
             var retStmt = prop.value.body.body[0];
+            if (typeof retStmt == 'undefined') return;
             if (t.isBinaryExpression(retStmt.argument)) {
                 var repfunc = function(_path, args){
                     if (args.length == 2){
