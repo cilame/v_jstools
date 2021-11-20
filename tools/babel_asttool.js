@@ -32855,9 +32855,10 @@ function pas_ob_encfunc(ast){
     traverse(ast, {FunctionDeclaration: findobsortlist})
     traverse(ast, {FunctionDeclaration: findobfunc})
     eval(obfuncstr.join(';'))
+
     // 收集必要的函数进行批量还原
     var collects = []
-    var collect_names = []
+    var collect_names = [obdecname]
     var collect_removes = []
     function judge(path){
         return path.node.body.body.length == 1
@@ -32876,7 +32877,20 @@ function pas_ob_encfunc(ast){
             }
         }
     }
+    var collect_removes_var = []
+    function collect_alldecvars(path){
+        var left = path.node.id
+        var right = path.node.init
+        if (right && right.type == 'Identifier' && collect_names.indexOf(right.name) != -1){
+            var t = 'var ' + generator(path.node, {minified:true}).code
+            if (collects.indexOf(t) == -1){
+                collects.push(t)
+                collect_names.push(left.name)
+            }
+        }
+    }
     traverse(ast, {FunctionDeclaration: collect_alldecfunc})
+    traverse(ast, {VariableDeclarator: collect_alldecvars})
     eval(collects.join(';'))
     function parse_values(path){
         var name = path.node.callee.name
@@ -32889,13 +32903,28 @@ function pas_ob_encfunc(ast){
     }
     traverse(ast, {CallExpression: parse_values})
     function collect_removefunc(path){
-        if (judge(path) && collect_removes.indexOf(path.node.id.name) != -1
-            ){
+        if (judge(path) && collect_removes.indexOf(path.node.id.name) != -1){
+            path.remove()
+        }
+    }
+    function collect_removevars(path){
+        var left = path.node.id
+        var right = path.node.init
+        if (right && right.type == 'Identifier' && collect_names.indexOf(right.name) != -1){
             path.remove()
         }
     }
     traverse(ast, {FunctionDeclaration: collect_removefunc})
+    traverse(ast, {VariableDeclarator: collect_removevars})
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -32928,7 +32957,7 @@ function muti_process_defusion(jscode){
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
     traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
-    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});    // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
@@ -32948,6 +32977,7 @@ function muti_process_sojsondefusion(jscode){
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
+    traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码，这里不清理可能会导致错误
     traverse(ast, {WhileStatement: {exit: [ReplaceWhile]},});   // 反控制流平坦化
 
     // 通用解混淆部分
@@ -32956,7 +32986,7 @@ function muti_process_sojsondefusion(jscode){
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
     traverse(ast, {ExpressionStatement: And2If});               // 单行语句如果是 a && b 形式转换成 if(a){ b }
-    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});    // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
@@ -32975,6 +33005,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
+    traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码，这里不清理可能会导致错误
     traverse(ast, {WhileStatement: {exit: [ReplaceWhile]},});   // 反控制流平坦化
 
     // 通用解混淆部分
@@ -32982,7 +33013,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
     traverse(ast, {ExpressionStatement: ConditionToIf,});       // 三元表达式转换成if
-    traverse(ast, {VariableDeclaration: ConditionVarToIf,});     // 赋值语句的 三元表达式转换成if
+    traverse(ast, {VariableDeclaration: ConditionVarToIf,});    // 赋值语句的 三元表达式转换成if
     traverse(ast, {ExpressionStatement: RemoveComma,});         // 逗号表达式转换
     traverse(ast, {VariableDeclaration: RemoveVarComma,});      // 赋值语句的 逗号表达式转换
     traverse(ast, {MemberExpression: FormatMember,});           // obj['func1']['func2']() --> obj.func1.func2()
