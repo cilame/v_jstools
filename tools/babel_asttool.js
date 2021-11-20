@@ -32489,11 +32489,13 @@ function MergeObj(path) {
         }
     })
     paths.map(function(refer_path) {
-        let bindpath = refer_path.parentPath; 
-        if (!t.isVariableDeclarator(bindpath.node)) return;
-        let bindname = bindpath.node.id.name;
-        bindpath.scope.rename(bindname, name, bindpath.scope.block);
-        bindpath.remove();
+        try{
+            let bindpath = refer_path.parentPath; 
+            if (!t.isVariableDeclarator(bindpath.node)) return;
+            let bindname = bindpath.node.id.name;
+            bindpath.scope.rename(bindname, name, bindpath.scope.block);
+            bindpath.remove();
+        }catch(e){}
     });
 }
 
