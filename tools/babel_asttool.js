@@ -32471,13 +32471,20 @@ function MergeObj(path) {
                 return;
             const object = left.get("object");
             const property = left.get("property");
+            function _pas_path(_path, left){
+                if (_path.parentPath.node.type == 'VariableDeclarator' || _path.parentPath.node.type == 'AssignmentExpression'){
+                    _path.replaceWith(left)
+                }else{
+                    _path.remove();
+                }
+            }
             if (object.isIdentifier({name: name}) && property.isStringLiteral() && _path.scope == scope) {
                 properties.push(t.ObjectProperty(t.valueToNode(property.node.value), right.node));
-                _path.remove();
+                _pas_path(_path, left)
             }
             if (object.isIdentifier({name: name}) && property.isIdentifier() && _path.scope == scope) {
                 properties.push(t.ObjectProperty(t.valueToNode(property.node.name), right.node));
-                _path.remove();
+                _pas_path(_path, left)
             }
         }
     })
@@ -33021,7 +33028,7 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
-    // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 删除未被使用的代码 // 该功能直接使用 Uglify 优化删除即可
+    // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 该处有问题 // 该处可以使用 Uglify 库优化功能自动删除
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
