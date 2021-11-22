@@ -1,6 +1,7 @@
 
 var sojsontn = document.getElementById('sojson')
 var obtn = document.getElementById('ob')
+var jsfuckbtn = document.getElementById('jsfuck')
 var obnormalbtn = document.getElementById('obnormal')
 var uglifybtn = document.getElementById('uglify')
 var uglify_minibtn = document.getElementById('uglify_mini')
@@ -26,6 +27,14 @@ obtn.addEventListener('click', function(e){
 obnormal.addEventListener('click', function(e){
   try{
     ;(txt2||txt).value = muti_process_defusion(txt.value)
+  }catch(e){
+    ;(txt2||txt).value = e.stack
+  }
+})
+
+jsfuckbtn.addEventListener('click', function(e){
+  try{
+    ;(txt2||txt).value = muti_process_jsfuckdefusion(txt.value)
   }catch(e){
     ;(txt2||txt).value = e.stack
   }

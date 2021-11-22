@@ -33013,6 +33013,7 @@ function del_ob_extra(ast){
                     c = c.parentPath
                 }
             }
+            if(!a.node.callee){ return }
             var ra = a.node.callee.name
             function remove_b1(path){
                 if (path.node.id.name == ra && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
@@ -33077,6 +33078,34 @@ function del_ob_extra(ast){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+function v_packtype(value){
+    if (typeof value == 'number'){ return t.NumericLiteral(value) }
+    if (typeof value == 'string'){ return t.StringLiteral(value) }
+    if (typeof value == 'boolean'){ return t.BooleanLiteral(value) }
+    if (value === undefined){ return t.Identifier('undefined') }
+    throw TypeError(`not find value type ${typeof value}`)
+}
+
+var jsfuck_toggle = 0
+function v_Unary1(path){ try{ path.replaceWith(v_packtype(eval(path+''))); jsfuck_toggle += 1 }catch(e){} }
+function v_Binary1(path){ try{ path.replaceWith(v_packtype(eval(path+''))); jsfuck_toggle += 1 }catch(e){} }
+function v_Member1(path){ try{ path.replaceWith(v_packtype(eval(path+''))); jsfuck_toggle += 1 }catch(e){} }
+function v_Call1(path){
+    var location = 'http://www.test.com'
+    var v = /^\[\]\[(?:"|')[^"]+(?:"|')\]\[(?:"|')constructor(?:"|')\]\((?:"|')return (location|escape|unescape)(?:"|')\)/.exec(path+'')
+    if (v){ path.replaceWith(t.StringLiteral(eval(v[1])+'')) }
+}
 
 
 
@@ -33175,10 +33204,35 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
     // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 该处有问题 // 该处可以使用 Uglify 库优化功能自动删除
 
-    // ob 解混淆部分，去除我额外代码
+    // ob 解混淆部分，去除额外代码
     del_ob_extra(ast)
 
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
+    return code;
+}
+
+function muti_process_jsfuckdefusion(jscode){
+    var ast = parser.parse(jscode);
+    while (1){
+        if (location.href.indexOf('http') != 0){ // 处理你的脚本运行在插件时的问题
+            var _Function = Function
+            Object.defineProperty(Function.prototype, 'constructor', {
+              value: function() {
+                if (arguments[0] == 'return location'){ return function(){ return {toString: function(){return 'http://'}} } }
+                return _Function.apply(this, arguments)
+              }
+            })
+        }
+        traverse(ast, {UnaryExpression: v_Unary1,})
+        traverse(ast, {BinaryExpression: v_Binary1,})
+        traverse(ast, {MemberExpression: v_Member1,})
+        traverse(ast, {CallExpression: v_Call1,})
+        if (location.href.indexOf('http') != 0){
+            Object.defineProperty(Function.prototype, 'constructor', { value: _Function })
+        }
+        if (jsfuck_toggle == 0){ break }else{ jsfuck_toggle = 0 }
+    }
+    var code = generator(ast, { jsescOption: { minimal: true, } }).code;
     return code;
 }
 
