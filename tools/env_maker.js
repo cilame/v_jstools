@@ -814,11 +814,61 @@ v_ret += v_make_it(statusbar) + '\n'
 v_ret += v_make_it(toolbar) + '\n'
 v_ret += v_make_it(trustedTypes) + '\n'
 v_ret += v_make_it(visualViewport) + '\n'
-v_ret += v_make_it(location) + '\n'
+// v_ret += v_make_it(location) + '\n'
 // v_ret += v_make_it(styleMedia) + '\n'
 // v_ret += v_make_it(speechSynthesis) + '\n'
 v_ret += `
+function init_Location(n,r){
+  r = new Location
+  if(r._init){r._init(r)}
+  _ods(r, {
+    "valueOf": {[_v]:saf(function valueOf(){return _fu("[location].valueOf(*)", arguments, location[_y].valueOf?location[_y].valueOf(...arguments):void 0)}),[_w]:!1,[_e]:!1,[_c]:!1},
+    "ancestorOrigins": {[_g]:saf(function ancestorOrigins(){return _ogs("[Location.ancestorOrigins] get", this[_y].ancestorOrigins)}),[_s]:saf(function ancestorOrigins(v){return _ogs("[Location.ancestorOrigins] set", this[_y].ancestorOrigins=v)}),[_e]:!0,[_c]:!1},
+    "href": {[_g]:saf(function href(){return _ogs("[Location.href] get", this[_y].href)}),[_s]:saf(function href(v){return _ogs("[Location.href] set", this[_y].href=v)}),[_e]:!0,[_c]:!1},
+    "origin": {[_g]:saf(function origin(){return _ogs("[Location.origin] get", this[_y].origin)}),[_s]:saf(function origin(v){return _ogs("[Location.origin] set", this[_y].origin=v)}),[_e]:!0,[_c]:!1},
+    "protocol": {[_g]:saf(function protocol(){return _ogs("[Location.protocol] get", this[_y].protocol)}),[_s]:saf(function protocol(v){return _ogs("[Location.protocol] set", this[_y].protocol=v)}),[_e]:!0,[_c]:!1},
+    "host": {[_g]:saf(function host(){return _ogs("[Location.host] get", this[_y].host)}),[_s]:saf(function host(v){return _ogs("[Location.host] set", this[_y].host=v)}),[_e]:!0,[_c]:!1},
+    "hostname": {[_g]:saf(function hostname(){return _ogs("[Location.hostname] get", this[_y].hostname)}),[_s]:saf(function hostname(v){return _ogs("[Location.hostname] set", this[_y].hostname=v)}),[_e]:!0,[_c]:!1},
+    "port": {[_g]:saf(function port(){return _ogs("[Location.port] get", this[_y].port)}),[_s]:saf(function port(v){return _ogs("[Location.port] set", this[_y].port=v)}),[_e]:!0,[_c]:!1},
+    "pathname": {[_g]:saf(function pathname(){return _ogs("[Location.pathname] get", this[_y].pathname)}),[_s]:saf(function pathname(v){return _ogs("[Location.pathname] set", this[_y].pathname=v)}),[_e]:!0,[_c]:!1},
+    "search": {[_g]:saf(function search(){return _ogs("[Location.search] get", this[_y].search)}),[_s]:saf(function search(v){return _ogs("[Location.search] set", this[_y].search=v)}),[_e]:!0,[_c]:!1},
+    "hash": {[_g]:saf(function hash(){return _ogs("[Location.hash] get", this[_y].hash)}),[_s]:saf(function hash(v){return _ogs("[Location.hash] set", this[_y].hash=v)}),[_e]:!0,[_c]:!1},
+    "assign": {[_v]:saf(function assign(){return _fu("[location].assign(*)", arguments, location[_y].assign?location[_y].assign(...arguments):void 0)}),[_w]:!1,[_e]:!0,[_c]:!1},
+    "reload": {[_v]:saf(function reload(){return _fu("[location].reload(*)", arguments, location[_y].reload?location[_y].reload(...arguments):void 0)}),[_w]:!1,[_e]:!0,[_c]:!1},
+    "replace": {[_v]:saf(function replace(){return _fu("[location].replace(*)", arguments, location[_y].replace?location[_y].replace(...arguments):void 0)}),[_w]:!1,[_e]:!0,[_c]:!1},
+    "toString": {[_v]:saf(function toString(){return _fu("[location].toString(*)", arguments, location[_y].toString?location[_y].toString(...arguments):void 0)}),[_w]:!1,[_e]:!0,[_c]:!1},
+  });
+  return hook_obj(r,n)
+}
 
+Location._init = function(_this){
+  _this[_y].toString = function(){ return _this[_y].href }
+  _this[_y].ancestorOrigins = DOMStringList._new()
+  _this[_y].ancestorOrigins[_y].length = 0
+  _this[_y].valueOf = function(){ 
+    var tmp = v_t
+    v_t = false
+    var ret = {
+      "valueOf": _this.valueOf,
+      "ancestorOrigins": _this.ancestorOrigins,
+      "href": _this.href,
+      "origin": _this.origin,
+      "protocol": _this.protocol,
+      "host": _this.host,
+      "hostname": _this.hostname,
+      "port": _this.port,
+      "pathname": _this.pathname,
+      "search": _this.search,
+      "hash": _this.hash,
+      "assign": _this.assign,
+      "reload": _this.reload,
+      "replace": _this.replace,
+      "toString": _this.toString,
+    }
+    v_t = tmp
+    return ret
+  }
+}
 
 
 
@@ -1206,7 +1256,7 @@ window[_y].closed = false
 window[_y].length = 0
 window[_y].opener = null
 window[_y].frameElement = null
-window[_y].origin = window[_y].location[_y].origin
+Object.defineProperty(window[_y], 'origin', {get:function(){return window[_y].location[_y].origin}})
 
 window[_y].matchMedia = function(k){
   var r = MediaQueryList._new()
