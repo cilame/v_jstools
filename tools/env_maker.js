@@ -1470,10 +1470,11 @@ function v_hook_getElement(e){
     for(var i = 0, l = stack.length; i < l; i++) { if(stack[i] === callback){ stack.splice(i, 1); return this.removeEventListener(type, callback); } }
   }
   e[_y].dispatchEvent = function(event){
-    if(!(event.type in this._listeners)) { return; }
+    if(!(event.type in this._listeners)) { return true; }
     var stack = this._listeners[event.type];
     event[_y].target = this;
     for(var i = 0, l = stack.length; i < l; i++) { stack[i].call(this, event); }
+    return true
   }
   e[_y].getBoundingClientRect = function(){
     var r = DOMRect._new()
