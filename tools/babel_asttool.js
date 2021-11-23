@@ -33134,6 +33134,7 @@ function muti_process_defusion(jscode){
     var ast = parser.parse(jscode);
 
     // 通用解混淆部分
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {StringLiteral: delExtra,})                   // 清理二进制显示内容
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
@@ -33156,6 +33157,7 @@ function muti_process_sojsondefusion(jscode){
     // ob 解混淆处理部分
     ast = get_sojson_enc(ast)
     ast = pas_sojson_enc(ast)
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
@@ -33184,6 +33186,7 @@ function muti_process_obdefusion(jscode){
 
     // ob 解混淆处理部分
     pas_ob_encfunc(ast)
+    traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
