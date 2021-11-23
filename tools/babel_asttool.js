@@ -33134,7 +33134,6 @@ function muti_process_defusion(jscode){
     var ast = parser.parse(jscode);
 
     // 通用解混淆部分
-    traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {StringLiteral: delExtra,})                   // 清理二进制显示内容
     traverse(ast, {NumericLiteral: delExtra,})                  // 清理二进制显示内容
     traverse(ast, {ConditionalExpression: TransCondition,});    // 三元表达式
