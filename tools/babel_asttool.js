@@ -33219,7 +33219,7 @@ function muti_process_obdefusion(jscode){
     return code;
 }
 
-function muti_process_force_eval(jscode){
+function muti_process_jsfuckdefusion(jscode){
     var ast = parser.parse(jscode);
     while (1){
         if (typeof location !== 'undefined' && location.href.indexOf('http') != 0){ // 处理你的脚本运行在插件时的问题
