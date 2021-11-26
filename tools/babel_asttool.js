@@ -33089,6 +33089,14 @@ function del_ob_extra(ast){
 
 
 
+
+
+
+
+
+
+
+
 function v_packtype(value){
     if (typeof value == 'number'){ return t.NumericLiteral(value) }
     if (typeof value == 'string'){ return t.StringLiteral(value) }
@@ -33106,8 +33114,6 @@ function v_Call1(path){
     var v = /^\[\]\[(?:"|')[^"]+(?:"|')\]\[(?:"|')constructor(?:"|')\]\((?:"|')return (location|escape|unescape)(?:"|')\)/.exec(path+'')
     if (v){ path.replaceWith(t.StringLiteral(eval(v[1])+'')) }
 }
-
-
 
 
 
@@ -33213,10 +33219,10 @@ function muti_process_obdefusion(jscode){
     return code;
 }
 
-function muti_process_jsfuckdefusion(jscode){
+function muti_process_force_eval(jscode){
     var ast = parser.parse(jscode);
     while (1){
-        if (location.href.indexOf('http') != 0){ // 处理你的脚本运行在插件时的问题
+        if (typeof location !== 'undefined' && location.href.indexOf('http') != 0){ // 处理你的脚本运行在插件时的问题
             var _Function = Function
             Object.defineProperty(Function.prototype, 'constructor', {
               value: function() {
@@ -33229,7 +33235,7 @@ function muti_process_jsfuckdefusion(jscode){
         traverse(ast, {BinaryExpression: v_Binary1,})
         traverse(ast, {MemberExpression: v_Member1,})
         traverse(ast, {CallExpression: v_Call1,})
-        if (location.href.indexOf('http') != 0){
+        if (typeof location !== 'undefined' && location.href.indexOf('http') != 0){
             Object.defineProperty(Function.prototype, 'constructor', { value: _Function })
         }
         if (jsfuck_toggle == 0){ break }else{ jsfuck_toggle = 0 }
