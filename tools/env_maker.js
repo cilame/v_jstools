@@ -408,6 +408,9 @@ function hook_obj(r,n){
         }
       }
       if (b == '__proto__' && !_isvm){ // vm2 使用时就不好处理 this.__proto__ = window.__proto__ ，需注意
+        if (!a[_y]){
+          a[_y] = {}
+        }
         if (!a[_y]['fake__proto__']){
           a[_y]['fake__proto__'] = hook_obj(a[b],n+'.__proto__')
         }
