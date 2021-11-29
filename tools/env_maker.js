@@ -2031,6 +2031,9 @@ HTMLAnchorElement._init = function(_this){
   v_hook_href(_this[_y])
   _this[_y].href = location[_y].href
   _this[_y].namespaceURI = "http://www.w3.org/1999/xhtml"
+  _this[_y].toString = function(){
+    return _this[_y].href
+  }
 }
 
 ;(function(){
