@@ -304,6 +304,7 @@ var _v = 'value'
 var _g = 'get'
 var _s = 'set'
 var _ti = +new Date
+var _objp = Object.prototype
 var _isvm = typeof global == 'undefined' // 用作区别于 node 与使用 vm2 库时的标记
 var _slice = Date.call.bind(Date.call, [].slice)
 var _join = Date.call.bind(Date.call, [].join)
@@ -412,7 +413,9 @@ function hook_obj(r,n){
           a[_y] = {}
         }
         if (!a[_y]['fake__proto__']){
-          a[_y]['fake__proto__'] = hook_obj(a[b],n+'.__proto__')
+          if (a[b] && a[b] !== _objp){
+            a[_y]['fake__proto__'] = hook_obj(a[b],n+'.__proto__')
+          }
         }
         return a[_y]['fake__proto__']
       }
