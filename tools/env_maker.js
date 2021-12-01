@@ -1,3 +1,5 @@
+// 暂时还在开发的功能，现在没用
+
 function v_mk(){
 function v_filter(f){
     var js = [
