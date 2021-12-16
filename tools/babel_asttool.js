@@ -33159,10 +33159,17 @@ function muti_process_defusion(jscode){
 function muti_process_sojsondefusion(jscode){
     var ast = parser.parse(jscode);
 
+    if (ast.program.body.length == 1){
+        ast.program.body = ast.program.body[0].expression.callee.body
+    }
+
     // ob 解混淆处理部分
     ast = get_sojson_enc(ast)
     ast = pas_sojson_enc(ast)
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
+    traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
+    traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）// 该函数重复数次，为了兼容旧的ob混淆版本
+    traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: CallToStr},});    // 可能出问题（不可通用）
