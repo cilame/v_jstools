@@ -1494,7 +1494,7 @@ function v_hook_getElement(e){
     }
     if (!x){
       x = /^ *< *([A-Za-z]+) *[^>]+> *$/.exec(ihtml)
-      if (x[1]){
+      if (x && x[1]){
         var r = document[_y].createElement(x[1])
         _odt(r, 'innerHTML', {get: function(){return ''}})
         e[_y].children[0] = r
