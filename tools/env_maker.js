@@ -1492,6 +1492,16 @@ function v_hook_getElement(e){
       e[_y].childNodes[0] = r
       e[_y].firstChild = r
     }
+    if (!x){
+      x = /^ *< *([A-Za-z]+) *[^>]+> *$/.exec(ihtml)
+      if (x[1]){
+        var r = document[_y].createElement(x[1])
+        _odt(r, 'innerHTML', {get: function(){return ''}})
+        e[_y].children[0] = r
+        e[_y].childNodes[0] = r
+        e[_y].firstChild = r
+      }
+    }
     return ihtml
   }})
 }
