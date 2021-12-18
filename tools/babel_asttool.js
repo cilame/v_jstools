@@ -33160,7 +33160,7 @@ function muti_process_sojsondefusion(jscode){
     var ast = parser.parse(jscode);
 
     if (ast.program.body.length == 1){
-        ast.program.body = ast.program.body[0].expression.callee.body
+        ast.program.body = ast.program.body[0].expression.callee.body.body
     }
 
     // ob 解混淆处理部分
