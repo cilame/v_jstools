@@ -2354,7 +2354,9 @@ var vm2code = "Object.assign(global,function(){var e={\n\"contextify.js\":'\"use
 
 v_ret = v_str_saf + v_mk_head_WindowProperties() + '\n' + v_global_init(v_global_s) + '\n' + v_ret
 
-v_ret = vm2code + `
+v_ret = `if (typeof global !== 'undefined'){
+` + vm2code + `
+}
 function cilame(){
 ${v_ret.trim().split('\n').map(function(e){return '  '+e}).join('\n')}
 }
