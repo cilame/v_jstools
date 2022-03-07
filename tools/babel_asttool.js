@@ -1001,7 +1001,9 @@ function muti_process_jsfuckdefusion(jscode){
 }
 
 function muti_process_aline(jscode){
-    return generator(parser.parse(jscode), {minified:true}).code
+	var ast = parser.parse(jscode)
+	traverse(ast, {enter: function(path){t.removeComments(path.node);}})
+    return generator(ast, {minified:true}).code
 }
 
 // const fs = require('fs');
