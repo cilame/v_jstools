@@ -37,16 +37,25 @@ function injectfunc(e, window) {
 
   var v_env_cache = {}
   window.v_log_env = function (){
-    v_log(v_env_cache)
+    return v_env_cache
   }
 
-  function v_cache_node(addr, clazz, func, type){
+  function v_cache_node(_addr, clazz, func, type, r){
     // addr 这里的格式有点乱，还会携带一些代码执行行号的信息，要处理成 url 的形式，方便选择。
+    var exp = /http([^:]+:)\/\/([^/:?#]+)(:\d+)?([^?#:]*)?(\?[^#:]*)?(#[^:]*)?/
+    if (exp.exec(_addr)){
+      var addr = exp.exec(_addr)[0]
+    }else{
+      var addr = _addr
+    }
     v_env_cache[addr] = v_env_cache[addr] || {}
     v_env_cache[addr][clazz] = v_env_cache[addr][clazz] || {}
-    v_env_cache[addr][clazz][func] = v_env_cache[addr][clazz][func] || []
-    if (v_env_cache[addr][clazz][func].indexOf(type) == -1){
-      v_env_cache[addr][clazz][func][type] = type
+    v_env_cache[addr][clazz][func] = v_env_cache[addr][clazz][func] || {}
+    v_env_cache[addr][clazz][func][type] = {}
+    if (typeof r == 'string' || typeof r == 'number' || typeof r == 'boolean'){
+      v_env_cache[addr][clazz][func][type].value = r
+    }else{
+      v_env_cache[addr][clazz][func][type].value = {}
     }
   }
 
@@ -195,7 +204,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
             if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
-              v_cache_node(expstr, "Document", "cookie", "get")
+              v_cache_node(expstr, "Document", "cookie", "get", r)
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
             }
             if (e["config-hook-cookie-add-debugger"]){ debugger }
@@ -351,7 +360,7 @@ function make_domhooker_funcs(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
             if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
-              v_cache_node(expstr, "${obname}", "${name}", "get")
+              v_cache_node(expstr, "${obname}", "${name}", "get", r)
               window.v_log(..._mk_logs('[${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
           }
