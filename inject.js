@@ -35,6 +35,21 @@ function injectfunc(e, window) {
   RegExp.prototype.v_test = RegExp.prototype.test
   String.prototype.v_split = String.prototype.split
 
+  var v_env_cache = {}
+  window.v_log_env = function (){
+    v_log(v_env_cache)
+  }
+
+  function v_cache_node(addr, clazz, func, type){
+    // addr 这里的格式有点乱，还会携带一些代码执行行号的信息，要处理成 url 的形式，方便选择。
+    v_env_cache[addr] = v_env_cache[addr] || {}
+    v_env_cache[addr][clazz] = v_env_cache[addr][clazz] || {}
+    v_env_cache[addr][clazz][func] = v_env_cache[addr][clazz][func] || []
+    if (v_env_cache[addr][clazz][func].indexOf(type) == -1){
+      v_env_cache[addr][clazz][func][type] = type
+    }
+  }
+
   var expstr = ''
   var attoggle = e["config-hook-log-at"]
   function get_log_at(log_at){
@@ -180,6 +195,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
             if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
+              v_cache_node(expstr, "Document", "cookie", "get")
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
             }
             if (e["config-hook-cookie-add-debugger"]){ debugger }
@@ -194,6 +210,7 @@ function injectfunc(e, window) {
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
             if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
+              v_cache_node(expstr, "Document", "cookie", "set")
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
             }
             if (e["config-hook-cookie-add-debugger"]){ debugger }
@@ -334,6 +351,7 @@ function make_domhooker_funcs(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
             if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
+              v_cache_node(expstr, "${obname}", "${name}", "get")
               window.v_log(..._mk_logs('[${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
           }
@@ -342,6 +360,7 @@ function make_domhooker_funcs(){
           var _new_set = saf(function set(v){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
               if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
+                v_cache_node(expstr, "${obname}", "${name}", "set")
                 window.v_log(..._mk_logs('[${obname} ${name} set]', v, get_log_at(expstr.trim())))
               }
             }
@@ -360,6 +379,7 @@ function make_domhooker_funcs(){
         var _new_val = saf(function ${name}(){
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
             if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
+              v_cache_node(expstr, "${obname}", "${name}", "func")
               window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), get_log_at(expstr.trim())))
             }
           }
