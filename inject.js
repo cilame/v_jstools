@@ -50,7 +50,7 @@ function make_v(envs, keys){
             style: {value: ''},
         },
         HTMLCanvasElement:{
-            getContext: {value: `if (arguments[0]=='2d'){var r = v_new(CanvasRenderingContext2D); return r}; if (arguments[0]=='webgl'){var r = v_new(WebGLRenderingContext); r._canvas = this; return r}; return null`},
+            getContext: {value: `if (arguments[0]=='2d'){var r = v_new(CanvasRenderingContext2D); return r}; if (arguments[0]=='webgl' || arguments[0]=='experimental-webgl'){var r = v_new(WebGLRenderingContext); r._canvas = this; return r}; return null`},
             toDataURL: {value: `return 'aksdjfhalksjdfhalksjdfhalksjdf'`},
         },
         WebGLRenderingContext: {
