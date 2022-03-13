@@ -1,3 +1,358 @@
+function make_v(envs, keys){
+    var configs = {
+        Document: {
+            createElement: {
+                value: 'return _createElement(arguments[0])'
+            }
+        },
+        Navigator:{
+            javaEnabled:{ value: 'return true' },
+            plugins: {value: `return this._plugins || []`},
+            __init__: {value: `this._plugins = typeof PluginArray=='undefined'?[]:v_new(PluginArray)`}
+        },
+        Node: {
+            appendChild: {value: ''},
+            removeChild: {value: ''},
+        },
+        HTMLElement: {
+            style: {value: 'return this._style'},
+        },
+        Element: {
+            tagName: {value: 'return this._tagName'},
+        },
+        PluginArray: {
+            __init__: {
+                value: function(){
+                    var _plugins = navigator.plugins
+                    var _ret = []
+                    for (var i = 0; i < _plugins.length; i++) {
+                        
+                        _plugins[i].description // : "Portable Document Format"
+                        _plugins[i].filename // : "internal-pdf-viewer"
+                        _plugins[i].length // : 2
+                        _plugins[i].name // : "PDF Viewer"
+                        _ret.push([
+                            `  this[${i}]=v_new(Plugin);`,
+                            `this[${i}].description=${JSON.stringify(_plugins[i].description)};`,
+                            `this[${i}].filename=${JSON.stringify(_plugins[i].filename)};`,
+                            `this[${i}].length=${JSON.stringify(_plugins[i].length)};`,
+                            `this[${i}].name=${JSON.stringify(_plugins[i].name)};`,
+                        ].join(''))
+                    }
+                    return '\n' + _ret.join('\n')
+                }
+            }
+        },
+        SVGElement: {
+            style: {value: ''},
+        },
+        HTMLCanvasElement:{
+            getContext: {value: `if (arguments[0]=='2d'){var r = v_new(CanvasRenderingContext2D); return r}; if (arguments[0]=='webgl'){var r = v_new(WebGLRenderingContext); r._canvas = this; return r}; return null`},
+            toDataURL: {value: `return 'aksdjfhalksjdfhalksjdfhalksjdf'`},
+        },
+        WebGLRenderingContext: {
+            canvas: {value: `return this._canvas`}
+        },
+    }
+    function make_chain(name){
+        var _name = name
+        var list = []
+        if (window[_name]){
+            list.push(_name)
+        }
+        while(window[_name]){
+            _name = Object.getPrototypeOf(window[_name]).name
+            if (_name){
+                list.push(_name)
+            }
+        }
+        return list
+    }
+    function is_iteral(value){
+        var allc = ['string', 'number', 'boolean', 'undefined']
+        return allc.indexOf(typeof value) != -1 || value === null
+    }
+    function get_class_name(obj){
+        return /\[object ([^\]]+)\]/.exec(Object.prototype.toString.call(obj))[1]
+    }
+    function make_return(clazz, name, value, type){
+        var ret
+        var tog
+        if (configs[clazz] && configs[clazz][name]){
+            ret = configs[clazz][name].value
+            if (typeof ret == 'function'){
+                ret = ret()
+            }
+            tog = true
+        }
+        else if (typeof value != 'undefined'){
+            ret = 'return ' + value
+        }
+        else{
+            ret = ''
+        }
+        var prefix = ''
+        if (type != 'get'){
+            var prefix = `v_console_log("  [*] ${clazz} -> ${name}[${type}]", [].slice.call(arguments))`
+        }else{
+            var val = /return (.*)|(.*)/.exec(ret)
+            var val = val[1] || val[2]
+            var prefix = `v_console_log("  [*] ${clazz} -> ${name}[${type}]", ${tog?val:value})`
+        }
+        return prefix + ';' + ret
+    }
+    function make_init(clazz){
+        var ret;
+        if (configs[clazz] && configs[clazz]['__init__']){
+            ret = configs[clazz]['__init__'].value
+            if (typeof ret == 'function'){
+                ret = ret()
+            }
+        }else{
+            ret = ''
+        }
+        return ret
+    }
+    function make_s(renv, clazz_f){
+        var clazz = clazz_f[0]
+        var father = clazz_f[1]
+        if (!renv[clazz]){
+            var lst = []
+        }else{
+            var lst = Object.keys(renv[clazz])
+        }
+        var inner = []
+        try{
+            new window[clazz]
+            var cannew = true
+        }catch(e){
+            var cannew = false
+        }
+        for (var i = 0; i < lst.length; i++) {
+            var name = lst[i]
+            var temp = renv[clazz][name]
+            if (temp.get||temp.set){
+                var alls = []
+                if (temp.get){
+                    var value = JSON.stringify(temp.get.value)
+                    var getter = `get(){ ${make_return(clazz, name, value, 'get')} }`
+                    alls.push(getter)
+                }
+                if (temp.set){
+                    var setter = `set(){ ${make_return(clazz, name, value, 'set')} }`
+                    alls.push(setter)
+                }
+
+                inner.push(`  ${name}: {${alls.join(',')}},`)
+            }
+            if (temp.func){
+                inner.push(`  ${name}: {value: saf(function ${name}(){${make_return(clazz, name, undefined, 'func')}})},`)
+            }
+        }
+        var plist = Object.keys(window[clazz].prototype)
+        plist.push(Symbol.toStringTag)
+        for (var i = 0; i < plist.length; i++) {
+            try{
+                var value = window[clazz].prototype[plist[i]]
+                if (is_iteral(value)){
+                    var _desc = Object.getOwnPropertyDescriptors(window[clazz].prototype)[plist[i]]
+                    inner.push(`  ${plist[i]}: ${JSON.stringify(_desc)},`)
+                }
+            }catch(e){}
+        }
+        inner.push(`  [Symbol.toStringTag]: {value:"${clazz}",writable:false,enumerable:false,configurable:true},`)
+        if (inner.length){
+            inner.unshift(`Object.defineProperties(${clazz}.prototype, {`)
+            inner.push(`})`)
+        }
+        var init = make_init(clazz, name)
+        var ls = [
+            `${clazz} = saf(function ${clazz}(){${cannew?'':'if (!v_new_toggle){ throw TypeError("Illegal constructor") }'};${init}})` + (father?`; _inherits(${clazz}, ${father})`:''),
+        ]
+        defines.push(...ls)
+        definepros.push(...inner)
+        // return ls.join('\n')
+    }
+
+    var ekeys = Object.keys(envs)
+    var renv = {}
+    var maxlen = 0
+    if (!keys){ keys = ekeys }
+    if (typeof keys == 'string'){ keys = [keys] }
+    var collect = []
+    for (var i = 0; i < keys.length; i++) {
+        var e = envs[keys[i]]
+        var temp = Object.keys(e)
+        for (var j = 0; j < temp.length; j++) {
+            renv[temp[j]] = renv[temp[j]] || {}
+            var funcs = Object.keys(e[temp[j]])
+            for (var k = 0; k < funcs.length; k++) {
+                renv[temp[j]][funcs[k]] = renv[temp[j]][funcs[k]] || {}
+                var types = Object.keys(e[temp[j]][funcs[k]])
+                for (var l = 0; l < types.length; l++) {
+                    renv[temp[j]][funcs[k]][types[l]] = renv[temp[j]][funcs[k]][types[l]] || {}
+                    renv[temp[j]][funcs[k]][types[l]].value = e[temp[j]][funcs[k]][types[l]].value
+                }
+            }
+            var ls = make_chain(temp[j])
+            collect.push(ls)
+            maxlen = ls.length > maxlen ? ls.length : maxlen
+        }
+    }
+    if (!maxlen){ return }
+    for (var i = 0; i < collect.length; i++) {
+        var len = maxlen - collect[i].length
+        for (var j = 0; j < len; j++) {
+            collect[i].unshift(undefined)
+        }
+    }
+    var sorted = []
+    var dicter = {}
+    for (var i = maxlen - 1; i >= 0; i--) {
+        for (var j = 0; j < collect.length; j++) {
+            var temp = collect[j][i]
+            var pref = collect[j][i+1]
+            if (temp && sorted.indexOf(temp) == -1){
+                dicter[temp] = [temp, pref]
+                sorted.push(temp)
+            }
+        }
+    }
+    var prefix = [
+        `function _inherits(t, e) {`,
+        `  t.prototype = Object.create(e.prototype, {`,
+        `    constructor: { value: t, writable: !0, configurable: !0 }`,
+        `  }), e && Object.setPrototypeOf(t, e) }`,
+        `Object.defineProperty(Object.prototype, Symbol.toStringTag, {`,
+        `  get() { return Object.getPrototypeOf(this).constructor.name }`,
+        `});`,
+
+        'var v_new_toggle = true',
+        'var v_console_log = function(){if (!v_new_toggle){ console.log.apply(this, arguments) }}',
+        'var v_new = function(v){var temp=v_new_toggle; v_new_toggle = true; var r = new v; v_new_toggle = temp; return r}',
+    ]
+    var defines = []
+    var definepros = []
+    for (var i = 0; i < sorted.length; i++) {
+        make_s(renv, dicter[sorted[i]])
+    }
+    if (!dicter['Window']){dicter['Window'] = 1; make_s(renv, make_chain('Window'))}
+    if (!dicter['HTMLDocument']){dicter['HTMLDocument'] = 1; make_s(renv, make_chain('HTMLDocument'))}
+    if (!dicter['Navigator']){dicter['Navigator'] = 1; make_s(renv, make_chain('Navigator'))}
+    if (!dicter['PluginArray']){dicter['PluginArray'] = 1; make_s(renv, make_chain('PluginArray'))}
+    if (!dicter['Plugin']){dicter['Plugin'] = 1; make_s(renv, make_chain('Plugin'))}
+    if (!dicter['CSSStyleDeclaration']){dicter['CSSStyleDeclaration'] = 1; make_s(renv, make_chain('CSSStyleDeclaration'))}
+    
+    var _global = []
+    var _gcache = []
+    var _mpname = []
+    var list = Object.keys(window)
+    var _list = []
+    var _first = ['self', 'top', 'frames', 'parent']
+    for (var i = 0; i < list.length; i++) {
+        if (_first.indexOf(list[i]) != -1){
+            _list.unshift(list[i])
+        }else if (list[i] != 'window'){
+            _list.push(list[i])
+        }
+    }
+    _list.unshift('window')
+
+    var htmlmap = {
+      HTMLElement: ["abbr", "address", "article", "aside", "b", "bdi", "bdo", "cite", "code", "dd", "dfn", "dt", "em", 
+                    "figcaption", "figure", "footer", "header", "hgroup", "i", "kbd", "main", "mark", "nav", "noscript", 
+                    "rp", "rt", "ruby", "s", "samp", "section", "small", "strong", "sub", "summary", "sup", "u", "var", "wbr"],
+      HTMLAnchorElement: ["a"],          HTMLImageElement: ["img"],         HTMLFontElement: ["font"],                                HTMLOutputElement: ["output"], 
+      HTMLAreaElement: ["area"],         HTMLInputElement: ["input"],       HTMLFormElement: ["form"],                                HTMLParagraphElement: ["p"], 
+      HTMLAudioElement: ["audio"],       HTMLLabelElement: ["label"],       HTMLFrameElement: ["frame"],                              HTMLParamElement: ["param"], 
+      HTMLBaseElement: ["base"],         HTMLLegendElement: ["legend"],     HTMLFrameSetElement: ["frameset"],                        HTMLPictureElement: ["picture"], 
+      HTMLBodyElement: ["body"],         HTMLLIElement: ["li"],             HTMLHeadingElement: ["h1", "h2", "h3", "h4", "h5", "h6"], HTMLPreElement: ["listing", "pre", "xmp"], 
+      HTMLBRElement: ["br"],             HTMLLinkElement: ["link"],         HTMLHeadElement: ["head"],                                HTMLProgressElement: ["progress"], 
+      HTMLButtonElement: ["button"],     HTMLMapElement: ["map"],           HTMLHRElement: ["hr"],                                    HTMLQuoteElement: ["blockquote", "q"], 
+      HTMLCanvasElement: ["canvas"],     HTMLMarqueeElement: ["marquee"],   HTMLHtmlElement: ["html"],                                HTMLScriptElement: ["script"], 
+      HTMLDataElement: ["data"],         HTMLMediaElement: [],              HTMLIFrameElement: ["iframe"],                            HTMLTimeElement: ["time"], 
+      HTMLDataListElement: ["datalist"], HTMLMenuElement: ["menu"],         HTMLSelectElement: ["select"],                            HTMLTitleElement: ["title"], 
+      HTMLDetailsElement: ["details"],   HTMLMetaElement: ["meta"],         HTMLSlotElement: ["slot"],                                HTMLTableRowElement: ["tr"], 
+      HTMLDialogElement: ["dialog"],     HTMLMeterElement: ["meter"],       HTMLSourceElement: ["source"],                            HTMLTableSectionElement: ["thead", "tbody", "tfoot"], 
+      HTMLDirectoryElement: ["dir"],     HTMLModElement: ["del", "ins"],    HTMLSpanElement: ["span"],                                HTMLTemplateElement: ["template"], 
+      HTMLDivElement: ["div"],           HTMLObjectElement: ["object"],     HTMLStyleElement: ["style"],                              HTMLTextAreaElement: ["textarea"], 
+      HTMLDListElement: ["dl"],          HTMLOListElement: ["ol"],          HTMLTableCaptionElement: ["caption"],                     HTMLTrackElement: ["track"], 
+      HTMLEmbedElement: ["embed"],       HTMLOptGroupElement: ["optgroup"], HTMLTableCellElement: ["th", "td"],                       HTMLUListElement: ["ul"], 
+      HTMLFieldSetElement: ["fieldset"], HTMLOptionElement: ["option"],     HTMLTableColElement: ["col", "colgroup"],                 HTMLUnknownElement: [], 
+      HTMLTableElement: ["table"],       HTMLVideoElement: ["video"]
+    }
+    var v_new_htmlmap = {}
+    var v_eles = Object.keys(dicter)
+    for (var i = 0; i < v_eles.length; i++) {
+        if (htmlmap[v_eles[i]]){
+            v_new_htmlmap[v_eles[i]] = htmlmap[v_eles[i]]
+        }
+    }
+    var v_createE = JSON.stringify(v_new_htmlmap, 0, 0)
+    var v_cele = []
+    if (v_createE.length > 3){
+        v_cele.push('function _createElement(name){')
+        v_cele.push('  '+ 'var htmlmap = ' + v_createE)
+        v_cele.push(...[
+            `  var ret, htmlmapkeys = Object.keys(htmlmap)`,
+            `  name = name.toLocaleLowerCase()`,
+            `  for (var i = 0; i < htmlmapkeys.length; i++) {`,
+            `    if (htmlmap[htmlmapkeys[i]].indexOf(name) != -1){`,
+            `      ret = v_new(window[htmlmapkeys[i]])`,
+            `      break`,
+            `    }`,
+            `  }`,
+            `  if (!ret){ ret = new saf(function HTMLUnknownElement(){}) }`,
+            `  if (typeof CSSStyleDeclaration != 'undefined') { ret._style = v_new(CSSStyleDeclaration) }`,
+            `  ret._tagName = name.toUpperCase()`,
+            `  return ret`,
+        ])
+        v_cele.push('}')
+    }
+
+    list = _list
+    for (var i = 0; i < list.length; i++) {
+        var obj = window[list[i]]
+        var name = get_class_name(obj)
+        if (dicter[name]){
+            var idx = _gcache.indexOf(obj)
+            if (idx == -1){
+                _gcache.push(obj)
+                _mpname.push(list[i])
+                if (list[i] == 'window'){
+                    _global.push(`var __globalThis__ = typeof global != 'undefined' ? global : this`)
+                    _global.push(`var window = new Proxy(v_new(Window), {`)
+                    _global.push(`  get(a,b){ return a[b] || __globalThis__[b] },`)
+                    _global.push(`  set(a,b,c){ __globalThis__[b] = a[b] = c },`)
+                    _global.push(`})`)
+                    _global.push(`Object.defineProperties(__globalThis__, {[Symbol.toStringTag]:{value:'Window'}})`)
+                    _global.push(`Object.defineProperties(__globalThis__, Object.getOwnPropertyDescriptors(window))`)
+                }else{
+                    _global.push(`window.${list[i]} = v_new(${name})`)
+                }
+            }else{
+                var vname = _mpname[idx]
+                _global.push(`window.${list[i]} = ${vname}`)
+            }
+        }
+    }
+    _global.push('v_new_toggle = saf = undefined')
+    var rets = [
+        `var saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),saf=u}();`,
+        '\n',
+        ...prefix,
+        '\n',
+        ...defines,
+        ...definepros,
+        '\n\n\n',
+        ..._global,
+        ...v_cele,
+    ]
+    return rets.join('\n')
+}
+
+
+
 function injectfunc(e, window) {
   var FuntoString = Function.prototype.toString
   var origslice = [].slice
@@ -37,7 +392,27 @@ function injectfunc(e, window) {
 
   var v_env_cache = {}
   window.v_log_env = function (){
-    return v_env_cache
+    $make_v_func
+    function copyToClipboard(str){
+      const el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      const selected =
+        document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+      }
+    };
+    var mkstr = make_v(v_env_cache)
+    copyToClipboard(mkstr)
+    alert('已将代码存放到剪贴板中。')
   }
 
   function v_cache_node(_addr, clazz, func, type, r){
@@ -464,6 +839,7 @@ function inject_script(code){
 chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
+    var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
     inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
   }
 })
@@ -471,5 +847,8 @@ chrome.storage.local.get(hookers, function (result) {
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'error'){
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
+  }
+  if (msg.action.type == 'addlistener'){
+    inject_script(`v_log_env()`)
   }
 });
