@@ -3,7 +3,10 @@ function make_v(envs, keys){
         Document: {
             createElement: {
                 value: 'return _createElement(arguments[0])'
-            }
+            },
+            documentElement: {
+                value: 'return document'
+            },
         },
         Navigator:{
             javaEnabled:{ value: 'return true' },
@@ -242,6 +245,10 @@ function make_v(envs, keys){
     if (!dicter['PluginArray']){dicter['PluginArray'] = 1; make_s(renv, make_chain('PluginArray'))}
     if (!dicter['Plugin']){dicter['Plugin'] = 1; make_s(renv, make_chain('Plugin'))}
     if (!dicter['CSSStyleDeclaration']){dicter['CSSStyleDeclaration'] = 1; make_s(renv, make_chain('CSSStyleDeclaration'))}
+    if (!dicter['Location']){dicter['Location'] = 1; make_s(renv, make_chain('Location'))}
+    if (!dicter['HTMLCanvasElement']){dicter['HTMLCanvasElement'] = 1; make_s(renv, make_chain('HTMLCanvasElement'))}
+    if (!dicter['WebGLRenderingContext']){dicter['WebGLRenderingContext'] = 1; make_s(renv, make_chain('WebGLRenderingContext'))}
+    if (!dicter['CanvasRenderingContext2D']){dicter['CanvasRenderingContext2D'] = 1; make_s(renv, make_chain('CanvasRenderingContext2D'))}
     
     var _global = []
     var _gcache = []
