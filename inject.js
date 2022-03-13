@@ -856,6 +856,6 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
   if (msg.action.type == 'addlistener'){
-    inject_script(`v_log_env()`)
+    inject_script(`try{v_log_env()}catch(e){alert('请打开挂钩开关，并选中dom挂钩的全部。')}`)
   }
 });
