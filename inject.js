@@ -228,14 +228,14 @@ function make_v(envs, keys){
     if (a == 35632 && b == 36341){ return r2 } if (a == 35632 && b == 36340){ return r2 } if (a == 35632 && b == 36339){ return r2 }
     throw Error('getShaderPrecisionFormat')
   }
-  saf(this.createBuffer, 'createBuffer')
-  saf(this.createProgram, 'createProgram')
-  saf(this.createShader, 'createShader')
-  saf(this.getSupportedExtensions, 'getSupportedExtensions')
-  saf(this.getExtension, 'getExtension')
-  saf(this.getParameter, 'getParameter')
-  saf(this.getContextAttributes, 'getContextAttributes')
-  saf(this.getShaderPrecisionFormat, 'getShaderPrecisionFormat')`},
+  v_saf(this.createBuffer, 'createBuffer')
+  v_saf(this.createProgram, 'createProgram')
+  v_saf(this.createShader, 'createShader')
+  v_saf(this.getSupportedExtensions, 'getSupportedExtensions')
+  v_saf(this.getExtension, 'getExtension')
+  v_saf(this.getParameter, 'getParameter')
+  v_saf(this.getContextAttributes, 'getContextAttributes')
+  v_saf(this.getShaderPrecisionFormat, 'getShaderPrecisionFormat')`},
         },
         HTMLDocument: {__init__:{
             value: `Object.defineProperty(this, 'location', {get(){return location}})`
@@ -352,7 +352,7 @@ function make_v(envs, keys){
                 inner.push(`  ${name}: {${alls.join(',')}},`)
             }
             if (temp.func){
-                inner.push(`  ${name}: {value: saf(function ${name}(){${make_return(clazz, name, undefined, 'func')}})},`)
+                inner.push(`  ${name}: {value: v_saf(function ${name}(){${make_return(clazz, name, undefined, 'func')}})},`)
             }
         }
         var plist = Object.keys(window[clazz].prototype)
@@ -373,7 +373,7 @@ function make_v(envs, keys){
         }
         var init = make_init(clazz, name)
         var ls = [
-            `${clazz} = saf(function ${clazz}(){${cannew?'':'if (!v_new_toggle){ throw TypeError("Illegal constructor") }'};${init}})` + (father?`; _inherits(${clazz}, ${father})`:''),
+            `${clazz} = v_saf(function ${clazz}(){${cannew?'':'if (!v_new_toggle){ throw TypeError("Illegal constructor") }'};${init}})` + (father?`; _inherits(${clazz}, ${father})`:''),
         ]
         defines.push(...ls)
         definepros.push(...inner)
@@ -527,7 +527,7 @@ function make_v(envs, keys){
             `      break`,
             `    }`,
             `  }`,
-            `  if (!ret){ ret = new saf(function HTMLUnknownElement(){}) }`,
+            `  if (!ret){ ret = new v_saf(function HTMLUnknownElement(){}) }`,
             `  if (typeof CSSStyleDeclaration != 'undefined') { ret._style = v_new(CSSStyleDeclaration) }`,
             `  ret._tagName = name.toUpperCase()`,
             `  return ret`,
@@ -647,13 +647,13 @@ function v_hook_storage(){
   window.localStorage = new Proxy(localStorage,{ set:function(a,b,c){ v_console_log(\`  [*] Storage -> [set]:\`, b, c); return a[b]=String(c)}, get:function(a,b){ v_console_log(\`  [*] Storage -> [get]:\`, b, a[b]); return a[b]},})
 }
 function v_init_document(){
-  Document.prototype.getElementById = saf(function getElementById(name){ var r = v_getele(name, 'getElementById'); v_console_log('  [*] Document -> getElementById', name, r); return r })
-  Document.prototype.querySelector = saf(function querySelector(name){ var r = v_getele(name, 'querySelector'); v_console_log('  [*] Document -> querySelector', name, r); return r })
-  Document.prototype.getElementsByClassName = saf(function getElementsByClassName(name){ var r = v_geteles(name, 'getElementsByClassName'); v_console_log('  [*] Document -> getElementsByClassName', name, r); return r })
-  Document.prototype.getElementsByName = saf(function getElementsByName(name){ var r = v_geteles(name, 'getElementsByName'); v_console_log('  [*] Document -> getElementsByName', name, r); return r })
-  Document.prototype.getElementsByTagName = saf(function getElementsByTagName(name){ var r = v_geteles(name, 'getElementsByTagName'); v_console_log('  [*] Document -> getElementsByTagName', name, r); return r })
-  Document.prototype.getElementsByTagNameNS = saf(function getElementsByTagNameNS(name){ var r = v_geteles(name, 'getElementsByTagNameNS'); v_console_log('  [*] Document -> getElementsByTagNameNS', name, r); return r })
-  Document.prototype.querySelectorAll = saf(function querySelectorAll(name){ var r = v_geteles(name, 'querySelectorAll'); v_console_log('  [*] Document -> querySelectorAll', name, r); return r })
+  Document.prototype.getElementById = v_saf(function getElementById(name){ var r = v_getele(name, 'getElementById'); v_console_log('  [*] Document -> getElementById', name, r); return r })
+  Document.prototype.querySelector = v_saf(function querySelector(name){ var r = v_getele(name, 'querySelector'); v_console_log('  [*] Document -> querySelector', name, r); return r })
+  Document.prototype.getElementsByClassName = v_saf(function getElementsByClassName(name){ var r = v_geteles(name, 'getElementsByClassName'); v_console_log('  [*] Document -> getElementsByClassName', name, r); return r })
+  Document.prototype.getElementsByName = v_saf(function getElementsByName(name){ var r = v_geteles(name, 'getElementsByName'); v_console_log('  [*] Document -> getElementsByName', name, r); return r })
+  Document.prototype.getElementsByTagName = v_saf(function getElementsByTagName(name){ var r = v_geteles(name, 'getElementsByTagName'); v_console_log('  [*] Document -> getElementsByTagName', name, r); return r })
+  Document.prototype.getElementsByTagNameNS = v_saf(function getElementsByTagNameNS(name){ var r = v_geteles(name, 'getElementsByTagNameNS'); v_console_log('  [*] Document -> getElementsByTagNameNS', name, r); return r })
+  Document.prototype.querySelectorAll = v_saf(function querySelectorAll(name){ var r = v_geteles(name, 'querySelectorAll'); v_console_log('  [*] Document -> querySelectorAll', name, r); return r })
 }
 
 function mk_atob_btoa(r){var a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",t=new Array(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1);return{atob:function(r){var a,e,o,h,c,i,n;for(i=r.length,c=0,n="";c<i;){do{a=t[255&r.charCodeAt(c++)]}while(c<i&&-1==a);if(-1==a)break;do{e=t[255&r.charCodeAt(c++)]}while(c<i&&-1==e);if(-1==e)break;n+=String.fromCharCode(a<<2|(48&e)>>4);do{if(61==(o=255&r.charCodeAt(c++)))return n;o=t[o]}while(c<i&&-1==o);if(-1==o)break;n+=String.fromCharCode((15&e)<<4|(60&o)>>2);do{if(61==(h=255&r.charCodeAt(c++)))return n;h=t[h]}while(c<i&&-1==h);if(-1==h)break;n+=String.fromCharCode((3&o)<<6|h)}return n},btoa:function(r){var t,e,o,h,c,i;for(o=r.length,e=0,t="";e<o;){if(h=255&r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4),t+="==";break}if(c=r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2),t+="=";break}i=r.charCodeAt(e++),t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2|(192&i)>>6),t+=a.charAt(63&i)}return t}}}
@@ -699,9 +699,9 @@ window.atob = window.atob || atob_btoa.atob
       `}`,
     ])
 
-    tail.push('v_new_toggle = saf = undefined')
+    tail.push('v_new_toggle = undefined')
     var rets = [
-        `var saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),saf=u}();`,
+        `var v_saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),v_saf=u}();`,
         '\n',
         ...prefix,
         '\n',
