@@ -879,8 +879,9 @@ function injectfunc(e, window) {
           window.v_cookie_get(r)
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
-            if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
-              v_cache_node(expstr, "Document", "cookie", "get", r)
+            var expstr=Error().stack.v_split('\n')[2]
+            v_cache_node(expstr, "Document", "cookie", "get", r)
+            if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
             }
             if (e["config-hook-cookie-add-debugger"]){ debugger }
@@ -894,8 +895,9 @@ function injectfunc(e, window) {
           window.v_cookie_set(arguments)
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
-            if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
-              v_cache_node(expstr, "Document", "cookie", "set")
+            var expstr=Error().stack.v_split('\n')[2]
+            v_cache_node(expstr, "Document", "cookie", "set")
+            if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
             }
             if (e["config-hook-cookie-add-debugger"]){ debugger }
@@ -1035,8 +1037,9 @@ function make_domhooker_funcs(){
         var _new_get = saf(function get(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
-            if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
-              v_cache_node(expstr, "${obname}", "${name}", "get", r)
+            var expstr = Error().stack.v_split('\\n')[2]
+            v_cache_node(expstr, "${obname}", "${name}", "get", r)
+            if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
           }
@@ -1044,8 +1047,9 @@ function make_domhooker_funcs(){
         if (_old_set){
           var _new_set = saf(function set(v){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
-              if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
-                v_cache_node(expstr, "${obname}", "${name}", "set")
+              var expstr = Error().stack.v_split('\\n')[2]
+              v_cache_node(expstr, "${obname}", "${name}", "set")
+              if (expurl.v_test(expstr)){
                 window.v_log(..._mk_logs('[${obname} ${name} set]', v, get_log_at(expstr.trim())))
               }
             }
@@ -1063,8 +1067,9 @@ function make_domhooker_funcs(){
         try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name}, _old_val = _desc.value }catch(e){ return }
         var _new_val = saf(function ${name}(){
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
-            if (expurl.v_test(expstr=Error().stack.v_split('\\n')[2])){
-              v_cache_node(expstr, "${obname}", "${name}", "func")
+            var expstr = Error().stack.v_split('\\n')[2]
+            v_cache_node(expstr, "${obname}", "${name}", "func")
+            if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), get_log_at(expstr.trim())))
             }
           }
