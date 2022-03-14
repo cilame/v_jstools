@@ -7,6 +7,9 @@ function make_v(envs, keys){
             documentElement: {
                 value: 'return document'
             },
+            cookie: {
+                ban: true,
+            },
         },
         Navigator:{
             javaEnabled:{ value: 'return true' },
@@ -23,17 +26,20 @@ function make_v(envs, keys){
         Element: {
             tagName: {value: 'return this._tagName'},
         },
+        Storage:{
+            clear:{ ban: true },
+            getItem:{ ban: true },
+            setItem:{ ban: true },
+            key:{ ban: true },
+            removeItem:{ ban: true },
+            length:{ ban: true },
+        },
         PluginArray: {
             __init__: {
                 value: function(){
                     var _plugins = navigator.plugins
                     var _ret = []
                     for (var i = 0; i < _plugins.length; i++) {
-                        
-                        _plugins[i].description // : "Portable Document Format"
-                        _plugins[i].filename // : "internal-pdf-viewer"
-                        _plugins[i].length // : 2
-                        _plugins[i].name // : "PDF Viewer"
                         _ret.push([
                             `  this[${i}]=v_new(Plugin);`,
                             `this[${i}].description=${JSON.stringify(_plugins[i].description)};`,
@@ -46,6 +52,36 @@ function make_v(envs, keys){
                 }
             }
         },
+        Plugin:{
+            description: { ban: true },
+            filename: { ban: true },
+            length: { ban: true },
+            name: { ban: true },
+        },
+        MimeTypeArray: {
+            __init__: {
+                value: function(){
+                    var _mimeTypes = navigator.mimeTypes
+                    var _ret = []
+                    for (var i = 0; i < _mimeTypes.length; i++) {
+                        _ret.push([
+                            `  this[${i}]=v_new(Plugin);`,
+                            `this[${i}].description=${JSON.stringify(_mimeTypes[i].description)};`,
+                            `this[${i}].enabledPlugin=${JSON.stringify(_mimeTypes[i].enabledPlugin)};`,
+                            `this[${i}].suffixes=${JSON.stringify(_mimeTypes[i].suffixes)};`,
+                            `this[${i}].type=${JSON.stringify(_mimeTypes[i].type)};`,
+                        ].join(''))
+                    }
+                    return '\n' + _ret.join('\n')
+                }
+            }
+        },
+        MimeType:{
+            description: { ban: true },
+            enabledPlugin: { ban: true },
+            suffixes: { ban: true },
+            type: { ban: true },
+        },
         SVGElement: {
             style: {value: ''},
         },
@@ -55,6 +91,22 @@ function make_v(envs, keys){
         },
         WebGLRenderingContext: {
             canvas: {value: `return this._canvas`}
+        },
+        HTMLDocument: {__init__:{
+            value: `Object.defineProperty(this, 'location', {get(){return location}})`
+        }},
+        Performance:{
+            timing:{
+                value: `return v_new(PerformanceTiming)`
+            },
+            getEntriesByType:{
+                value: `if (arguments[0]=='resource'){return v_new(PerformanceResourceTiming)}`
+            }
+        },
+        HTMLAnchorElement:{
+            __init__:{
+                value: `v_hook_href(this, 'HTMLAnchorElement', location.href)`
+            }
         },
     }
     function make_chain(name){
@@ -77,6 +129,9 @@ function make_v(envs, keys){
     }
     function get_class_name(obj){
         return /\[object ([^\]]+)\]/.exec(Object.prototype.toString.call(obj))[1]
+    }
+    function check_ban(clazz, name){
+        return configs[clazz] && configs[clazz][name] && configs[clazz][name].ban
     }
     function make_return(clazz, name, value, type){
         var ret
@@ -134,6 +189,9 @@ function make_v(envs, keys){
         for (var i = 0; i < lst.length; i++) {
             var name = lst[i]
             var temp = renv[clazz][name]
+            if (check_ban(clazz, name)){
+                continue
+            }
             if (temp.get||temp.set){
                 var alls = []
                 if (temp.get){
@@ -244,11 +302,17 @@ function make_v(envs, keys){
     if (!dicter['Navigator']){dicter['Navigator'] = 1; make_s(renv, make_chain('Navigator'))}
     if (!dicter['PluginArray']){dicter['PluginArray'] = 1; make_s(renv, make_chain('PluginArray'))}
     if (!dicter['Plugin']){dicter['Plugin'] = 1; make_s(renv, make_chain('Plugin'))}
+    if (!dicter['MimeTypeArray']){dicter['MimeTypeArray'] = 1; make_s(renv, make_chain('MimeTypeArray'))}
+    if (!dicter['MimeType']){dicter['MimeType'] = 1; make_s(renv, make_chain('MimeType'))}
     if (!dicter['CSSStyleDeclaration']){dicter['CSSStyleDeclaration'] = 1; make_s(renv, make_chain('CSSStyleDeclaration'))}
     if (!dicter['Location']){dicter['Location'] = 1; make_s(renv, make_chain('Location'))}
     if (!dicter['HTMLCanvasElement']){dicter['HTMLCanvasElement'] = 1; make_s(renv, make_chain('HTMLCanvasElement'))}
     if (!dicter['WebGLRenderingContext']){dicter['WebGLRenderingContext'] = 1; make_s(renv, make_chain('WebGLRenderingContext'))}
     if (!dicter['CanvasRenderingContext2D']){dicter['CanvasRenderingContext2D'] = 1; make_s(renv, make_chain('CanvasRenderingContext2D'))}
+    if (!dicter['Performance']){dicter['Performance'] = 1; make_s(renv, make_chain('Performance'))}
+    if (!dicter['PerformanceTiming']){dicter['PerformanceTiming'] = 1; make_s(renv, make_chain('PerformanceTiming'))}
+    if (!dicter['PerformanceEntry']){dicter['PerformanceEntry'] = 1; make_s(renv, make_chain('PerformanceEntry'))}
+    if (!dicter['PerformanceResourceTiming']){dicter['PerformanceResourceTiming'] = 1; make_s(renv, make_chain('PerformanceResourceTiming'))}
     
     var _global = []
     var _gcache = []
@@ -343,6 +407,101 @@ function make_v(envs, keys){
             }
         }
     }
+    var tail = [
+`function init_cookie(cookie){
+  var cache = (cookie || "").trim();
+  if (!cache){
+    cache = ''
+  }else if (cache.charAt(cache.length-1) != ';'){
+    cache += '; '
+  }else{
+    cache += ' '
+  }
+  Object.defineProperty(Document.prototype, 'cookie', {
+    get: function() {
+      var r = cache.slice(0,cache.length-2);
+      v_console_log('  [*] document -> cookie[get]', r)
+      return r
+    },
+    set: function(c) {
+      v_console_log('  [*] document -> cookie[set]', c)
+      var ncookie = c.split(";")[0].split("=");
+      if (!ncookie[1]){
+        return c
+      }
+      var key = ncookie[0].trim()
+      var val = ncookie[1].trim()
+      var newc = key+'='+val
+      var flag = false;
+      var temp = cache.split("; ").map(function(a) {
+        if (a.split("=")[0] === key) {
+          flag = true;
+          return newc;
+        }
+        return a;
+      })
+      cache = temp.join("; ");
+      if (!flag) {
+        cache += newc + "; ";
+      }
+      return cache;
+    }
+  });
+}
+function v_hook_href(obj, name, initurl){
+  var r = Object.defineProperty(obj, 'href', {
+    get: function(){
+      if (!(this.protocol) && !(this.host)){
+        r = ''
+      }else{
+        r = this.protocol + "//" + this.host + (this.port ? ":" + this.port : "") + this.pathname + this.search + this.hash;
+      }
+      v_console_log(\`  [*] \${name||obj.constructor.name} -> href[get]:\`, JSON.stringify(r))
+      return r
+    },
+    set: function(href){
+      href = href.trim()
+      v_console_log(\`  [*] \${name||obj.constructor.name} -> href[set]:\`, JSON.stringify(href))
+      if (href.startsWith("http://") || href.startsWith("https://")){/*ok*/}
+      else if(href.startsWith("//")){ href = (this.protocol?this.protocol:'http:') + href}
+      else{ href = this.protocol+"//"+this.host + (this.port?":"+this.port:"") + '/' + ((href[0]=='/')?href.slice(1):href) }
+      var a = href.match(/([^:]+:)\\/\\/([^/:?#]+):?(\\d+)?([^?#]*)?(\\?[^#]*)?(#.*)?/);
+      this.protocol = a[1] ? a[1] : "";
+      this.host     = a[2] ? a[2] : "";
+      this.port     = a[3] ? a[3] : "";
+      this.pathname = a[4] ? a[4] : "";
+      this.search   = a[5] ? a[5] : "";
+      this.hash     = a[6] ? a[6] : "";
+      this.hostname = this.host;
+      this.origin   = this.protocol + "//" + this.host + (this.port ? ":" + this.port : "");
+    }
+  });
+  if (initurl && initurl.trim()){ r.href = initurl }
+  return r
+}
+function v_hook_storage(){
+  Storage.prototype.clear      = function(){          v_console_log(\`  [*] Storage -> clear[func]:\`); var self=this;Object.keys(self).forEach(function (key) { delete self[key]; }); }
+  Storage.prototype.getItem    = function(key){       v_console_log(\`  [*] Storage -> getItem[func]:\`, key); var r = (this.hasOwnProperty(key)?String(this[key]):null); return r}
+  Storage.prototype.setItem    = function(key, val){  v_console_log(\`  [*] Storage -> setItem[func]:\`, key, val); this[key] = (val === undefined)?null:String(val) }
+  Storage.prototype.key        = function(key){       v_console_log(\`  [*] Storage -> key[func]:\`, key); return Object.keys(this)[key||0];} 
+  Storage.prototype.removeItem = function(key){       v_console_log(\`  [*] Storage -> removeItem[func]:\`, key); delete this[key];}
+  Object.defineProperty(Storage.prototype, 'length', {get: function(){
+    if(this===Storage.prototype){ throw TypeError('Illegal invocation') }return Object.keys(this).length
+  }})
+  window.sessionStorage = new Proxy(sessionStorage,{ set:function(a,b,c){ v_console_log(\`  [*] Storage -> [set]:\`, b, c); return a[b]=String(c)}, get:function(a,b){ v_console_log(\`  [*] Storage -> [get]:\`, b, a[b]); return a[b]},})
+  window.localStorage = new Proxy(localStorage,{ set:function(a,b,c){ v_console_log(\`  [*] Storage -> [set]:\`, b, c); return a[b]=String(c)}, get:function(a,b){ v_console_log(\`  [*] Storage -> [get]:\`, b, a[b]); return a[b]},})
+}
+
+function mk_atob_btoa(r){var a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",t=new Array(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1);return{atob:function(r){var a,e,o,h,c,i,n;for(i=r.length,c=0,n="";c<i;){do{a=t[255&r.charCodeAt(c++)]}while(c<i&&-1==a);if(-1==a)break;do{e=t[255&r.charCodeAt(c++)]}while(c<i&&-1==e);if(-1==e)break;n+=String.fromCharCode(a<<2|(48&e)>>4);do{if(61==(o=255&r.charCodeAt(c++)))return n;o=t[o]}while(c<i&&-1==o);if(-1==o)break;n+=String.fromCharCode((15&e)<<4|(60&o)>>2);do{if(61==(h=255&r.charCodeAt(c++)))return n;h=t[h]}while(c<i&&-1==h);if(-1==h)break;n+=String.fromCharCode((3&o)<<6|h)}return n},btoa:function(r){var t,e,o,h,c,i;for(o=r.length,e=0,t="";e<o;){if(h=255&r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4),t+="==";break}if(c=r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2),t+="=";break}i=r.charCodeAt(e++),t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2|(192&i)>>6),t+=a.charAt(63&i)}return t}}}
+var atob_btoa = mk_atob_btoa()
+window.btoa = window.btoa || atob_btoa.btoa
+window.atob = window.atob || atob_btoa.atob
+`,
+
+`init_cookie(${JSON.stringify(document.cookie)})`,
+`v_hook_href(window.location, 'location', ${JSON.stringify(location.href)})`,
+`v_hook_storage()`,
+]
     _global.push('v_new_toggle = saf = undefined')
     var rets = [
         `var saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),saf=u}();`,
@@ -354,6 +513,7 @@ function make_v(envs, keys){
         '\n\n\n',
         ..._global,
         ...v_cele,
+        ...tail,
     ]
     return rets.join('\n')
 }
