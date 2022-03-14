@@ -1,4 +1,7 @@
 function make_v(envs, keys){
+    _envs = envs
+    envs = _envs[0]
+    eles = _envs[1]
     var configs = {
         Document: {
             createElement: {
@@ -7,9 +10,14 @@ function make_v(envs, keys){
             documentElement: {
                 value: 'return document'
             },
-            cookie: {
-                ban: true,
-            },
+            cookie: { ban: true },
+            getElementById: { ban: true },
+            getElementsByClassName: { ban: true },
+            getElementsByName: { ban: true },
+            getElementsByTagName: { ban: true },
+            getElementsByTagNameNS: { ban: true },
+            querySelector: { ban: true },
+            querySelectorAll: { ban: true },
         },
         Navigator:{
             javaEnabled:{ value: 'return true' },
@@ -219,7 +227,15 @@ function make_v(envs, keys){
     if (a == 35632 && b == 36338){ return r1 } if (a == 35632 && b == 36337){ return r1 } if (a == 35632 && b == 36336){ return r1 }
     if (a == 35632 && b == 36341){ return r2 } if (a == 35632 && b == 36340){ return r2 } if (a == 35632 && b == 36339){ return r2 }
     throw Error('getShaderPrecisionFormat')
-  }`},
+  }
+  saf(this.createBuffer, 'createBuffer')
+  saf(this.createProgram, 'createProgram')
+  saf(this.createShader, 'createShader')
+  saf(this.getSupportedExtensions, 'getSupportedExtensions')
+  saf(this.getExtension, 'getExtension')
+  saf(this.getParameter, 'getParameter')
+  saf(this.getContextAttributes, 'getContextAttributes')
+  saf(this.getShaderPrecisionFormat, 'getShaderPrecisionFormat')`},
         },
         HTMLDocument: {__init__:{
             value: `Object.defineProperty(this, 'location', {get(){return location}})`
@@ -427,25 +443,30 @@ function make_v(envs, keys){
     for (var i = 0; i < sorted.length; i++) {
         make_s(renv, dicter[sorted[i]])
     }
-    if (!dicter['Window']){dicter['Window'] = 1; make_s(renv, make_chain('Window'))}
-    if (!dicter['HTMLDocument']){dicter['HTMLDocument'] = 1; make_s(renv, make_chain('HTMLDocument'))}
-    if (!dicter['Navigator']){dicter['Navigator'] = 1; make_s(renv, make_chain('Navigator'))}
-    if (!dicter['PluginArray']){dicter['PluginArray'] = 1; make_s(renv, make_chain('PluginArray'))}
-    if (!dicter['Plugin']){dicter['Plugin'] = 1; make_s(renv, make_chain('Plugin'))}
-    if (!dicter['MimeTypeArray']){dicter['MimeTypeArray'] = 1; make_s(renv, make_chain('MimeTypeArray'))}
-    if (!dicter['MimeType']){dicter['MimeType'] = 1; make_s(renv, make_chain('MimeType'))}
-    if (!dicter['CSSStyleDeclaration']){dicter['CSSStyleDeclaration'] = 1; make_s(renv, make_chain('CSSStyleDeclaration'))}
-    if (!dicter['Location']){dicter['Location'] = 1; make_s(renv, make_chain('Location'))}
-    if (!dicter['HTMLCanvasElement']){dicter['HTMLCanvasElement'] = 1; make_s(renv, make_chain('HTMLCanvasElement'))}
-    if (!dicter['WebGLRenderingContext']){dicter['WebGLRenderingContext'] = 1; make_s(renv, make_chain('WebGLRenderingContext'))}
-    if (!dicter['CanvasRenderingContext2D']){dicter['CanvasRenderingContext2D'] = 1; make_s(renv, make_chain('CanvasRenderingContext2D'))}
-    if (!dicter['Performance']){dicter['Performance'] = 1; make_s(renv, make_chain('Performance'))}
-    if (!dicter['PerformanceTiming']){dicter['PerformanceTiming'] = 1; make_s(renv, make_chain('PerformanceTiming'))}
-    if (!dicter['PerformanceEntry']){dicter['PerformanceEntry'] = 1; make_s(renv, make_chain('PerformanceEntry'))}
-    if (!dicter['PerformanceResourceTiming']){dicter['PerformanceResourceTiming'] = 1; make_s(renv, make_chain('PerformanceResourceTiming'))}
-    if (!dicter['Image']){dicter['Image'] = 1; make_s(renv, make_chain('Image'))}
-    if (!dicter['HTMLImageElement']){dicter['HTMLImageElement'] = 1; make_s(renv, make_chain('HTMLImageElement'))}
-    if (!dicter['Storage']){dicter['Storage'] = 1; make_s(renv, make_chain('Storage'))}
+
+    function patcher(name){
+      if (!dicter[name]){dicter[name] = 1; make_s(renv, make_chain(name))}
+    }
+    patcher('Window')
+    patcher('HTMLDocument')
+    patcher('Navigator')
+    patcher('PluginArray')
+    patcher('Plugin')
+    patcher('MimeTypeArray')
+    patcher('MimeType')
+    patcher('CSSStyleDeclaration')
+    patcher('Location')
+    patcher('HTMLCanvasElement')
+    patcher('WebGLRenderingContext')
+    patcher('CanvasRenderingContext2D')
+    patcher('Performance')
+    patcher('PerformanceTiming')
+    patcher('PerformanceEntry')
+    patcher('PerformanceResourceTiming')
+    patcher('Image')
+    patcher('HTMLImageElement')
+    patcher('HTMLMediaElement')
+    patcher('Storage')
     
     var _global = []
     var _gcache = []
@@ -625,6 +646,15 @@ function v_hook_storage(){
   window.sessionStorage = new Proxy(sessionStorage,{ set:function(a,b,c){ v_console_log(\`  [*] Storage -> [set]:\`, b, c); return a[b]=String(c)}, get:function(a,b){ v_console_log(\`  [*] Storage -> [get]:\`, b, a[b]); return a[b]},})
   window.localStorage = new Proxy(localStorage,{ set:function(a,b,c){ v_console_log(\`  [*] Storage -> [set]:\`, b, c); return a[b]=String(c)}, get:function(a,b){ v_console_log(\`  [*] Storage -> [get]:\`, b, a[b]); return a[b]},})
 }
+function v_init_document(){
+  Document.prototype.getElementById = saf(function getElementById(name){ var r = v_getele(name, 'getElementById'); v_console_log('  [*] Document -> getElementById', name, r); return r })
+  Document.prototype.querySelector = saf(function querySelector(name){ var r = v_getele(name, 'querySelector'); v_console_log('  [*] Document -> querySelector', name, r); return r })
+  Document.prototype.getElementsByClassName = saf(function getElementsByClassName(name){ var r = v_geteles(name, 'getElementsByClassName'); v_console_log('  [*] Document -> getElementsByClassName', name, r); return r })
+  Document.prototype.getElementsByName = saf(function getElementsByName(name){ var r = v_geteles(name, 'getElementsByName'); v_console_log('  [*] Document -> getElementsByName', name, r); return r })
+  Document.prototype.getElementsByTagName = saf(function getElementsByTagName(name){ var r = v_geteles(name, 'getElementsByTagName'); v_console_log('  [*] Document -> getElementsByTagName', name, r); return r })
+  Document.prototype.getElementsByTagNameNS = saf(function getElementsByTagNameNS(name){ var r = v_geteles(name, 'getElementsByTagNameNS'); v_console_log('  [*] Document -> getElementsByTagNameNS', name, r); return r })
+  Document.prototype.querySelectorAll = saf(function querySelectorAll(name){ var r = v_geteles(name, 'querySelectorAll'); v_console_log('  [*] Document -> querySelectorAll', name, r); return r })
+}
 
 function mk_atob_btoa(r){var a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",t=new Array(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1);return{atob:function(r){var a,e,o,h,c,i,n;for(i=r.length,c=0,n="";c<i;){do{a=t[255&r.charCodeAt(c++)]}while(c<i&&-1==a);if(-1==a)break;do{e=t[255&r.charCodeAt(c++)]}while(c<i&&-1==e);if(-1==e)break;n+=String.fromCharCode(a<<2|(48&e)>>4);do{if(61==(o=255&r.charCodeAt(c++)))return n;o=t[o]}while(c<i&&-1==o);if(-1==o)break;n+=String.fromCharCode((15&e)<<4|(60&o)>>2);do{if(61==(h=255&r.charCodeAt(c++)))return n;h=t[h]}while(c<i&&-1==h);if(-1==h)break;n+=String.fromCharCode((3&o)<<6|h)}return n},btoa:function(r){var t,e,o,h,c,i;for(o=r.length,e=0,t="";e<o;){if(h=255&r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4),t+="==";break}if(c=r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2),t+="=";break}i=r.charCodeAt(e++),t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2|(192&i)>>6),t+=a.charAt(63&i)}return t}}}
 var atob_btoa = mk_atob_btoa()
@@ -635,8 +665,41 @@ window.atob = window.atob || atob_btoa.atob
 `init_cookie(${JSON.stringify(document.cookie)})`,
 `v_hook_href(window.location, 'location', ${JSON.stringify(location.href)})`,
 `v_hook_storage()`,
+`v_init_document()`,
 ]
-    _global.push('v_new_toggle = saf = undefined')
+
+    var v_getele = eles.v_getele
+    var v_geteles = eles.v_geteles
+    var v_getele_inner = Object.keys(v_getele).map(function(e){
+      var clzname = get_class_name(v_getele[e][1])
+      patcher(clzname)
+      return `  if(name == ${JSON.stringify(e)} && func == ${JSON.stringify(v_getele[e][0])}){ return v_new(${clzname}) }`
+    })
+    v_getele_inner.push('  return null')
+    tail.push(...[
+      `function v_getele(name, func){`,
+      ...v_getele_inner,
+      `}`,
+    ])
+
+    var v_geteles_inner = Object.keys(v_geteles).map(function(e){
+      var _clzs = []
+      var _eles = v_geteles[e][1]
+      for (var i = 0; i < _eles.length; i++) {
+        var clzname = get_class_name(_eles[i])
+        patcher(clzname)
+        _clzs.push(`v_new(${clzname})`)
+      }
+      return `  if(name == ${JSON.stringify(e)} && func == ${JSON.stringify(v_geteles[e][0])}){ return [${_clzs.join(',')}] }`
+    })
+    v_geteles_inner.push('  return null')
+    tail.push(...[
+      `function v_geteles(name, func){`,
+      ...v_geteles_inner,
+      `}`,
+    ])
+
+    tail.push('v_new_toggle = saf = undefined')
     var rets = [
         `var saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),saf=u}();`,
         '\n',
@@ -711,9 +774,39 @@ function injectfunc(e, window) {
         document.getSelection().addRange(selected);
       }
     };
-    var mkstr = make_v(v_env_cache)
+    var mkstr = make_v([v_env_cache, v_getelement_all])
     copyToClipboard(mkstr)
     alert('已将代码存放到剪贴板中。')
+  }
+
+  // var v_addlistener_cache = {
+  //   document: {},
+  //   window: {},
+  // }
+  var v_getelement_all = {
+    v_getele: {},
+    v_geteles: {},
+  }
+  function inspect_arguments(_this, arg, ret, clazz, name, type){
+    // 这里搞魔改处理，让所有挂钩的函数的 arguments 都经过这个函数，然后方便魔改或收集内容。
+    // if (name == 'addEventListener'){
+    //   if (_this == document){ var cache = v_addlistener_cache.document }
+    //   if (_this == window){ var cache = v_addlistener_cache.window }
+    //   var fname = arg[0]
+    //   var func = arg[1]
+    //   cache[fname] = cache[fname] || []
+    //   cache[fname].push(func)
+    // }
+    if (name == 'getElementById' || name == 'querySelector'){
+      if (ret){
+        v_getelement_all.v_getele[arg[0]] = [name, ret]
+      }
+    }
+    if (name == 'getElementsByClassName' || name == 'getElementsByName' || name == 'getElementsByTagName' || name == 'getElementsByTagNameNS' || name == 'querySelectorAll'){
+      if (ret.length){
+        v_getelement_all.v_geteles[arg[0]] = [name, ret]
+      }
+    }
   }
 
   function v_cache_node(_addr, clazz, func, type, r){
@@ -1039,6 +1132,7 @@ function make_domhooker_funcs(){
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
             var expstr = Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "get", r)
+            inspect_arguments(this, arguments, r, "${obname}", "${name}", "get")
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
@@ -1049,6 +1143,7 @@ function make_domhooker_funcs(){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
               var expstr = Error().stack.v_split('\\n')[2]
               v_cache_node(expstr, "${obname}", "${name}", "set")
+              inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
               if (expurl.v_test(expstr)){
                 window.v_log(..._mk_logs('[${obname} ${name} set]', v, get_log_at(expstr.trim())))
               }
@@ -1073,7 +1168,9 @@ function make_domhooker_funcs(){
               window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), get_log_at(expstr.trim())))
             }
           }
-          return _old_val.apply(this, arguments) })
+          var r = _old_val.apply(this, arguments) 
+          inspect_arguments(this, arguments, r, "${obname}", "${name}", "func")
+          return r })
         try{ Object.defineProperty(${obname}.prototype, '${name}', { value: _new_val, enumerable: _desc['enumerable'], configurable: _desc['configurable'], writable: _desc['writable'], })
         }catch(e){  }
       }()
@@ -1155,6 +1252,6 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
   if (msg.action.type == 'addlistener'){
-    inject_script(`try{v_log_env()}catch(e){alert('请打开挂钩开关，并选中dom挂钩的全部。')}`)
+    inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开挂钩开关，并选中dom挂钩的全部。')}`)
   }
 });
