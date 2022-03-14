@@ -58,6 +58,21 @@ function make_v(envs, keys){
             length: { ban: true },
             name: { ban: true },
         },
+        Crypto: {
+            getRandomValues: { ban: true },
+            randomUUID: { ban: true },
+            __init__: {
+                value: `
+  this.getRandomValues = function(){
+    v_console_log('  [*] Crypto -> getRandomValues[func]')
+    var e=arguments[0]; return e.map(function(x, i){return e[i]=v_random()*1073741824});}
+  this.randomUUID = function(){
+    v_console_log('  [*] Crypto -> randomUUID[func]')
+    function get2(){return (v_random()*255^0).toString(16).padStart(2,'0')}
+    function rpt(func,num){var r=[];for(var i=0;i<num;i++){r.push(func())};return r.join('')}
+    return [rpt(get2,4),rpt(get2,2),rpt(get2,2),rpt(get2,2),rpt(get2,6)].join('-')}`
+            },
+        },
         MimeTypeArray: {
             __init__: {
                 value: function(){
@@ -93,7 +108,118 @@ function make_v(envs, keys){
             toDataURL: {value: `return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACWCAYAAABkW7XSAAAEYklEQVR4Xu3UAQkAAAwCwdm/9HI83BLIOdw5AgQIRAQWySkmAQIEzmB5AgIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC"`},
         },
         WebGLRenderingContext: {
-            canvas: {value: `return this._canvas`}
+            canvas: {value: `return this._canvas`},
+            createBuffer: { ban: true },
+            createProgram: { ban: true },
+            createShader: { ban: true },
+            getSupportedExtensions: { ban: true },
+            getExtension: { ban: true },
+            getParameter: { ban: true },
+            getContextAttributes: { ban: true },
+            getShaderPrecisionFormat: { ban: true },
+            __init__:{
+    value:`
+  function WebGLBuffer(){}
+  function WebGLProgram(){}
+  function WebGLShader(){}
+  this._toggle = {}
+  this.createBuffer = function(){ v_console_log('  [*] WebGLRenderingContext -> createBuffer[func]'); return v_new(WebGLBuffer) }
+  this.createProgram = function(){ v_console_log('  [*] WebGLRenderingContext -> createProgram[func]'); return v_new(WebGLProgram) }
+  this.createShader = function(){ v_console_log('  [*] WebGLRenderingContext -> createShader[func]'); return v_new(WebGLShader) }
+  this.getSupportedExtensions = function(){
+    v_console_log('  [*] WebGLRenderingContext -> getSupportedExtensions[func]')
+    return [
+      "ANGLE_instanced_arrays", "EXT_blend_minmax", "EXT_color_buffer_half_float", "EXT_disjoint_timer_query", "EXT_float_blend", "EXT_frag_depth",
+      "EXT_shader_texture_lod", "EXT_texture_compression_bptc", "EXT_texture_compression_rgtc", "EXT_texture_filter_anisotropic", "WEBKIT_EXT_texture_filter_anisotropic", "EXT_sRGB",
+      "KHR_parallel_shader_compile", "OES_element_index_uint", "OES_fbo_render_mipmap", "OES_standard_derivatives", "OES_texture_float", "OES_texture_float_linear",
+      "OES_texture_half_float", "OES_texture_half_float_linear", "OES_vertex_array_object", "WEBGL_color_buffer_float", "WEBGL_compressed_texture_s3tc", 
+      "WEBKIT_WEBGL_compressed_texture_s3tc", "WEBGL_compressed_texture_s3tc_srgb", "WEBGL_debug_renderer_info", "WEBGL_debug_shaders",
+      "WEBGL_depth_texture","WEBKIT_WEBGL_depth_texture","WEBGL_draw_buffers","WEBGL_lose_context","WEBKIT_WEBGL_lose_context","WEBGL_multi_draw",
+    ]
+  }
+  var self = this
+  this.getExtension = function(key){
+    v_console_log('  [*] WebGLRenderingContext -> getExtension[func]:', key)
+    class WebGLDebugRendererInfo{
+      get UNMASKED_VENDOR_WEBGL(){self._toggle[37445]=1;return 37445}
+      get UNMASKED_RENDERER_WEBGL(){self._toggle[37446]=1;return 37446}
+    }
+    class EXTTextureFilterAnisotropic{}
+    class WebGLLoseContext{
+      loseContext(){}
+      restoreContext(){}
+    }
+    if (key == 'WEBGL_debug_renderer_info'){ var r = new WebGLDebugRendererInfo }
+    if (key == 'EXT_texture_filter_anisotropic'){ var r = new EXTTextureFilterAnisotropic }
+    if (key == 'WEBGL_lose_context'){ var r = new WebGLLoseContext }
+    else{ var r = new WebGLDebugRendererInfo }
+    return r
+  }
+  this.getParameter = function(key){
+    v_console_log('  [*] WebGLRenderingContext -> getParameter[func]:', key)
+    if (this._toggle[key]){
+      if (key == 37445){ return "Google Inc. (NVIDIA)" }
+      if (key == 37446){ return "ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti Direct3D11 vs_5_0 ps_5_0, D3D11-27.21.14.5671)" }
+    }else{
+      if (key == 33902){ return new Float32Array([1,1]) }
+      if (key == 33901){ return new Float32Array([1,1024]) }
+      if (key == 35661){ return 32 }
+      if (key == 34047){ return 16 }
+      if (key == 34076){ return 16384 }
+      if (key == 36349){ return 1024 }
+      if (key == 34024){ return 16384 }
+      if (key == 34930){ return 16 }
+      if (key == 3379){ return 16384 }
+      if (key == 36348){ return 30 }
+      if (key == 34921){ return 16 }
+      if (key == 35660){ return 16 }
+      if (key == 36347){ return 4095 }
+      if (key == 3386){ return new Int32Array([32767, 32767]) }
+      if (key == 3410){ return 8 }
+      if (key == 7937){ return "WebKit WebGL" }
+      if (key == 35724){ return "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)" }
+      if (key == 3415){ return 0 }
+      if (key == 7936){ return "WebKit" }
+      if (key == 7938){ return "WebGL 1.0 (OpenGL ES 2.0 Chromium)" }
+      if (key == 3411){ return 8 }
+      if (key == 3412){ return 8 }
+      if (key == 3413){ return 8 }
+      if (key == 3414){ return 24 }
+      return null
+    }
+  }
+  this.getContextAttributes = function(){
+    v_console_log('  [*] WebGLRenderingContext -> getContextAttributes[func]')
+    return {
+      alpha: true,
+      antialias: true,
+      depth: true,
+      desynchronized: false,
+      failIfMajorPerformanceCaveat: false,
+      powerPreference: "default",
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      stencil: false,
+      xrCompatible: false,
+    }
+  }
+  this.getShaderPrecisionFormat = function(a,b){
+    v_console_log('  [*] WebGLRenderingContext -> getShaderPrecisionFormat[func]')
+    function WebGLShaderPrecisionFormat(){}
+    var r1 = v_new(WebGLShaderPrecisionFormat)
+    r1.rangeMin = 127
+    r1.rangeMax = 127
+    r1.precision = 23
+    var r2 = v_new(WebGLShaderPrecisionFormat)
+    r2.rangeMin = 31
+    r2.rangeMax = 30
+    r2.precision = 0
+    if (a == 35633 && b == 36338){ return r1 } if (a == 35633 && b == 36337){ return r1 } if (a == 35633 && b == 36336){ return r1 } 
+    if (a == 35633 && b == 36341){ return r2 } if (a == 35633 && b == 36340){ return r2 } if (a == 35633 && b == 36339){ return r2 }
+    if (a == 35632 && b == 36338){ return r1 } if (a == 35632 && b == 36337){ return r1 } if (a == 35632 && b == 36336){ return r1 }
+    if (a == 35632 && b == 36341){ return r2 } if (a == 35632 && b == 36340){ return r2 } if (a == 35632 && b == 36339){ return r2 }
+    throw Error('getShaderPrecisionFormat')
+  }`},
         },
         HTMLDocument: {__init__:{
             value: `Object.defineProperty(this, 'location', {get(){return location}})`
@@ -293,6 +419,7 @@ function make_v(envs, keys){
 
         'var v_new_toggle = true',
         'var v_console_log = function(){if (!v_new_toggle){ console.log.apply(this, arguments) }}',
+        'var v_random = (function() { var seed = 276951438; return function random() { return seed = (seed * 9301 + 49297) % 233280, (seed / 233280)} })()',
         'var v_new = function(v){var temp=v_new_toggle; v_new_toggle = true; var r = new v; v_new_toggle = temp; return r}',
     ]
     var defines = []
@@ -318,6 +445,7 @@ function make_v(envs, keys){
     if (!dicter['PerformanceResourceTiming']){dicter['PerformanceResourceTiming'] = 1; make_s(renv, make_chain('PerformanceResourceTiming'))}
     if (!dicter['Image']){dicter['Image'] = 1; make_s(renv, make_chain('Image'))}
     if (!dicter['HTMLImageElement']){dicter['HTMLImageElement'] = 1; make_s(renv, make_chain('HTMLImageElement'))}
+    if (!dicter['Storage']){dicter['Storage'] = 1; make_s(renv, make_chain('Storage'))}
     
     var _global = []
     var _gcache = []
@@ -403,6 +531,7 @@ function make_v(envs, keys){
                     _global.push(`})`)
                     _global.push(`Object.defineProperties(__globalThis__, {[Symbol.toStringTag]:{value:'Window'}})`)
                     _global.push(`Object.defineProperties(__globalThis__, Object.getOwnPropertyDescriptors(window))`)
+                    _global.push(`Object.setPrototypeOf(__globalThis__, Object.getPrototypeOf(window))`)
                 }else{
                     _global.push(`window.${list[i]} = v_new(${name})`)
                 }
@@ -481,7 +610,7 @@ function v_hook_href(obj, name, initurl){
       this.origin   = this.protocol + "//" + this.host + (this.port ? ":" + this.port : "");
     }
   });
-  if (initurl && initurl.trim()){ r.href = initurl }
+  if (initurl && initurl.trim()){ var temp=v_new_toggle; v_new_toggle = true; r.href = initurl; v_new_toggle = temp; }
   return r
 }
 function v_hook_storage(){
