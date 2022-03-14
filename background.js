@@ -1,3 +1,14 @@
+// importScripts("./tools/babel_asttool.js", "./tools/cheerio.js", "./tools/replacer.js", "./tools/error_front.js")
+// chrome.contextMenus.create({
+//   id: "v_menu",
+//   title: "打开 v_jstools 动态调试",
+//   contexts: ['all']
+// });
+// chrome.contextMenus.onClicked.addListener(function(info, tab) {
+//   if (info.menuItemId == "v_menu") {
+//     AttachDebugger();
+//   }
+// });
 // background.js
 chrome.contextMenus.create({
   title: "打开 v_jstools 动态调试",

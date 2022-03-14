@@ -29,7 +29,7 @@ document.getElementById('showoptions').addEventListener('click', function(e){
   }
   closePopup()
   chrome.tabs.create({
-    url: chrome.extension.getURL('options.html')
+    url: chrome.runtime.getURL('options.html')
   });
 })
 
