@@ -690,41 +690,41 @@ function del_sojson_extra(ast){
     traverse(ast, {
         'FunctionDeclaration|FunctionExpression': function(path){
             if (path.getFunctionParent() == null){
-                var dbg = 0
-                var act = 0
-                var sta = 0
+                var ex1 = 0
+                var ex2 = 0
+                var ex3 = 0
                 path.traverse({StringLiteral: function(path){
-                    if (path.node.value == 'debugger'){ dbg = 1 }
-                    if (path.node.value == 'action'){ act = 1 }
-                    if (path.node.value == 'stateObject'){ sta = 1 }
+                    if (path.node.value == 'debugger'){ ex1 = 1 }
+                    if (path.node.value == 'action'){ ex2 = 1 }
+                    if (path.node.value == 'stateObject'){ ex3 = 1 }
                 }})
-                if ((dbg + act + sta) >= 2){
+                if ((ex1 + ex2 + ex3) >= 2){
                     if (path.node.id && path.node.id.name){
                         remove_temp1(path, path.node.id.name)
                     }
                 }
                 var ex1 = 0
                 var ex2 = 0
-                var win = 0
+                var ex3 = 0
                 path.traverse({StringLiteral: function(path){
                     if (path.node.value == "\\w+ *\\(\\) *{\\w+ *['|\"].+['|\"];? *}"){ ex1 = 1 }
                     if (path.node.value == "(\\\\[x|u](\\w){2,4})+"){ ex2 = 1 }
-                    if (path.node.value == "window"){ win = 1 }
+                    if (path.node.value == "window"){ ex3 = 1 }
                 }})
-                if ((ex1 + ex2 + win) >= 2){
+                if ((ex1 + ex2 + ex3) >= 2){
                     get_root(path).need_remove = true
                     remove_temp1(path, path.parentPath.node.callee.name)
                     remove_temp1(path, path.parentPath.parentPath.node.id.name)
                 }
                 var ex1 = 0
                 var ex2 = 0
-                var win = 0
+                var ex3 = 0
                 path.traverse({StringLiteral: function(path){
                     if (path.node.value == "return (function() {}.constructor(\"return this\")( ));"){ ex1 = 1 }
                     if (path.node.value == "debug"){ ex2 = 1 }
-                    if (path.node.value == "exception"){ win = 1 }
+                    if (path.node.value == "exception"){ ex3 = 1 }
                 }})
-                if ((ex1 + ex2 + win) >= 2){
+                if ((ex1 + ex2 + ex3) >= 2){
                     get_root(path).need_remove = true
                     remove_temp1(path, path.parentPath.node.callee.name)
                     remove_temp1(path, path.parentPath.parentPath.node.id.name)
