@@ -491,6 +491,16 @@ fetch_hook.addEventListener("change", function(v){
   })
 })
 
+var myinject = document.getElementById('myinject');
+chrome.storage.local.get([myinject.dataset.key], function (result) {
+  myinject.value = result[myinject.dataset.key] || '';
+})
+myinject.addEventListener("change", function(v){
+  chrome.storage.local.set({
+    [v.target.dataset.key]: v.target.value
+  })
+})
+
 var get_now = document.getElementById('get_now');
 get_now.addEventListener("click", function(){
   var show_now = document.getElementById('show_now')
