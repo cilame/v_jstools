@@ -666,6 +666,79 @@ function pas_ob_encfunc(ast){
     traverse(ast, {VariableDeclarator: collect_removevars})
 }
 
+function del_sojson_extra(ast){
+    function get_root(path){
+        var list = [path]
+        while (path.parentPath){
+            path = path.parentPath
+            list.push(path)
+        }
+        return list[list.length-2]
+    }
+    function remove_temp1(path, fname){
+        var bind = path.scope.getBinding(fname)
+        for (var i = 0; i < bind.referencePaths.length; i++) {
+            var root = get_root(bind.referencePaths[i])
+            root.need_remove = true
+            root.traverse({Identifier: function(path){
+                var idbind = path.scope.getBinding(path.node.name)
+                if (!idbind) return
+                get_root(idbind.path).need_remove = true
+            }})
+        }
+    }
+    traverse(ast, {
+        'FunctionDeclaration|FunctionExpression': function(path){
+            if (path.getFunctionParent() == null){
+                var dbg = 0
+                var act = 0
+                var sta = 0
+                path.traverse({StringLiteral: function(path){
+                    if (path.node.value == 'debugger'){ dbg = 1 }
+                    if (path.node.value == 'action'){ act = 1 }
+                    if (path.node.value == 'stateObject'){ sta = 1 }
+                }})
+                if ((dbg + act + sta) >= 2){
+                    if (path.node.id && path.node.id.name){
+                        remove_temp1(path, path.node.id.name)
+                    }
+                }
+                var ex1 = 0
+                var ex2 = 0
+                var win = 0
+                path.traverse({StringLiteral: function(path){
+                    if (path.node.value == "\\w+ *\\(\\) *{\\w+ *['|\"].+['|\"];? *}"){ ex1 = 1 }
+                    if (path.node.value == "(\\\\[x|u](\\w){2,4})+"){ ex2 = 1 }
+                    if (path.node.value == "window"){ win = 1 }
+                }})
+                if ((ex1 + ex2 + win) >= 2){
+                    get_root(path).need_remove = true
+                    remove_temp1(path, path.parentPath.node.callee.name)
+                    remove_temp1(path, path.parentPath.parentPath.node.id.name)
+                }
+                var ex1 = 0
+                var ex2 = 0
+                var win = 0
+                path.traverse({StringLiteral: function(path){
+                    if (path.node.value == "return (function() {}.constructor(\"return this\")( ));"){ ex1 = 1 }
+                    if (path.node.value == "debug"){ ex2 = 1 }
+                    if (path.node.value == "exception"){ win = 1 }
+                }})
+                if ((ex1 + ex2 + win) >= 2){
+                    get_root(path).need_remove = true
+                    remove_temp1(path, path.parentPath.node.callee.name)
+                    remove_temp1(path, path.parentPath.parentPath.node.id.name)
+                }
+            }
+        }
+    })
+    traverse(ast, {enter: function(path){
+        if (path.need_remove){
+            path.remove()
+        }
+    }})
+}
+
 function del_ob_extra(ast){
     var setinterval_func;
     function find_gar_outfunc(path){
@@ -938,6 +1011,9 @@ function muti_process_sojsondefusion(jscode){
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
+
+    del_sojson_extra(ast)
+
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
