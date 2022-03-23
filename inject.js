@@ -358,7 +358,7 @@ function make_v(envs, keys){
                 inner.push(`  ${name}: {value: v_saf(function ${name}(){${make_return(clazz, name, undefined, 'func')}})},`)
             }
         }
-        var plist = Object.keys(window[clazz].prototype)
+        var plist = Object.keys((v_window_cache[clazz] || window[clazz]).prototype)
         plist.push(Symbol.toStringTag)
         for (var i = 0; i < plist.length; i++) {
             try{
@@ -548,6 +548,12 @@ function make_v(envs, keys){
                 _gcache.push(obj)
                 _mpname.push(list[i])
                 if (list[i] == 'window'){
+                    _global.push(`if (typeof __dirname != 'undefined'){ __dirname = undefined }`)
+                    _global.push(`if (typeof __filename != 'undefined'){ __filename = undefined }`)
+                    _global.push(`if (typeof require != 'undefined'){ require = undefined }`)
+                    _global.push(`if (typeof exports != 'undefined'){ exports = undefined }`)
+                    _global.push(`if (typeof module != 'undefined'){ module = undefined }`)
+                    _global.push(`if (typeof Buffer != 'undefined'){ Buffer = undefined }`)
                     _global.push(`var __globalThis__ = typeof global != 'undefined' ? global : this`)
                     _global.push(`var window = new Proxy(v_new(Window), {`)
                     _global.push(`  get(a,b){ return a[b] || __globalThis__[b] },`)
@@ -557,11 +563,19 @@ function make_v(envs, keys){
                     _global.push(`Object.defineProperties(__globalThis__, Object.getOwnPropertyDescriptors(window))`)
                     _global.push(`Object.setPrototypeOf(__globalThis__, Object.getPrototypeOf(window))`)
                 }else{
-                    _global.push(`window.${list[i]} = v_new(${name})`)
+                    if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(list[i]+'')){
+                        _global.push(`window.${list[i]} = v_new(${name})`)
+                    }else{
+                        _global.push(`window[${JSON.stringify(list[i])}] = v_new(${name})`)
+                    }
                 }
             }else{
                 var vname = _mpname[idx]
-                _global.push(`window.${list[i]} = ${vname}`)
+                if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(list[i]+'')){
+                    _global.push(`window.${list[i]} = ${vname}`)
+                }else{
+                    _global.push(`window[${JSON.stringify(list[i])}] = ${vname}`)
+                }
             }
         }
     }
@@ -767,6 +781,13 @@ function injectfunc(e, window) {
   RegExp.prototype.v_test = RegExp.prototype.test
   String.prototype.v_split = String.prototype.split
 
+  var v_window_cache = {}
+  var v_winkeys = Object.getOwnPropertyNames(window)
+  for (var i = 0; i < v_winkeys.length; i++) {
+    if (typeof v_winkeys[i] == 'string'){
+      v_window_cache[v_winkeys[i]] = window[v_winkeys[i]]
+    }
+  }
   var v_env_cache = {}
   window.v_log_env = function (){
     $make_v_func
@@ -1296,6 +1317,6 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
   if (msg.action.type == 'addlistener'){
-    inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开挂钩开关，并选中dom挂钩的全部。')}`)
+    inject_script(`v_log_env()`)
   }
 });
