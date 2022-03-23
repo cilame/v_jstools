@@ -903,31 +903,32 @@ function injectfunc(e, window) {
   }
 
   var toggle = true
-  if (e["config-hook-alt-w"]) {
-    document.onkeydown = e.logtogglefunc = function(event){
-      if (event.key == 'w' && event.altKey){
-        toggle = !toggle
-        e["config-hook-domobj"] = toggle
-        e["config-hook-Function"] = toggle
-        e["config-hook-eval"] = toggle
-        e["config-hook-cookie"] = toggle
-        e["config-hook-settimeout"] = toggle
-        e["config-hook-setinterval"] = toggle
-        e["config-hook-JSON.parse"] = toggle
-        e["config-hook-JSON.stringify"] = toggle
-        e["config-hook-decodeURI"] = toggle
-        e["config-hook-decodeURIComponent"] = toggle
-        e["config-hook-encodeURI"] = toggle
-        e["config-hook-encodeURIComponent"] = toggle
-        e["config-hook-escape"] = toggle
-        e["config-hook-unescape"] = toggle
-        if (toggle){
-          window.v_log('开启日志')
-        }else{
-          window.v_log('关闭日志')
-        }
+  e.logtogglefunc = function(event){
+    if (event.key == 'w' && event.altKey){
+      toggle = !toggle
+      e["config-hook-domobj"] = toggle
+      e["config-hook-Function"] = toggle
+      e["config-hook-eval"] = toggle
+      e["config-hook-cookie"] = toggle
+      e["config-hook-settimeout"] = toggle
+      e["config-hook-setinterval"] = toggle
+      e["config-hook-JSON.parse"] = toggle
+      e["config-hook-JSON.stringify"] = toggle
+      e["config-hook-decodeURI"] = toggle
+      e["config-hook-decodeURIComponent"] = toggle
+      e["config-hook-encodeURI"] = toggle
+      e["config-hook-encodeURIComponent"] = toggle
+      e["config-hook-escape"] = toggle
+      e["config-hook-unescape"] = toggle
+      if (toggle){
+        window.v_log('开启日志')
+      }else{
+        window.v_log('关闭日志')
       }
     }
+  }
+  if (e["config-hook-alt-w"]) {
+    document.onkeydown = e.logtogglefunc
   }
   if (e["config-hook-console"]){
     Object.keys(console).map(function(e){console[e] = eval(`saf(function ${e}(){})`)})
