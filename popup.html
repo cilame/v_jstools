@@ -87,6 +87,32 @@
       opacity: 1;
       right: 0;
     }
+
+    .button2 {
+      display: inline-block;
+      padding: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      text-align: center;   
+      text-decoration: none;
+      outline: none;
+      width: 160px;
+      transition: all 0.5s;
+      margin: 5px;
+      color: #fff;
+      background-color: #f4511e;
+      border: none;
+      border-radius: 4px;
+      box-shadow: 0 3px #999;
+    }
+
+    .button2:hover {background-color: #b62f04}
+
+    .button2:active {
+      background-color: #3e8e41;
+      box-shadow: 0 5px #666;
+      transform: translateY(4px);
+    }
     </style>
 
 </head>
@@ -97,7 +123,8 @@
   <div style="float: right; padding: 10px">是否挂钩总开关</div>
   <div>
     <button id="showoptions" class="button" style="vertical-align:middle"><span>打开配置页面</span></button>
-    <button id="addlistener" class="button" style="vertical-align:middle"><span>生成临时环境</span></button>
+    <button id="addlistener" class="button2" style="vertical-align:middle"><span>生成临时环境</span></button>
+    <button id="logtoggle" class="button2" style="vertical-align:middle"><span>开关输出日志</span></button>
   </div>
   <script src="popup.js"></script>
 </body>

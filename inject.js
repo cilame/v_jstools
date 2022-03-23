@@ -904,7 +904,7 @@ function injectfunc(e, window) {
 
   var toggle = true
   if (e["config-hook-alt-w"]) {
-    document.onkeydown = function(event){
+    document.onkeydown = e.logtogglefunc = function(event){
       if (event.key == 'w' && event.altKey){
         toggle = !toggle
         e["config-hook-domobj"] = toggle
@@ -1317,6 +1317,9 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
   if (msg.action.type == 'addlistener'){
-    inject_script(`v_log_env()`)
+    inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开调试总开关，同时将dom挂钩全部选中后，再刷新页面点击代码生成按钮。')}`)
+  }
+  if (msg.action.type == 'logtoggle'){
+    inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
   }
 });

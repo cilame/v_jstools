@@ -44,6 +44,7 @@
     "page": "background.html",
     "persistent": true
   },
+  "devtools_page": "devtools.html",
   "content_scripts": [
     {
       "matches": [ "file:///*", "http://*/*", "https://*/*" ],
