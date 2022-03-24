@@ -272,7 +272,7 @@ function make_v(envs, keys){
         }
         return list
     }
-    function is_iteral(value){
+    function is_literal(value){
         var allc = ['string', 'number', 'boolean', 'undefined']
         return allc.indexOf(typeof value) != -1 || value === null
     }
@@ -364,7 +364,7 @@ function make_v(envs, keys){
         for (var i = 0; i < plist.length; i++) {
             try{
                 var value = window[clazz].prototype[plist[i]]
-                if (is_iteral(value)){
+                if (is_literal(value)){
                     var _desc = Object.getOwnPropertyDescriptors(window[clazz].prototype)[plist[i]]
                     inner.push(`  ${plist[i]}: ${JSON.stringify(_desc)},`)
                 }
