@@ -320,7 +320,7 @@ function make_v(envs, keys){
         }
         return ret
     }
-    function make_s(renv, clazz_f){
+    function make_s(renv, clazz_f, isout){
         var clazz = clazz_f[0]
         var father = clazz_f[1]
         if (!renv[clazz]){
@@ -379,6 +379,9 @@ function make_v(envs, keys){
         var ls = [
             `${clazz} = v_saf(function ${clazz}(){${cannew?'':'if (!v_new_toggle){ throw TypeError("Illegal constructor") }'};${init}})` + (father?`; _inherits(${clazz}, ${father})`:''),
         ]
+        if (isout){
+          return [ls, inner]
+        }
         defines.push(...ls)
         definepros.push(...inner)
         // return ls.join('\n')
@@ -453,11 +456,17 @@ function make_v(envs, keys){
     function patcher(name){
       var list = make_chain(name)
       if (list.length >= 3){
+        var lsinner = []
         for (var i = 0; i < list.length-1; i++) {
           if (!dicter[list[i]]){
             dicter[list[i]] = 1; 
-            make_s(renv, [list[i], list[i+1]])
+            lsinner.push(make_s(renv, [list[i], list[i+1]], true))
           }
+        }
+        for (var i = lsinner.length - 1; i >= 0; i--) {
+          var _lsin = lsinner[i]
+          defines.push(..._lsin[0])
+          definepros.push(..._lsin[1])
         }
       }else{
         if (!dicter[name]){
