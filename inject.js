@@ -25,7 +25,8 @@ function make_v(envs, keys){
         Navigator:{
             javaEnabled:{ value: 'return true' },
             plugins: {value: `return this._plugins || []`},
-            __init__: {value: `this._plugins = typeof PluginArray=='undefined'?[]:v_new(PluginArray)`}
+            mimeTypes:  {value: `return this._mimeTypes || []`},
+            __init__: {value: `this._plugins = typeof PluginArray=='undefined'?[]:v_new(PluginArray); this._mimeTypes = typeof MimeTypeArray=='undefined'?[]:v_new(MimeTypeArray)`}
         },
         Node: {
             appendChild: {value: ''},
@@ -437,7 +438,9 @@ function make_v(envs, keys){
         `});`,
 
         'var v_new_toggle = true',
-        'var v_console_log = function(){if (!v_new_toggle){ console.log.apply(this, arguments) }}',
+        'Object.freeze(console)//only for javascript-obfuscator anti console debug.',
+        'var v_console_logger = console.log',
+        'var v_console_log = function(){if (!v_new_toggle){ v_console_logger.apply(this, arguments) }}',
         'var v_random = (function() { var seed = 276951438; return function random() { return seed = (seed * 9301 + 49297) % 233280, (seed / 233280)} })()',
         'var v_new = function(v){var temp=v_new_toggle; v_new_toggle = true; var r = new v; v_new_toggle = temp; return r}',
     ]
@@ -448,7 +451,20 @@ function make_v(envs, keys){
     }
 
     function patcher(name){
-      if (!dicter[name]){dicter[name] = 1; make_s(renv, make_chain(name))}
+      var list = make_chain(name)
+      if (list.length >= 3){
+        for (var i = 0; i < list.length-1; i++) {
+          if (!dicter[list[i]]){
+            dicter[list[i]] = 1; 
+            make_s(renv, [list[i], list[i+1]])
+          }
+        }
+      }else{
+        if (!dicter[name]){
+          dicter[name] = 1; 
+          make_s(renv, make_chain(name))
+        }
+      }
     }
     patcher('Window')
     patcher('HTMLDocument')
@@ -652,11 +668,11 @@ function v_hook_href(obj, name, initurl){
   return r
 }
 function v_hook_storage(){
-  Storage.prototype.clear      = function(){          v_console_log(\`  [*] Storage -> clear[func]:\`); var self=this;Object.keys(self).forEach(function (key) { delete self[key]; }); }
-  Storage.prototype.getItem    = function(key){       v_console_log(\`  [*] Storage -> getItem[func]:\`, key); var r = (this.hasOwnProperty(key)?String(this[key]):null); return r}
-  Storage.prototype.setItem    = function(key, val){  v_console_log(\`  [*] Storage -> setItem[func]:\`, key, val); this[key] = (val === undefined)?null:String(val) }
-  Storage.prototype.key        = function(key){       v_console_log(\`  [*] Storage -> key[func]:\`, key); return Object.keys(this)[key||0];} 
-  Storage.prototype.removeItem = function(key){       v_console_log(\`  [*] Storage -> removeItem[func]:\`, key); delete this[key];}
+  Storage.prototype.clear      = v_saf(function(){          v_console_log(\`  [*] Storage -> clear[func]:\`); var self=this;Object.keys(self).forEach(function (key) { delete self[key]; }); }, 'clear')
+  Storage.prototype.getItem    = v_saf(function(key){       v_console_log(\`  [*] Storage -> getItem[func]:\`, key); var r = (this.hasOwnProperty(key)?String(this[key]):null); return r}, 'getItem')
+  Storage.prototype.setItem    = v_saf(function(key, val){  v_console_log(\`  [*] Storage -> setItem[func]:\`, key, val); this[key] = (val === undefined)?null:String(val) }, 'setItem')
+  Storage.prototype.key        = v_saf(function(key){       v_console_log(\`  [*] Storage -> key[func]:\`, key); return Object.keys(this)[key||0];} , 'key')
+  Storage.prototype.removeItem = v_saf(function(key){       v_console_log(\`  [*] Storage -> removeItem[func]:\`, key); delete this[key];}, 'removeItem')
   Object.defineProperty(Storage.prototype, 'length', {get: function(){
     if(this===Storage.prototype){ throw TypeError('Illegal invocation') }return Object.keys(this).length
   }})
@@ -683,8 +699,8 @@ function v_init_event_target(){
 }
 function mk_atob_btoa(r){var a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",t=new Array(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1);return{atob:function(r){var a,e,o,h,c,i,n;for(i=r.length,c=0,n="";c<i;){do{a=t[255&r.charCodeAt(c++)]}while(c<i&&-1==a);if(-1==a)break;do{e=t[255&r.charCodeAt(c++)]}while(c<i&&-1==e);if(-1==e)break;n+=String.fromCharCode(a<<2|(48&e)>>4);do{if(61==(o=255&r.charCodeAt(c++)))return n;o=t[o]}while(c<i&&-1==o);if(-1==o)break;n+=String.fromCharCode((15&e)<<4|(60&o)>>2);do{if(61==(h=255&r.charCodeAt(c++)))return n;h=t[h]}while(c<i&&-1==h);if(-1==h)break;n+=String.fromCharCode((3&o)<<6|h)}return n},btoa:function(r){var t,e,o,h,c,i;for(o=r.length,e=0,t="";e<o;){if(h=255&r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4),t+="==";break}if(c=r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2),t+="=";break}i=r.charCodeAt(e++),t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2|(192&i)>>6),t+=a.charAt(63&i)}return t}}}
 var atob_btoa = mk_atob_btoa()
-window.btoa = window.btoa || atob_btoa.btoa
-window.atob = window.atob || atob_btoa.atob
+window.btoa = window.btoa || v_saf(atob_btoa.btoa, 'btoa')
+window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
 `,
 
 `init_cookie(${JSON.stringify(document.cookie)})`,
@@ -1261,7 +1277,7 @@ var hookers = [
   "config-hook-regexp-url",
   "config-hook-log-at",
   "config-myinject",
-  "config-myinject_toogle",
+  "config-myinject_toggle",
 ]
 function add_config_hook(input){
   for (var i = 0; i < input.length; i++) {
@@ -1286,11 +1302,7 @@ function inject_script(code){
 function check_format(str){
   try{
     eval(`function test(){
-      try{
-        $myinject
-      }catch(e){
-        v_log('inject error.')
-      }
+      $myinject
     }`.replace('$myinject', str))
     return true
   }catch(e){
@@ -1301,7 +1313,7 @@ function check_format(str){
 chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
     var myinject = result["config-myinject"]
-    if (result["config-myinject_toogle"]){
+    if (result["config-myinject_toggle"]){
       var myinject = check_format(myinject) ? myinject : 'v_log("format error.")'
     }else{
       var myinject = 'undefined'
@@ -1322,5 +1334,8 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   }
   if (msg.action.type == 'logtoggle'){
     inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
+  }
+  if (msg.action.type == 'alerterror'){
+    inject_script(`alert(${JSON.stringify(msg.action.info)})`)
   }
 });
