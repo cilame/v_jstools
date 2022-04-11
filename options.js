@@ -513,8 +513,12 @@ get_now.addEventListener("click", function(){
 
 
 
-function clear_mode(func){
-  return /\{([\w\W]*)\}/.exec(func+'')[1].replace(/\/\*\*([\w\W]*?)\*\//, '$1').trim()
+function clear_mode(func, is_comment){
+  var code = /\{([\w\W]*)\}/.exec(func+'')[1]
+  if (is_comment){
+    code = code.replace(/\/\*\*([\w\W]*?)\*\//, '$1')
+  }
+  return code.trim()
 }
 
 var websocket_js = document.getElementById('websocket_js');
@@ -526,7 +530,7 @@ websocket_js.addEventListener("click", function(){
 var websocket_py = document.getElementById('websocket_py');
 websocket_py.addEventListener("click", function(){
   var code_model = document.getElementById('code_model')
-  code_model.value = clear_mode(mk_websocket_py_code)
+  code_model.value = clear_mode(mk_websocket_py_code, true)
 })
 
 var websocket_hook = document.getElementById('websocket_hook');
