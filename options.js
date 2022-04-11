@@ -509,3 +509,30 @@ get_now.addEventListener("click", function(){
     [show_now.dataset.key]: show_now.value
   })
 })
+
+
+
+
+function clear_mode(func){
+  return /\{([\w\W]*)\}/.exec(func+'')[1].replace(/\/\*\*([\w\W]*?)\*\//, '$1').trim()
+}
+
+var websocket_js = document.getElementById('websocket_js');
+websocket_js.addEventListener("click", function(){
+  var code_model = document.getElementById('code_model')
+  code_model.value = clear_mode(mk_websocket_js_code)
+})
+
+var websocket_py = document.getElementById('websocket_py');
+websocket_py.addEventListener("click", function(){
+  var code_model = document.getElementById('code_model')
+  code_model.value = clear_mode(mk_websocket_py_code)
+})
+
+var websocket_hook = document.getElementById('websocket_hook');
+websocket_hook.addEventListener("click", function(){
+  var code_model = document.getElementById('code_model')
+  code_model.value = clear_mode(mk_websocket_hook_code)
+})
+
+
