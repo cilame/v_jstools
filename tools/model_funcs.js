@@ -93,7 +93,7 @@ import threading
 from urllib.parse import unquote
 from flask import Flask, request
 app = Flask(__name__)
-@app.route('/', methods=['GET'])
+@app.route('/getinfo', methods=['GET'])
 def main():
     try:
         info = json.dumps(dict(request.args))
