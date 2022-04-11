@@ -764,7 +764,7 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
         ...v_cele,
         ...tail,
     ]
-    return rets.join('\n')
+    return rets.join('\n') + ';'
 }
 
 

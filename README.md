@@ -3,8 +3,9 @@
 
 
 
-微信赞助
-![image](https://github.com/cilame/v_jstools/tree/main/tools/wx.png)
+- 微信赞助
+
+> ![image](https://raw.githubusercontent.com/cilame/v_jstools/main/tools/wx.png)
 
 
 
