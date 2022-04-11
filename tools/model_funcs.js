@@ -91,7 +91,7 @@ import json
 import traceback
 import threading
 from urllib.parse import unquote
-from flask import Flask, request
+from flask import Flask, request, jsonify
 app = Flask(__name__)
 @app.route('/getinfo', methods=['GET'])
 def main():
@@ -101,7 +101,7 @@ def main():
             async with websockets.connect("ws://127.0.0.1:{}/getinfo".format(WSS_SERVER_PORT)) as websocket:
                 await websocket.send(info)
                 return await websocket.recv()
-        return asyncio.run(clientRun())
+        return jsonify({"message": asyncio.run(clientRun())})
     except:
         traceback.print_exc()
         return "启动接口失败."
