@@ -914,11 +914,12 @@ function injectfunc(e, window) {
         var desc = Object.getOwnPropertyDescriptor(_Date, names[i]);
         Object.defineProperty(Date, names[i], desc);
       }
-      return saf(Date);
       function Date() {
         var date = instantiate(_Date, [ftime]); // 固定返回某一个时间点
         return date;
       }
+      Date.prototype = _Date.prototype
+      return saf(Date);
     }(Date);
     Date.now = saf(function now(){ return ftime })
   }
