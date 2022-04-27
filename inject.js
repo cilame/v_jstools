@@ -1304,9 +1304,9 @@ function inject_script(code){
   script.onload = script.onreadystatechange = function(){
     script.onreadystatechange = script.onload = null;
   }
-  var head = document.getElementsByTagName("head")[0];
-  (head || document.body).appendChild( script );
-  (head || document.body).removeChild( script );
+  var html = document.getElementsByTagName("html")[0];
+  html.appendChild( script );
+  html.removeChild( script );
 }
 
 function check_format(str){
@@ -1335,6 +1335,7 @@ chrome.storage.local.get(hookers, function (result) {
   }
 })
 
+var cookie_cache = {}
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'error'){
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
@@ -1347,5 +1348,11 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   }
   if (msg.action.type == 'alerterror'){
     inject_script(`alert(${JSON.stringify(msg.action.info)})`)
+  }
+  if (msg.action.type == 'getcookie'){
+    var cookie = msg.action.info.cookie
+    cookie_cache[cookie.domain] = cookie_cache[cookie.domain] || {}
+    cookie_cache[cookie.domain][cookie.name] = cookie.value
+    inject_script('window.vilame_setter='+JSON.stringify(cookie_cache))
   }
 });
