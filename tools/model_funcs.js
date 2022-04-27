@@ -147,12 +147,6 @@ asyncio.run(main())
 function mk_websocket_hook_code(){
 !function(){
   var websocket = new WebSocket("ws://127.0.0.1:8887/browser");
-  var v_decodeURIComponent = decodeURIComponent
-  var v_eval = (function(eval){
-    return function(string){
-      return eval(string)
-    }
-  })(eval)
   websocket.onopen = function(){
     var info = 'browser:start'
     console.log(info);
