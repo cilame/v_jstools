@@ -161,19 +161,9 @@ function mk_websocket_hook_code(){
   websocket.onmessage = function(e){
     var info = JSON.parse(e.data)
     console.log('websocket.onmessage', info)
-    if (info.evalstring){
-      // 这里让你可以通过 /?evalstring=123 传入代码直接执行，
-      try{
-        var ret = v_eval(v_decodeURIComponent(info.evalstring))
-      }catch(e){
-        var ret = e.stack
-      }
-      websocket.send(ret)
-    }else{
-      // 这里处理请求参数以及对应rpc函数调用，返回参数用字符串传递回 websocket。回传字符串即可。
-      var ret = '你好'
-      websocket.send(ret)
-    }
+    // 这里处理请求参数以及对应rpc函数调用，返回参数用字符串传递回 websocket。回传字符串即可。
+    var ret = '你好'
+    websocket.send(ret)
   }
 }()
 }
