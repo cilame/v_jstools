@@ -45,7 +45,11 @@ var server = wss.createServer(function(conn){
     if (info == 'browser:start'){
       global.conn = conn
     }else{
-      resqueue.pop().json({message: info})
+      info = {message: info}
+      try{
+        info = JSON.parse(info)
+      }catch(e){}
+      resqueue.pop().json(info)
     }
   })
   conn.on("error", function(){ console.log("error") })
@@ -144,6 +148,12 @@ asyncio.run(main())
 function mk_websocket_hook_code(){
 !function(){
   var websocket = new WebSocket("ws://127.0.0.1:8887/browser");
+  var v_decodeURIComponent = decodeURIComponent
+  var v_eval = (function(eval){
+    return function(string){
+      return eval(string)
+    }
+  })(eval)
   websocket.onopen = function(){
     var info = 'browser:start'
     console.log(info);
@@ -152,9 +162,14 @@ function mk_websocket_hook_code(){
   websocket.onmessage = function(e){
     var info = JSON.parse(e.data)
     console.log('websocket.onmessage', info)
-    // 这里处理请求参数以及对应rpc函数调用，返回参数用字符串传递回 websocket。回传字符串即可。
-    var ret = '你好'
-    websocket.send(ret)
+    if (info.evalstring){
+      // 这里让你可以通过 /?evalstring=123 传入代码直接执行，
+      websocket.send(v_eval(v_decodeURIComponent(info.evalstring)))
+    }else{
+      // 这里处理请求参数以及对应rpc函数调用，返回参数用字符串传递回 websocket。回传字符串即可。
+      var ret = '你好'
+      websocket.send(ret)
+    }
   }
 }()
 }
