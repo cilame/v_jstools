@@ -539,4 +539,9 @@ websocket_hook.addEventListener("click", function(){
   code_model.value = clear_mode(mk_websocket_hook_code)
 })
 
+var proxy_js = document.getElementById('proxy_js');
+proxy_js.addEventListener("click", function(){
+  var code_model = document.getElementById('code_model')
+  code_model.value = clear_mode(mk_proxy_code)
+})
 
