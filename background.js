@@ -85,21 +85,27 @@ function AttachDebugger() {
 }
 var currtabid;
 var currdomain;
+function get_cookie(){
+  chrome.cookies.getAll({}, function(cookie){ 
+    var cookies = []
+    for (var i = 0; i < cookie.length; i++) {
+      if (currdomain.indexOf(cookie[i].domain) != -1){
+        cookies.push(cookie[i])
+      }
+    }
+    chrome.tabs.sendMessage(currtabid, {action: {type:'getcookie', info: cookies}}, function(){})
+  });
+}
 chrome.extension.onMessage.addListener(function (req, sender, sendResponse){
   if (req.getcookie){
     currtabid = sender.tab.id
     currdomain = req.domain
+    get_cookie()
     sendResponse({})
   }
 })
 chrome.cookies.onChanged.addListener(function(info){
   if (currtabid){
-    chrome.cookies.getAll({domain: currdomain}, function(cookie){ 
-      var cookies = []
-      for (var i = 0; i < cookie.length; i++) {
-        cookies.push(cookie[i])
-      }
-      chrome.tabs.sendMessage(currtabid, {action: {type:'getcookie', info: cookies}}, function(){})
-    });
+    get_cookie()
   }
 });
