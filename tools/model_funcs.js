@@ -160,12 +160,17 @@ function handle_proxy(req, res) {
     get_cookie_local(function(v){
       // 可以配合 js 的 server 代码在这里搞自动补充/修改 cookie 的功能。
       var message = v.message
-      var purl = new URL(message.href).origin
-      req.headers.cookie = message.cookie || req.headers.cookie
-      req.headers['user-agent'] = message.userAgent || req.headers['user-agent']
-      proxy.web(req, res, { target: purl }, function(e){
-        console.log(e)
-      });
+      if(message){
+        var purl = new URL(message.href).origin
+        req.headers.cookie = message.cookie || req.headers.cookie
+        req.headers['user-agent'] = message.userAgent || req.headers['user-agent']
+        proxy.web(req, res, { target: purl }, function(e){
+          console.log(e)
+        });
+      }else{
+        res.write('<h1>no message obj.<h1>')
+        res.end()
+      }
     })
   }else{
     res.write('<h1>wss not start.<h1>')

@@ -1335,22 +1335,24 @@ chrome.storage.local.get(hookers, function (result) {
   }
 })
 
-// chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
-//   if (msg.action.type == 'error'){
-//     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
-//   }
-//   if (msg.action.type == 'addlistener'){
-//     inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开调试总开关，同时将dom挂钩全部选中后，再刷新页面点击代码生成按钮。')}`)
-//   }
-//   if (msg.action.type == 'logtoggle'){
-//     inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
-//   }
-//   if (msg.action.type == 'alerterror'){
-//     inject_script(`alert(${JSON.stringify(msg.action.info)})`)
-//   }
-//   if (msg.action.type == 'getcookie'){
-//     inject_script('window.vilame_setter='+JSON.stringify(msg.action.info))
-//   }
-//   sendResponse({})
-// });
-// chrome.extension.sendMessage({getcookie:true, domain:document.domain}, function(res){})
+chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
+  if (msg.action.type == 'error'){
+    inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
+  }
+  if (msg.action.type == 'addlistener'){
+    inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开调试总开关，同时将dom挂钩全部选中后，再刷新页面点击代码生成按钮。')}`)
+  }
+  if (msg.action.type == 'logtoggle'){
+    inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
+  }
+  if (msg.action.type == 'alerterror'){
+    inject_script(`alert(${JSON.stringify(msg.action.info)})`)
+  }
+  if (msg.action.type == 'getcookie'){
+    // 有些 onlyhttp 的 cookie 直接通过 js 拿不到，所以这个插件会主动在 js 环境下注入一个 vilame_setter 参数。
+    // 通过 vilame_setter 参数可以直接拿到所有当前页面 domain 下的 cookie 包括 httponly 类型的 cookie。
+    inject_script('window.vilame_setter='+JSON.stringify(msg.action.info))
+  }
+  sendResponse({})
+});
+chrome.extension.sendMessage({getcookie:true, domain:document.domain}, function(res){})

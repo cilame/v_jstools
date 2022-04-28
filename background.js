@@ -83,23 +83,23 @@ function AttachDebugger() {
     }
   );
 }
-// var currtabid;
-// var currdomain;
-// chrome.extension.onMessage.addListener(function (req, sender, sendResponse){
-//   if (req.getcookie){
-//     currtabid = sender.tab.id
-//     currdomain = req.domain
-//     sendResponse({})
-//   }
-// })
-// chrome.cookies.onChanged.addListener(function(info){
-//   if (currtabid){
-//     chrome.cookies.getAll({domain: currdomain}, function(cookie){ 
-//       var cookies = []
-//       for (var i = 0; i < cookie.length; i++) {
-//         cookies.push(cookie[i])
-//       }
-//       chrome.tabs.sendMessage(currtabid, {action: {type:'getcookie', info: cookies}}, function(){})
-//     });
-//   }
-// });
+var currtabid;
+var currdomain;
+chrome.extension.onMessage.addListener(function (req, sender, sendResponse){
+  if (req.getcookie){
+    currtabid = sender.tab.id
+    currdomain = req.domain
+    sendResponse({})
+  }
+})
+chrome.cookies.onChanged.addListener(function(info){
+  if (currtabid){
+    chrome.cookies.getAll({domain: currdomain}, function(cookie){ 
+      var cookies = []
+      for (var i = 0; i < cookie.length; i++) {
+        cookies.push(cookie[i])
+      }
+      chrome.tabs.sendMessage(currtabid, {action: {type:'getcookie', info: cookies}}, function(){})
+    });
+  }
+});
