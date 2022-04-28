@@ -1155,13 +1155,6 @@ function injectfunc(e, window) {
   if (e["config-hook-domobj"]){
     $domobj_placeholder
   }
-  !function(){
-    try{
-      $myinject
-    }catch(e){
-      v_log('inject error.')
-    }
-  }()
 }
 
 
@@ -1320,18 +1313,25 @@ function check_format(str){
   }
 }
 
+function inject_code(){
+  try{
+    $myinject
+  }catch(e){
+    v_log('inject error.')
+  }
+}
+
 chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
-    var myinject = result["config-myinject"]
-    if (result["config-myinject_toggle"]){
-      var myinject = check_format(myinject) ? myinject : 'v_log("format error.")'
-    }else{
-      var myinject = 'undefined'
-    }
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
     var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
-    var replacer_injectfunc = replacer_injectfunc.replace('$myinject', myinject+';')
     inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
+
+  }
+  if (result["config-myinject_toggle"]){
+    var myinject = result["config-myinject"]
+    var myinject = check_format(myinject) ? myinject : 'console.log("format error.")'
+    inject_script(`(${(inject_code+'').replace('$myinject', myinject)})()`);
   }
 })
 
