@@ -89,7 +89,11 @@ function get_cookie(){
   chrome.cookies.getAll({}, function(cookie){ 
     var cookies = []
     for (var i = 0; i < cookie.length; i++) {
-      if (currdomain.indexOf(cookie[i].domain) != -1){
+      var _domain = cookie[i].domain
+      if (_domain.charAt() == '.'){
+        _domain = _domain.slice(1)
+      }
+      if (currdomain.indexOf(_domain) != -1){
         cookies.push(cookie[i])
       }
     }
