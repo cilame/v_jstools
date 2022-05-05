@@ -1038,7 +1038,7 @@ function injectfunc(e, window) {
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
             }
-            if (e["config-hook-cookie-add-debugger"]){ debugger }
+            if (e["config-hook-cookie-add-debugger"] && r.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
           }
         }
         return r
@@ -1054,7 +1054,7 @@ function injectfunc(e, window) {
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
             }
-            if (e["config-hook-cookie-add-debugger"]){ debugger }
+            if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
           }
         }
         return _old_cookie_set.apply(this, arguments)
@@ -1261,6 +1261,7 @@ var hookers = [
   "config-hook-cookie-add-debugger",
   "config-hook-cookie-get",
   "config-hook-cookie-set",
+  "config-hook-cookie-match",
   "config-hook-encrypt-normal",
   "config-hook-JSON.parse",
   "config-hook-JSON.stringify",
@@ -1325,6 +1326,7 @@ chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
     var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
+    result["config-hook-cookie-match"] = (result["config-hook-cookie-match"] || '').trim()
     inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
 
   }

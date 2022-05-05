@@ -510,6 +510,14 @@ get_now.addEventListener("click", function(){
   })
 })
 
+var cookie_match = document.getElementById('cookie_match');
+cookie_match.addEventListener("click", function(){
+  var show_now = document.getElementById('show_now')
+  show_now.value = +new Date+''
+  chrome.storage.local.set({
+    [show_now.dataset.key]: show_now.value
+  })
+})
 
 
 
