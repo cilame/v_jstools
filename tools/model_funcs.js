@@ -44,8 +44,11 @@ var WSS_SERVER_PORT = 8887
 var INTERFACE_PORT = 5000
 
 var server = wss.createServer(function(conn){
+  var curr_url;
   conn.on("text", function(info){
-    if (info == 'browser:start'){
+    if (info.startsWith('browser:start')){
+      curr_url = info.slice(14)
+      console.log("connect:", new URL(curr_url).origin)
       global.conn = conn
     }else{
       try{
@@ -54,8 +57,8 @@ var server = wss.createServer(function(conn){
       resqueue.pop().json({message: info})
     }
   })
-  conn.on("error", function(){ console.log("error") })
-  conn.on("close", function(){ console.log("close") })
+  conn.on("error", function(){})
+  conn.on("close", function(){ console.log("close:", new URL(curr_url).origin) })
 })
 server.listen(WSS_SERVER_PORT, function(){
   console.log("wss start @", WSS_SERVER_PORT);
@@ -168,11 +171,13 @@ function handle_proxy(req, res) {
           console.log(e)
         });
       }else{
+      	res.writeHead(233, {'Content-type': 'text/html'})
         res.write('<h1>no message obj.<h1>')
         res.end()
       }
     })
   }else{
+    res.writeHead(233, {'Content-type': 'text/html'})
     res.write('<h1>wss not start.<h1>')
     res.end()
   }
@@ -239,7 +244,7 @@ async def echo(websocket, path):
     async for message in websocket:
         print("path:{} message:{}".format(path, message))
         if path == '/browser':
-            if message == 'browser:start':
+            if message.startswith('browser:start'):
                 tog = True
                 while 1:
                     await websocket.send(await que.get())
@@ -268,7 +273,7 @@ function mk_websocket_hook_code(){
 !function(){
   var websocket = new WebSocket("ws://127.0.0.1:8887/browser");
   websocket.onopen = function(){
-    var info = 'browser:start'
+    var info = 'browser:start:' + location.href
     console.log(info);
     websocket.send(info)
   }
