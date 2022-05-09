@@ -58,7 +58,7 @@ var server = wss.createServer(function(conn){
     }
   })
   conn.on("error", function(){})
-  conn.on("close", function(){ console.log("close:", new URL(curr_url).origin) })
+  conn.on("close", function(){ console.log("close:", new URL(curr_url).origin); global.conn = undefined })
 })
 server.listen(WSS_SERVER_PORT, function(){
   console.log("wss start @", WSS_SERVER_PORT);
