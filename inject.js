@@ -1008,12 +1008,19 @@ function injectfunc(e, window) {
   if (e["config-hook-remove-dyn-debugger"]){
     !function(){
       function mk_func(fname){
+        var temp = []
         function replace_debugger(e){
           if (/debugger/.test(e[e.length-1])){
-            window.v_log(..._mk_logs(`[replace_debugger:${fname}]: debugger is exist, replace it with empty string.`))
+            if (temp.indexOf(e[e.length-1]) == -1){
+              temp.push(e[e.length-1])
+              window.v_log(..._mk_logs(`[replace_debugger:${fname}]: debugger is exist, replace it with empty string.`))
+            }
             e[e.length-1]=e[e.length-1].replace(/debugger/g, '    ')
           }else{ 
-            window.v_log(..._mk_logs(`[replace_debugger:${fname}]: ${e[e.length-1]}`) )
+            if (temp.indexOf(e[e.length-1]) == -1){
+              temp.push(e[e.length-1]
+              window.v_log(..._mk_logs(`[replace_debugger:${fname}]: ${e[e.length-1]}`) )
+            }
           }
         }
         return replace_debugger
