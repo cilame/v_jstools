@@ -1018,7 +1018,7 @@ function injectfunc(e, window) {
             e[e.length-1]=e[e.length-1].replace(/debugger/g, '    ')
           }else{ 
             if (temp.indexOf(e[e.length-1]) == -1){
-              temp.push(e[e.length-1]
+              temp.push(e[e.length-1])
               window.v_log(..._mk_logs(`[replace_debugger:${fname}]: ${e[e.length-1]}`) )
             }
           }
