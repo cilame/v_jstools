@@ -160,13 +160,19 @@ function handle_proxy(req, res) {
       var message = v.message
       if(message){
         var purl = new URL(message.href).origin
-        req.headers.cookie = message.cookie || req.headers.cookie
-        req.headers['user-agent'] = message.userAgent || req.headers['user-agent']
+        if (message.headers){
+          if (message.headers['Cookie'] || req.headers.cookie){
+            req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
+          }
+          if (message.headers['User-Agent'] || req.headers['user-agent']){
+            req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
+          }
+        }
         proxy.web(req, res, { target: purl }, function(e){
           console.log(e)
         });
       }else{
-      	res.writeHead(233, {'Content-type': 'text/html'})
+        res.writeHead(233, {'Content-type': 'text/html'})
         res.write('<h1>no message obj.<h1>')
         res.end()
       }
