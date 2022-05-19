@@ -494,6 +494,8 @@ function make_v(envs, keys){
     patcher('Image')
     patcher('HTMLImageElement')
     patcher('HTMLMediaElement')
+    patcher('HTMLUnknownElement')
+    patcher('XMLHttpRequest')
     patcher('Storage')
     
     var _global = []
@@ -555,7 +557,7 @@ function make_v(envs, keys){
             `      break`,
             `    }`,
             `  }`,
-            `  if (!ret){ ret = new v_saf(function HTMLUnknownElement(){}) }`,
+            `  if (!ret){ ret = v_new(HTMLUnknownElement) }`,
             `  if (typeof CSSStyleDeclaration != 'undefined') { ret._style = v_new(CSSStyleDeclaration) }`,
             `  ret._tagName = name.toUpperCase()`,
             `  return ret`,
