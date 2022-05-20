@@ -33,10 +33,10 @@ function make_v(envs, keys){
             removeChild: {value: ''},
         },
         HTMLElement: {
-            style: {value: 'return this._style'},
+            style: {value: 'return this.v_style'},
         },
         Element: {
-            tagName: {value: 'return this._tagName'},
+            tagName: {value: 'return this.v_tagName'},
         },
         Storage:{
             clear:{ ban: true },
@@ -558,8 +558,8 @@ function make_v(envs, keys){
             `    }`,
             `  }`,
             `  if (!ret){ ret = v_new(HTMLUnknownElement) }`,
-            `  if (typeof CSSStyleDeclaration != 'undefined') { ret._style = v_new(CSSStyleDeclaration) }`,
-            `  ret._tagName = name.toUpperCase()`,
+            `  if (typeof CSSStyleDeclaration != 'undefined') { ret.v_style = v_new(CSSStyleDeclaration) }`,
+            `  ret.v_tagName = name.toUpperCase()`,
             `  return ret`,
         ])
         v_cele.push('}')
