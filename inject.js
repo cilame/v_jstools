@@ -1331,18 +1331,19 @@ function inject_code(){
   }
 }
 
+var code_hookdom;
+var code_inject;
 chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
     var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
     result["config-hook-cookie-match"] = (result["config-hook-cookie-match"] || '').trim()
-    inject_script(`(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
-
+    inject_script(code_hookdom = `(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
   }
   if (result["config-myinject_toggle"]){
     var myinject = result["config-myinject"]
     var myinject = check_format(myinject) ? myinject : 'console.log("format error.")'
-    inject_script(`(${(inject_code+'').replace('$myinject', myinject)})()`);
+    inject_script(code_inject = `(${(inject_code+'').replace('$myinject', myinject)})()`);
   }
 })
 
