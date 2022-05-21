@@ -553,3 +553,7 @@ proxy_js.addEventListener("click", function(){
   code_model.value = clear_mode(mk_proxy_code)
 })
 
+// var proxy_config = document.getElementById('proxy_config');
+// proxy_config.addEventListener("change", function(v){
+//   v.target.value
+// })

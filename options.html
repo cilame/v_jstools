@@ -117,9 +117,11 @@
             <div id="funcs_1" style="float: left"></div>
         </section>
         <section class="tab">
-            <label ><input type="checkbox" data-key="config-myinject_toggle">是否注入代码开关</label>
+            <label ><input type="checkbox" data-key="config-myinject_toggle">是否注入代码开关(独立开关,是否挂钩总开关不影响此处)</label>
             <HR>
             <textarea id='myinject' data-key="config-myinject" style="width: 100%; height: 500px"></textarea>
+            <br/>
+            <!-- <div>修改代理:<input type="text" data-key="config-proxy_config" id="proxy_config"></div> -->
         </section>
         <section class="tab">
             <div>这里的功能：在目标网页上右键菜单选择 “打开 v_jstools 动态调试” 即可开启，使用用插件的方式 hook 住目标页面的所有代码，像是在 node 里面一样使用 ast 将原始的代码修改成期望的样子</div>

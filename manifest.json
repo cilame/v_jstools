@@ -35,7 +35,7 @@
   "name": "v_jstools",
   "version": "0.0.0",
   "description": "v_jstools js hook工具",
-  "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "debugger", "storage", "contextMenus", "http://*/*", "https://*/*", "cookies"],
+  "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "debugger", "storage", "contextMenus", "http://*/*", "https://*/*", "cookies", "proxy"],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "browser_action": {
     "default_popup": "popup.html"
