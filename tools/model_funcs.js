@@ -144,9 +144,58 @@ JjY5Guli5tYGh/xAPUY2RI0NWuK7
 -----END CERTIFICATE-----`
 };
 
-
+var zlib = require('zlib')
+function make_raw_res(proxyRes, req_raw, body){
+  var head = [
+    /(HTTP\/[\d+\.]+)\r\n/.exec(req_raw)[1],
+    proxyRes.statusCode,
+    proxyRes.statusMessage,
+  ].join(' ') + '\r\n'
+  var rhead = proxyRes.rawHeaders
+  var rlen = rhead.length
+  for (var i = 0; i < rlen/2; i++) {
+    head += rhead[i*2] + ': ' + rhead[i*2+1] + '\r\n'
+  }
+  console.log(proxyRes)
+  if (proxyRes.headers['content-encoding'] == 'gzip'){
+    try{
+      body = Buffer.from(zlib.gunzipSync(body),'binary').toString('utf-8')
+    }catch(e){ console.log(e.stack) }
+  }
+  return {
+    data: head + '\r\n' + body,
+    body: body,
+  }
+}
 var proxy = httpProxy.createProxyServer({ changeOrigin: true });
 proxy.on('error', function(err) { console.log(err); });
+proxy.on('proxyReq', function(proxyReq, req, res, options) {
+  var body = [];
+  req.on('data', function (chunk) {
+    body.push(chunk);
+  });
+  req.on('end', function () {
+    body = Buffer.concat(body).toString();
+    res.vilame_req_raw = {
+      data: proxyReq._header + body,
+      body: body,
+    }
+  });
+});
+proxy.on('proxyRes', function (proxyRes, req, res) {
+  var body = [];
+  proxyRes.on('data', function (chunk) {
+    body.push(chunk);
+  });
+  proxyRes.on('end', function () {
+    body = Buffer.concat(body);
+    var req_raw = res.vilame_req_raw
+    var res_raw = make_raw_res(proxyRes, req_raw.data, body)
+    // 后续需编写一个服务，用于展示下面两个数据
+    // req_raw
+    // res_raw
+  });
+});
 
 function get_cookie_local(callback){
   global.conn.send(JSON.stringify({type:'do_change'}))
