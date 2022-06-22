@@ -85,65 +85,9 @@ app.listen(INTERFACE_PORT, function(){
 
 
 function mk_proxy_code(){
-var PROXY_NET_PORT = 3000
-var PROXY_HTTP_PORT = 8886
-var PROXY_HTTPS_PORT = 8885
-var INTERFACE_SHOW_PORT = 3001
-
-// 使用 openssl 直接生成 key 和 cert，虽然不受信任，但是用于作为请求的代理，则不会出现提示。
-// openssl genrsa -out key.pem
-// openssl req -new -key key.pem -out csr.pem
-// openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.pem
-// rm csr.pem
-
-var options = {
-  key: `-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAxwwEw94b9jpro59K+vM02bceOarYgu6brCb85UbsmBzXkrSt
-ft5Oo/HGDoszImIauN2NjkNUsn79T7M0Hbo+vxg1aeSPslrmI7qqZ3MkgaDDoAtF
-IzJeeEJzIqCcQgr3+gvgVY+pWAuubaYUzysZk0YqhvM5Kin7duLiD9hMW2huD68x
-rOwoGPaDaE+WRZbJxXx1VyLiDrrUoNXNxPVhOKdPX2v/X34HuossDmRIj4g0+nDl
-YyglF6UDRlmVa4hCrFAFl6r5gDplwTWT9XLw1rfvR25UzXWRUJrJ3mkwZrpNNSkp
-Yo+yHRld2/WQkc5Y1lXDo3CvrlEEHqrOKMDklwIDAQABAoIBAQC0q0YP+yTqRHC7
-XbUTP3nzO/FlapuHjMkkY2cdPVk3YMaTVQg9pc8/pA6f2N2bEe0ra343aQoR0o5e
-r0xYx1p43aJt8ZY0z6khOSe/KpYySxgFxvUEU43IHpifD6WFlKss/Wasgu+1CTVU
-NXGh8X8PXJrxTwfOK7kiWiHTPANi2zXRYrL6h02YncymYDMgfLL6mGdMJEUCS/Es
-iztTrlaGFscU1ITY4Y3B3mlhMa8a1lZiaL7MIifhRYRUEsmeP6sZ9d3V6biHI2IA
-HcYtXO8oSlkzsbF9hFd2eE4RgiuDH7tX3mdOFd5M5pTgymw9KZoJ3UWjljBBPdbA
-SLy17rkBAoGBAPa9MfcatmqKEQG4Pqw7ay8llpiVVrU5s313LQbT7VmiY9MSnVni
-n/JwWk0Wy1odU2AlZOPSnIHX/o3HJ84LUP7fIrglAQZKGtnEsC+jdw9ckA+b6Hfq
-DSiG/oD/nmTgfndI4PJsSCMHN/HsZ74FPgKuTClwCMb3zpEEJ5+bLcFBAoGBAM6E
-kkwdm9h216TNyFmlBVSm9Vaa3G3N8OMNIjtkJv86SGvEfX3l2J+gBRTZX5cBMq7W
-YEo4wgRfjPU8cRxmjcKTmaHH6QDmzQal24NPNSiXk6u55sX4mWNPWRzfK3t/tnv9
-TKI4oFkHn5q1kjmPbAtCjxDPpGIKZMXBtyxAhtfXAoGACiV3k4jGrZTl5CM2eJCs
-9LBgBABII4Wu6t7mvBwk64WxAzIFxHd8SlTyca8ZR6hjEFYZUwELLI+8SQpCiceP
-WhvE6rui0iZj+kaLVDotoDUXO30Wzy+RwPPkLVvVoKJWsQMPNQjc4ovechVdosPG
-bAfM2/tecQgpt27rTjXsaMECgYAaNuvXK57/wD4pVlHLR05A65yS7L90VMLyH1Ws
-Ek988GoG+/8t/wIbaRWcCue+ZFGJrf61DTVblsFu08hL4Zy3CUNkLNsf2SxHXsBZ
-j7FgwLTnBIcNtDvMRmM6bf24BIMmhAW5RdTc2EHjQo8YLWN6nm1IpgLoywb1r1xQ
-CrTTKwKBgEP4LsMS7e9/LG8QCd82MpNsAtF4RQdR0RTAXjosw7eDtLzlOSDbIXpH
-656mzrYaYBc/HB9ewDh5+na+w8LPW+OJQuoR8UVSzEcsz9Y9xqXOcjgpTzRDFv5F
-UWWli3mH3Mrg83ltYxp3ru7u1Qd5Nn7/efLHxWmRUYg45hISMn4C
------END RSA PRIVATE KEY-----`,
-  cert: `-----BEGIN CERTIFICATE-----
-MIIDETCCAfkCFFN+kPJoRGi6zDlTUwMby/24sgN9MA0GCSqGSIb3DQEBCwUAMEUx
-CzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRl
-cm5ldCBXaWRnaXRzIFB0eSBMdGQwHhcNMjIwNDI4MDY0NzA5WhcNNDkwOTEyMDY0
-NzA5WjBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UE
-CgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEAxwwEw94b9jpro59K+vM02bceOarYgu6brCb85UbsmBzXkrSt
-ft5Oo/HGDoszImIauN2NjkNUsn79T7M0Hbo+vxg1aeSPslrmI7qqZ3MkgaDDoAtF
-IzJeeEJzIqCcQgr3+gvgVY+pWAuubaYUzysZk0YqhvM5Kin7duLiD9hMW2huD68x
-rOwoGPaDaE+WRZbJxXx1VyLiDrrUoNXNxPVhOKdPX2v/X34HuossDmRIj4g0+nDl
-YyglF6UDRlmVa4hCrFAFl6r5gDplwTWT9XLw1rfvR25UzXWRUJrJ3mkwZrpNNSkp
-Yo+yHRld2/WQkc5Y1lXDo3CvrlEEHqrOKMDklwIDAQABMA0GCSqGSIb3DQEBCwUA
-A4IBAQByT2JIlUYavd0v22vtdUQ7kETyTGtR4w11p15rlOmp5wz7RiuzZWzbv9CC
-XLA1deStTVRtFE6mFtr7TlGydm26asI+sxb7oUd4ikRkBnVgFSNJ006sA1tJh0FO
-2kiWlf8jW+qi97BLKamo7fAHz+N2X2BUeZPlau28MoU8IJZA5xuI62+P8aAm7Sk0
-QulCCSBICoYXN/OMjef3CMolEnmxys7KyG/hCaShdQfIeb5L2FI7s4C8k0pWzrTF
-IGKvry8+5E0hOpbB1bDu8slK7JQCaJBDlwdM3zvuYYMtq6JSntywTnP8bu7JnUk4
-JjY5Guli5tYGh/xAPUY2RI0NWuK7
------END CERTIFICATE-----`
-};
+var PROXY_HTTP_PORT = 3000
+var PROXY_HTTP_PORT_XML = 3001
+var INTERFACE_SHOW_PORT = 3333
 
 var zlib = require('zlib')
 function make_raw_res(proxyRes, req_raw, body){
@@ -174,9 +118,40 @@ function make_raw_res(proxyRes, req_raw, body){
     message: proxyRes.statusMessage,
   }
 }
-var proxy = httpProxy.createProxyServer({ changeOrigin: true });
+var proxy = httpProxy.createProxyServer({ 
+  changeOrigin: true, 
+  ignorePath: true,
+  secure: false,
+});
 proxy.on('error', function(err) { console.log(err); });
 proxy.on('proxyReq', function(proxyReq, req, res, options) {
+  if (req.body){
+    var sybs = Object.getOwnPropertySymbols(proxyReq)
+    var _header = `${req.method} ${req.url} HTTP/${req.httpVersion}` + '\r\n'
+    for (var i = 0; i < sybs.length; i++) {
+      if (sybs[i].toString() == 'Symbol(kOutHeaders)'){
+        var h_keys = Object.keys(proxyReq[sybs[i]])
+        for (var j = 0; j < h_keys.length; j++) {
+          _header += proxyReq[sybs[i]][h_keys[j]].join(': ') + '\r\n'
+        }
+      }
+    }
+    if (typeof req.body !== 'string'){
+      req.body = ''
+    }
+    _header += '\r\n'
+    res.vilame_req_raw = {
+      data: _header + req.body,
+      header: _header,
+      body: req.body,
+      method: proxyReq.method,
+      path: proxyReq.path,
+      host: proxyReq.host,
+    }
+    proxyReq.setHeader('Content-Length', Buffer.byteLength(req.body))
+    proxyReq.write(req.body)
+    return
+  }
   var body = [];
   req.on('data', function (chunk) {
     body.push(chunk);
@@ -375,18 +350,30 @@ show.listen(INTERFACE_SHOW_PORT, function(){
   console.log('show start @', INTERFACE_SHOW_PORT)
 })
 
+
+
+
+
+
+
+
+
+function error(res, msg){
+  res.writeHead(233, {'Content-type': 'text/html'})
+  res.write(msg)
+  res.end()
+}
+
+// hook 获取 cookie，只用获取 cookie 所以用默认库代理搞一下就号了。
 function get_cookie_local(callback){
   global.conn.send(JSON.stringify({type:'do_change'}))
   resqueue.unshift({json: callback})
 }
-
 function handle_proxy(req, res) {
   if (global.conn){
     get_cookie_local(function(v){
-      // 可以配合 js 的 server 代码在这里搞自动补充/修改 cookie 的功能。
       var message = v.message
       if(message){
-        var purl = new URL(message.href).origin
         if (message.headers){
           if (message.headers['Cookie'] || req.headers.cookie){
             req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
@@ -395,41 +382,71 @@ function handle_proxy(req, res) {
             req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
           }
         }
-        proxy.web(req, res, { target: purl }, function(e){
+        proxy.web(req, res, { target: message.href }, function(e){
+          console.log('[!] proxy error.')
           console.log(e)
         });
       }else{
-        res.writeHead(233, {'Content-type': 'text/html'})
-        res.write('<h1>no message obj.<h1>')
-        res.end()
+        error(res, '<h1>no message obj.<h1>')
       }
     })
   }else{
-    res.writeHead(233, {'Content-type': 'text/html'})
-    res.write('<h1>wss not start.<h1>')
-    res.end()
+    error(res, '<h1>wss not start.<h1>')
   }
 }
 
-function handle_router(conn) {
-  conn.once('data', function (buf) {
-    var address = (buf[0] === 22) ? PROXY_HTTPS_PORT : PROXY_HTTP_PORT;
-    var proxy = net.createConnection(address, function () {
-      proxy.write(buf);
-      conn.pipe(proxy).pipe(conn);
-    })
-  });
-  conn.on('error', function(err){
-    conn.destroy()
-  })
-}
-
-var net = require('net')
 var http = require('http')
-var https = require('https');
-net.createServer(handle_router).listen(PROXY_NET_PORT, function(){ console.log('proxy net start @', PROXY_NET_PORT) });
 http.createServer(handle_proxy).listen(PROXY_HTTP_PORT, function(){ console.log('proxy http start @', PROXY_HTTP_PORT) })
-https.createServer(options, handle_proxy).listen(PROXY_HTTPS_PORT, function(){ console.log('proxy https start @', PROXY_HTTPS_PORT) });
+
+// hook xml http request
+var app = express();
+var router = express.Router();
+function get_xml_req_hook(callback, info){
+  info = info || {}
+  info.type = 'xmlhttprequest'
+  global.conn.send(JSON.stringify(info))
+  resqueue.unshift({json: callback})
+}
+router.all('*', function(req, res){
+  if (global.conn){
+    var data = {url: req.url.replace(/^https?:\/\/[^/]+/g, ''), method: req.method, body: req.body}
+    get_xml_req_hook(function(v){
+      if(v.message.error){
+        error(res, '<div>message.error</div>')
+        return
+      }
+      var message = v.message.collect[0]
+      if(message){
+        message = message[1]
+        if (message.headers){
+          if (message.headers['Cookie'] || req.headers.cookie){
+            req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
+          }
+          if (message.headers['User-Agent'] || req.headers['user-agent']){
+            req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
+          }
+        }
+        if (req.method == 'POST'){
+          req.body = message.data
+        }
+        proxy.web(req, res, { target: message.href }, function(e){
+          console.log('[!] proxy error.')
+          console.log(e)
+        });
+      }else{
+        error(res, '<h1>no message obj.<h1>')
+      }
+    }, {data: JSON.stringify(data)})
+  }else{
+    error(res, '<h1>wss not start.<h1>')
+  }
+  if (!global.conn){
+    return res.json({message: 'browser not start.'})
+  }
+})
+app.use(bodyParser.text({inflate: true, limit: '50mb', type: function(){return true}}));
+app.use('/', router);
+app.listen(PROXY_HTTP_PORT_XML, function(){ console.log('xml start @', PROXY_HTTP_PORT_XML) })
 }
 
 
