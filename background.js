@@ -17,42 +17,6 @@ chrome.contextMenus.create({
     AttachDebugger();
   }
 });
-// var cache_tabid_new = {}
-// var cache_tabid_att = {}
-// var debug_tab = false
-// function attach_tab_debug(tabId, changeInfo, tab) {
-//   if (!changeInfo.url || changeInfo.url.indexOf('chrome://') == 0) return
-//   if (!debug_tab) return
-//   cache_tabid_new[tabId] = 1
-//   var tabids = Object.keys(cache_tabid_new)
-//   for (var i = 0; i < tabids.length; i++) {
-//     if (cache_tabid_new[tabids[i]] == 1 && !cache_tabid_att[tabids[i]]){
-//       cache_tabid_att[tabids[i]] = 1
-//       var currtab = { tabId: +tabids[i] };
-//       chrome.debugger.attach(currtab, "1.2", function () {
-//         chrome.debugger.sendCommand(currtab, "Page.enable", {}, function(){});
-//         chrome.debugger.sendCommand(currtab, "Page.addScriptToEvaluateOnNewDocument", {
-//           source: "console.log(123)"
-//         }, function(){});
-//       });
-//     }
-//   }
-// }
-// chrome.tabs.onUpdated.addListener(attach_tab_debug); 
-// chrome.debugger.onDetach.addListener(function(){ debug_tab = false })
-// chrome.contextMenus.create({
-//   title: "测试代码超前运行",
-//   contexts: ['all'],
-//   onclick: function(){
-//     debug_tab = true
-//     chrome.tabs.query(
-//       { active: true, currentWindow: true }, 
-//       function (tabs) {
-//         attach_tab_debug(tabs[0].id, {url: 'vilame'})
-//       }
-//     );
-//   }
-// });
 function sendCommand(method, params, source, chainfun){
   chrome.debugger.sendCommand(source, method, params, function(result){
     if (chrome.runtime.lastError) {

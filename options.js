@@ -500,6 +500,15 @@ myinject.addEventListener("change", function(v){
     [v.target.dataset.key]: v.target.value
   })
 })
+var myinject_2 = document.getElementById('myinject_2');
+chrome.storage.local.get([myinject_2.dataset.key], function (result) {
+  myinject_2.value = result[myinject_2.dataset.key] || '';
+})
+myinject_2.addEventListener("change", function(v){
+  chrome.storage.local.set({
+    [v.target.dataset.key]: v.target.value
+  })
+})
 
 var get_now = document.getElementById('get_now');
 get_now.addEventListener("click", function(){
@@ -551,6 +560,53 @@ var proxy_js = document.getElementById('proxy_js');
 proxy_js.addEventListener("click", function(){
   var code_model = document.getElementById('code_model')
   code_model.value = clear_mode(mk_proxy_code)
+})
+
+var add_script_in_all_document = document.getElementById('add_script_in_all_document');
+add_script_in_all_document.addEventListener("click", function(){
+  debug_tab = true
+  chrome.tabs.query(
+    { active: true, currentWindow: true }, 
+    function (tabs) {
+      chrome.debugger.attach({ tabId: tabs[0].id }, "1.2", function(){});
+    }
+  );
+})
+
+var cache_tabid_new = {}
+var cache_tabid_att = {}
+var debug_tab = false
+function attach_tab_debug(tabId){
+  cache_tabid_new[tabId] = 1
+  var tabids = Object.keys(cache_tabid_new)
+  for (var i = 0; i < tabids.length; i++) {
+    if (cache_tabid_new[tabids[i]] == 1 && !cache_tabid_att[tabids[i]]){
+      cache_tabid_att[tabids[i]] = 1
+      var currtab = { tabId: +tabids[i] };
+      chrome.debugger.attach(currtab, "1.2", function () {
+        chrome.debugger.sendCommand(currtab, "Page.enable", function(){});
+        chrome.debugger.sendCommand(currtab, "Page.addScriptToEvaluateOnNewDocument", {
+          source: myinject_2.value
+        }, function(){});
+      });
+    }
+  }
+}
+// function attach_tab_debug_update(tabId, changeInfo, tab) {
+//   if (!changeInfo.url || changeInfo.url.indexOf('chrome://') == 0) return
+//   if (!debug_tab) return
+//   attach_tab_debug(tabId)
+// }
+function attach_tab_debug_active(tabIdobj){
+  if (!debug_tab) return
+  attach_tab_debug(tabIdobj.tabId)
+}
+// chrome.tabs.onUpdated.addListener(attach_tab_debug_update); 
+chrome.tabs.onActivated.addListener(attach_tab_debug_active); 
+chrome.debugger.onDetach.addListener(function(){
+  cache_tabid_new = {}
+  cache_tabid_att = {} 
+  debug_tab = false 
 })
 
 // var proxy_config = document.getElementById('proxy_config');
