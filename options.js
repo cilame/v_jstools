@@ -565,12 +565,14 @@ proxy_js.addEventListener("click", function(){
 var add_script_in_all_document = document.getElementById('add_script_in_all_document');
 add_script_in_all_document.addEventListener("click", function(){
   debug_tab = true
-  chrome.tabs.query(
-    { active: true, currentWindow: true }, 
-    function (tabs) {
-      chrome.debugger.attach({ tabId: tabs[0].id }, "1.2", function(){});
+  chrome.tabs.query({}, function(tabs) {
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].url.indexOf("chrome") == 0){
+        continue
+      }
+      attach_tab_debug(tabs[i].id)
     }
-  );
+  });
 })
 
 var cache_tabid_new = {}
@@ -592,17 +594,12 @@ function attach_tab_debug(tabId){
     }
   }
 }
-// function attach_tab_debug_update(tabId, changeInfo, tab) {
-//   if (!changeInfo.url || changeInfo.url.indexOf('chrome://') == 0) return
-//   if (!debug_tab) return
-//   attach_tab_debug(tabId)
-// }
-function attach_tab_debug_active(tabIdobj){
+function attach_tab_debug_update(tabId, changeInfo, tab) {
+  if (tab.url.indexOf('chrome://') == 0) return
   if (!debug_tab) return
-  attach_tab_debug(tabIdobj.tabId)
+  attach_tab_debug(tabId)
 }
-// chrome.tabs.onUpdated.addListener(attach_tab_debug_update); 
-chrome.tabs.onActivated.addListener(attach_tab_debug_active); 
+chrome.tabs.onUpdated.addListener(attach_tab_debug_update); 
 chrome.debugger.onDetach.addListener(function(){
   cache_tabid_new = {}
   cache_tabid_att = {} 
