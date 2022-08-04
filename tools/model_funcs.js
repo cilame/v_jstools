@@ -86,7 +86,9 @@ app.listen(INTERFACE_PORT, function(){
 
 function mk_proxy_code(){
 var PROXY_HTTP_PORT = 3000
+var GET_HTTP_PORT = 3100
 var PROXY_HTTP_PORT_XML = 3001
+var GET_HTTP_PORT_XML = 3101
 var INTERFACE_SHOW_PORT = 3333
 
 var zlib = require('zlib')
@@ -369,74 +371,101 @@ function get_cookie_local(callback){
   global.conn.send(JSON.stringify({type:'do_change'}))
   resqueue.unshift({json: callback})
 }
-function handle_proxy(req, res) {
-  if (global.conn){
-    get_cookie_local(function(v){
-      var message = v.message
-      if(message){
-        if (message.headers){
-          if (message.headers['Cookie'] || req.headers.cookie){
-            req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
-          }
-          if (message.headers['User-Agent'] || req.headers['user-agent']){
-            req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
-          }
+function get_response(res, msg){
+  res.writeHead(200, {'Content-type': 'application/json;charset=utf-8'})
+  res.write(msg)
+  res.end()
+}
+function get_cookie_response(type, req, res){
+  return function(v){
+    var message = v.message
+    if(message){
+      if (message.headers){
+        if (message.headers['Cookie'] || req.headers.cookie){
+          req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
         }
+        if (message.headers['User-Agent'] || req.headers['user-agent']){
+          req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
+        }
+      }
+      if (type == 'proxy'){
         proxy.web(req, res, { target: message.href }, function(e){
           console.log('[!] proxy error.')
           console.log(e)
         });
       }else{
-        error(res, '<h1>no message obj.<h1>')
+        get_response(res, JSON.stringify(message))
       }
-    })
+    }else{
+      error(res, '<h1>no message obj.<h1>')
+    }
+  }
+}
+function handle_proxy(req, res) {
+  if (global.conn){
+    get_cookie_local(get_cookie_response('proxy', req, res))
   }else{
     error(res, '<h1>wss not start.<h1>')
   }
 }
-
+function handle_proxy_bk(req, res) {
+  if (global.conn){
+    get_cookie_local(get_cookie_response(undefined, req, res))
+  }else{
+    error(res, '<h1>wss not start.<h1>')
+  }
+}
 var http = require('http')
 http.createServer(handle_proxy).listen(PROXY_HTTP_PORT, function(){ console.log('proxy http start @', PROXY_HTTP_PORT) })
+http.createServer(handle_proxy_bk).listen(GET_HTTP_PORT, function(){ console.log('proxy http start @', GET_HTTP_PORT) })
 
 // hook xml http request
-var app = express();
-var router = express.Router();
 function get_xml_req_hook(callback, info){
   info = info || {}
   info.type = 'xmlhttprequest'
   global.conn.send(JSON.stringify(info))
   resqueue.unshift({json: callback})
 }
-router.all('*', function(req, res){
-  if (global.conn){
-    var data = {url: req.url.replace(/^https?:\/\/[^/]+/g, ''), method: req.method, body: req.body}
-    get_xml_req_hook(function(v){
-      if(v.message.error){
-        error(res, '<div>message.error</div>')
-        return
+function mk_xml_callback(type, req, res){
+  return function (v){
+    if(v.message.error){
+      error(res, '<div>message.error</div>')
+      return
+    }
+    var message = v.message.collect[0]
+    if(message){
+      message = message[1]
+      if (message.headers){
+        if (message.headers['Cookie'] || req.headers.cookie){
+          req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
+        }
+        if (message.headers['User-Agent'] || req.headers['user-agent']){
+          req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
+        }
       }
-      var message = v.message.collect[0]
-      if(message){
-        message = message[1]
-        if (message.headers){
-          if (message.headers['Cookie'] || req.headers.cookie){
-            req.headers.cookie = message.headers['Cookie'] || req.headers.cookie
-          }
-          if (message.headers['User-Agent'] || req.headers['user-agent']){
-            req.headers['user-agent'] = message.headers['User-Agent'] || req.headers['user-agent']
-          }
-        }
-        if (req.method == 'POST'){
-          req.body = message.data
-        }
+      if (req.method == 'POST'){
+        req.body = message.data
+      }
+      if (type == 'proxy'){
         proxy.web(req, res, { target: message.href }, function(e){
           console.log('[!] proxy error.')
           console.log(e)
         });
       }else{
-        error(res, '<h1>no message obj.<h1>')
+        get_response(res, JSON.stringify(message))
       }
-    }, {data: JSON.stringify(data)})
+    }else{
+      error(res, '<h1>no message obj.<h1>')
+    }
+  }
+}
+
+var app = express();
+var router = express.Router();
+router.all('*', function(req, res){
+  if (global.conn){
+    var data = {url: req.url.replace(/^https?:\/\/[^/]+/g, ''), method: req.method, body: req.body}
+    get_xml_req_hook(mk_xml_callback('proxy', req, res), {data: JSON.stringify(data)})
   }else{
     error(res, '<h1>wss not start.<h1>')
   }
@@ -447,6 +476,23 @@ router.all('*', function(req, res){
 app.use(bodyParser.text({inflate: true, limit: '50mb', type: function(){return true}}));
 app.use('/', router);
 app.listen(PROXY_HTTP_PORT_XML, function(){ console.log('xml start @', PROXY_HTTP_PORT_XML) })
+
+var app = express();
+var router = express.Router();
+router.all('*', function(req, res){
+  if (global.conn){
+    var data = {url: req.url.replace(/^https?:\/\/[^/]+/g, ''), method: req.method, body: req.body}
+    get_xml_req_hook(mk_xml_callback(undefined, req, res), {data: JSON.stringify(data)})
+  }else{
+    error(res, '<h1>wss not start.<h1>')
+  }
+  if (!global.conn){
+    return res.json({message: 'browser not start.'})
+  }
+})
+app.use(bodyParser.text({inflate: true, limit: '50mb', type: function(){return true}}));
+app.use('/', router);
+app.listen(GET_HTTP_PORT_XML, function(){ console.log('xml start @', GET_HTTP_PORT_XML) })
 }
 
 
