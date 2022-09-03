@@ -798,6 +798,7 @@ function v_init_canvas(){
   HTMLCanvasElement.prototype.toDataURL = function(){return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACWCAYAAABkW7XSAAAEYklEQVR4Xu3UAQkAAAwCwdm/9HI83BLIOdw5AgQIRAQWySkmAQIEzmB5AgIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC"}
 }
 var v_start_stamp = +new Date
+var v_fake_stamp = +new Date
 function v_init_event_target(){
   v_events = {}
   function add_event(_this, x){
@@ -840,7 +841,6 @@ function v_init_event_target(){
     for (var i = 0; i < (v_events['mouseup'] || []).length; i++) { v_events['mouseup'][i][1](make_mouse('mouseup', x, y)) }
   }
   var offr = Math.random()
-  var fake_stamp = +new Date
   function make_touch(_this, type, x, y, timeStamp){
     var offx = Math.random()
     var offy = Math.random()
@@ -877,7 +877,7 @@ function v_init_event_target(){
     e.srcElement = _this
     e.target = _this
     e.type = type
-    e.timeStamp = timeStamp == undefined ? (new Date - v_start_stamp) : ((fake_stamp += Math.random()*20) - v_start_stamp)
+    e.timeStamp = timeStamp == undefined ? (new Date - v_start_stamp) : ((v_fake_stamp += Math.random()*20) - v_start_stamp)
     e.view = window
     e.which = 0
     return e
@@ -1082,7 +1082,36 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
       ...v_geteles_inner,
       `}`,
     ])
-
+    tail.push(`var v_Date = Date;`)
+    tail.push(`var v_base_time = +new Date;`)
+    tail.push(`(function(){`)
+    tail.push(`  function ftime(){`)
+    tail.push(`    return new v_Date() - v_base_time + v_to_time`)
+    tail.push(`  }`)
+    tail.push(`  Date = function(_Date) {`)
+    tail.push(`    var bind = Function.bind;`)
+    tail.push(`    var unbind = bind.bind(bind);`)
+    tail.push(`    function instantiate(constructor, args) {`)
+    tail.push(`      return new (unbind(constructor, null).apply(null, args));`)
+    tail.push(`    }`)
+    tail.push(`    var names = Object.getOwnPropertyNames(_Date);`)
+    tail.push(`    for (var i = 0; i < names.length; i++) {`)
+    tail.push(`      if (names[i]in Date)`)
+    tail.push(`        continue;`)
+    tail.push(`      var desc = Object.getOwnPropertyDescriptor(_Date, names[i]);`)
+    tail.push(`      Object.defineProperty(Date, names[i], desc);`)
+    tail.push(`    }`)
+    tail.push(`    function Date() {`)
+    tail.push(`      var date = instantiate(_Date, [ftime()]); // 固定返回某一个时间点`)
+    tail.push(`      return date;`)
+    tail.push(`    }`)
+    tail.push(`    Date.prototype = _Date.prototype`)
+    tail.push(`    return v_saf(Date);`)
+    tail.push(`  }(Date);`)
+    tail.push(`  Date.now = v_saf(function now(){ return ftime() })`)
+    tail.push(`})();`)
+    tail.push(`var v_to_time = +new v_Date`)
+    tail.push(`// var v_to_time = +new v_Date('Sat Sep 03 2022 11:11:58 GMT+0800') // 自定义起始时间`)
     tail.push('v_new_toggle = undefined')
     var rets = [
         `var v_saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),v_saf=u}();`,
