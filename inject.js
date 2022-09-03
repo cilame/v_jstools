@@ -21,6 +21,8 @@ function make_v(envs, keys){
             getElementsByTagNameNS: { ban: true },
             querySelector: { ban: true },
             querySelectorAll: { ban: true },
+            body: { ban: true },
+            head: { ban: true },
         },
         Navigator:{
             javaEnabled:{ value: 'return true' },
@@ -31,6 +33,59 @@ function make_v(envs, keys){
         Node: {
             appendChild: {value: ''},
             removeChild: {value: ''},
+        },
+        XMLHttpRequest: {
+            onreadystatechange: { ban: true },
+            readyState: { ban: true },
+            timeout: { ban: true },
+            withCredentials: { ban: true },
+            upload: { ban: true },
+            responseURL: { ban: true },
+            status: { ban: true },
+            statusText: { ban: true },
+            responseType: { ban: true },
+            response: { ban: true },
+            responseText: { ban: true },
+            responseXML: { ban: true },
+            UNSENT: { ban: true },
+            OPENED: { ban: true },
+            HEADERS_RECEIVED: { ban: true },
+            LOADING: { ban: true },
+            DONE: { ban: true },
+            abort: { ban: true },
+            getAllResponseHeaders: { ban: true },
+            getResponseHeader: { ban: true },
+            open: { ban: true },
+            overrideMimeType: { ban: true },
+            send: { ban: true },
+            setRequestHeader: { ban: true },
+        },
+        MouseEvent: {
+            type: { ban: true },
+            canBubble: { ban: true },
+            cancelable: { ban: true },
+            view: { ban: true },
+            detail: { ban: true },
+            screenX: { ban: true },
+            movementX: { ban: true },
+            screenY: { ban: true },
+            movementY: { ban: true },
+            clientX: { ban: true },
+            layerX: { ban: true },
+            offsetX: { ban: true },
+            pageX: { ban: true },
+            x: { ban: true },
+            clientY: { ban: true },
+            layerY: { ban: true },
+            offsetY: { ban: true },
+            pageY: { ban: true },
+            y: { ban: true },
+            ctrlKey: { ban: true },
+            altKey: { ban: true },
+            shiftKey: { ban: true },
+            metaKey: { ban: true },
+            button: { ban: true },
+            relatedTarget: { ban: true },
         },
         HTMLElement: {
             style: {value: 'return this.v_style'},
@@ -117,7 +172,7 @@ function make_v(envs, keys){
         },
         HTMLCanvasElement:{
             getContext: {value: `if (arguments[0]=='2d'){var r = v_new(CanvasRenderingContext2D); return r}; if (arguments[0]=='webgl' || arguments[0]=='experimental-webgl'){var r = v_new(WebGLRenderingContext); r._canvas = this; return r}; return null`},
-            toDataURL: {value: `return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACWCAYAAABkW7XSAAAEYklEQVR4Xu3UAQkAAAwCwdm/9HI83BLIOdw5AgQIRAQWySkmAQIEzmB5AgIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC"`},
+            toDataURL: { ban: true },
         },
         WebGLRenderingContext: {
             canvas: {value: `return this._canvas`},
@@ -366,7 +421,9 @@ function make_v(envs, keys){
                 var value = window[clazz].prototype[plist[i]]
                 if (is_literal(value)){
                     var _desc = Object.getOwnPropertyDescriptors(window[clazz].prototype)[plist[i]]
-                    inner.push(`  ${plist[i]}: ${JSON.stringify(_desc)},`)
+                    if (_desc){
+                        inner.push(`  ${plist[i]}: ${JSON.stringify(_desc)},`)
+                    }
                 }
             }catch(e){}
         }
@@ -476,7 +533,10 @@ function make_v(envs, keys){
       }
     }
     patcher('Window')
+    patcher('Screen')
     patcher('HTMLDocument')
+    patcher('HTMLHeadElement')
+    patcher('HTMLBodyElement')
     patcher('Navigator')
     patcher('PluginArray')
     patcher('Plugin')
@@ -488,8 +548,20 @@ function make_v(envs, keys){
     patcher('WebGLRenderingContext')
     patcher('CanvasRenderingContext2D')
     patcher('Performance')
-    patcher('PerformanceTiming')
     patcher('PerformanceEntry')
+    patcher('PerformanceElementTiming')
+    patcher('PerformanceEventTiming')
+    patcher('PerformanceLongTaskTiming')
+    patcher('PerformanceMark')
+    patcher('PerformanceMeasure')
+    patcher('PerformanceNavigation')
+    patcher('PerformanceNavigationTiming')
+    patcher('PerformanceObserver')
+    patcher('PerformanceObserverEntryList')
+    patcher('PerformancePaintTiming')
+    patcher('PerformanceResourceTiming')
+    patcher('PerformanceServerTiming')
+    patcher('PerformanceTiming')
     patcher('PerformanceResourceTiming')
     patcher('Image')
     patcher('HTMLImageElement')
@@ -497,6 +569,12 @@ function make_v(envs, keys){
     patcher('HTMLUnknownElement')
     patcher('XMLHttpRequest')
     patcher('Storage')
+    patcher('DOMTokenList')
+    patcher('Touch')
+    patcher('TouchEvent')
+    patcher('Event')
+    patcher('MouseEvent')
+    patcher('PointerEvent')
     
     var _global = []
     var _gcache = []
@@ -584,7 +662,17 @@ function make_v(envs, keys){
                     _global.push(`var __globalThis__ = typeof global != 'undefined' ? global : this`)
                     _global.push(`var window = new Proxy(v_new(Window), {`)
                     _global.push(`  get(a,b){ return a[b] || __globalThis__[b] },`)
-                    _global.push(`  set(a,b,c){ __globalThis__[b] = a[b] = c },`)
+                    _global.push(`  set(a,b,c){ `)
+                    _global.push(`    if (b == 'onclick' && typeof c == 'function') { window.addEventListener('click', c) }`)
+                    _global.push(`    if (b == 'onmousedown' && typeof c == 'function') { window.addEventListener('mousedown', c) }`)
+                    _global.push(`    if (b == 'onmouseup' && typeof c == 'function') { window.addEventListener('mouseup', c) }`)
+                    _global.push(`    __globalThis__[b] = a[b] = c `)
+                    _global.push(`  },`)
+                    _global.push(`})`)
+                    _global.push(`var v_hasOwnProperty = Object.prototype.hasOwnProperty`)
+                    _global.push(`Object.prototype.hasOwnProperty = v_saf(function hasOwnProperty(){`)
+                    _global.push(`  if (this == window){ return v_hasOwnProperty.apply(__globalThis__, arguments) }`)
+                    _global.push(`  return v_hasOwnProperty.apply(this, arguments)`)
                     _global.push(`})`)
                     _global.push(`Object.defineProperties(__globalThis__, {[Symbol.toStringTag]:{value:'Window'}})`)
                     _global.push(`Object.defineProperties(__globalThis__, Object.getOwnPropertyDescriptors(window))`)
@@ -625,11 +713,11 @@ function make_v(envs, keys){
     set: function(c) {
       v_console_log('  [*] document -> cookie[set]', c)
       var ncookie = c.split(";")[0].split("=");
-      if (!ncookie[1]){
+      if (!ncookie.slice(1).join('')){
         return c
       }
       var key = ncookie[0].trim()
-      var val = ncookie[1].trim()
+      var val = ncookie.slice(1).join('').trim()
       var newc = key+'='+val
       var flag = false;
       var temp = cache.split("; ").map(function(a) {
@@ -698,15 +786,246 @@ function v_init_document(){
   Document.prototype.getElementsByTagName = v_saf(function getElementsByTagName(name){ var r = v_geteles(name, 'getElementsByTagName'); v_console_log('  [*] Document -> getElementsByTagName', name, r); return r })
   Document.prototype.getElementsByTagNameNS = v_saf(function getElementsByTagNameNS(name){ var r = v_geteles(name, 'getElementsByTagNameNS'); v_console_log('  [*] Document -> getElementsByTagNameNS', name, r); return r })
   Document.prototype.querySelectorAll = v_saf(function querySelectorAll(name){ var r = v_geteles(name, 'querySelectorAll'); v_console_log('  [*] Document -> querySelectorAll', name, r); return r })
+  var v_head = v_new(HTMLHeadElement)
+  var v_body = v_new(HTMLBodyElement)
+  Object.defineProperties(Document.prototype, {
+    head: {get(){ v_console_log("  [*] Document -> head[get]", v_head);return v_head }},
+    body: {get(){ v_console_log("  [*] Document -> body[get]", v_body);return v_body }},
+  })
 }
 function v_init_canvas(){
   HTMLCanvasElement.prototype.getContext = function(){if (arguments[0]=='2d'){var r = v_new(CanvasRenderingContext2D); return r}; if (arguments[0]=='webgl' || arguments[0]=='experimental-webgl'){var r = v_new(WebGLRenderingContext); r._canvas = this; return r}; return null}
   HTMLCanvasElement.prototype.toDataURL = function(){return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACWCAYAAABkW7XSAAAEYklEQVR4Xu3UAQkAAAwCwdm/9HI83BLIOdw5AgQIRAQWySkmAQIEzmB5AgIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlAABg+UHCBDICBisTFWCEiBgsPwAAQIZAYOVqUpQAgQMlh8gQCAjYLAyVQlKgIDB8gMECGQEDFamKkEJEDBYfoAAgYyAwcpUJSgBAgbLDxAgkBEwWJmqBCVAwGD5AQIEMgIGK1OVoAQIGCw/QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC"}
 }
+var v_start_stamp = +new Date
 function v_init_event_target(){
-  EventTarget.prototype.addEventListener = function(){v_console_log('  [*] EventTarget -> addEventListener[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); return null}
-  EventTarget.prototype.dispatchEvent = function(){v_console_log('  [*] EventTarget -> dispatchEvent[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); return null}
-  EventTarget.prototype.removeEventListener = function(){v_console_log('  [*] EventTarget -> removeEventListener[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); return null}
+  v_events = {}
+  function add_event(_this, x){
+    if (!v_events[x[0]]){
+      v_events[x[0]] = []
+    }
+    v_events[x[0]].push([_this, x[1].bind(_this)])
+  }
+  function _mk_mouse_event(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget){
+    if (type == 'click'){
+      var m = new v_saf(function PointerEvent(){})
+      m.pointerType = "mouse"
+    }else{
+      var m = new v_saf(function MouseEvent(){})
+    }
+    m.isTrusted = true
+    m.type = type
+    m.canBubble = canBubble
+    m.cancelable = cancelable
+    m.view = view
+    m.detail = detail
+    m.screenX = screenX; m.movementX = screenX
+    m.screenY = screenY; m.movementY = screenY
+    m.clientX = clientX; m.layerX = clientX; m.offsetX = clientX; m.pageX = clientX; m.x = clientX;
+    m.clientY = clientY; m.layerY = clientY; m.offsetY = clientY; m.pageY = clientY; m.y = clientY;
+    m.ctrlKey = ctrlKey
+    m.altKey = altKey
+    m.shiftKey = shiftKey
+    m.metaKey = metaKey
+    m.button = button
+    m.relatedTarget = relatedTarget
+    return m
+  }
+  function make_mouse(type, x, y){
+    return _mk_mouse_event(type, true, true, window, 0, 0, 0, x, y, false, false, false, false, 0, null)
+  }
+  function mouse_click(x, y){
+    for (var i = 0; i < (v_events['click'] || []).length; i++) { v_events['click'][i][1](make_mouse('click', x, y)) }
+    for (var i = 0; i < (v_events['mousedown'] || []).length; i++) { v_events['mousedown'][i][1](make_mouse('mousedown', x, y)) }
+    for (var i = 0; i < (v_events['mouseup'] || []).length; i++) { v_events['mouseup'][i][1](make_mouse('mouseup', x, y)) }
+  }
+  var offr = Math.random()
+  var fake_stamp = +new Date
+  function make_touch(_this, type, x, y, timeStamp){
+    var offx = Math.random()
+    var offy = Math.random()
+    var t = v_new(new v_saf(function Touch(){}))
+    t = clientX = offx + x
+    t = clientY = offy + y
+    t = force = 1
+    t = identifier = 0
+    t = pageX = offx + x
+    t = pageY = offy + y
+    t = radiusX = 28 + offr
+    t = radiusY = 28 + offr
+    t = rotationAngle = 0
+    t = screenX = 0
+    t = screenY = 0
+    var e = v_new(new v_saf(function TouchEvent(){}))
+    e.isTrusted = true
+    e.altKey = false
+    e.bubbles = true
+    e.cancelBubble = false
+    e.cancelable = false
+    e.changedTouches = e.targetTouches = e.touches = [t]
+    e.composed = true
+    e.ctrlKey = false
+    e.currentTarget = null
+    e.defaultPrevented = false
+    e.detail = 0
+    e.eventPhase = 0
+    e.metaKey = false
+    e.path = _this == window ? [window] : [_this, window]
+    e.returnValue = true
+    e.shiftKey = false
+    e.sourceCapabilities = new v_saf(function InputDeviceCapabilities(){this.firesTouchEvents = true})
+    e.srcElement = _this
+    e.target = _this
+    e.type = type
+    e.timeStamp = timeStamp == undefined ? (new Date - v_start_stamp) : ((fake_stamp += Math.random()*20) - v_start_stamp)
+    e.view = window
+    e.which = 0
+    return e
+  }
+  function make_trace(x1, y1, x2, y2){
+    // 贝塞尔曲线
+    function step_len(x1, y1, x2, y2){
+      var ln = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+      return (ln / 10) ^ 0
+    }
+    var slen = step_len(x1, y1, x2, y2)
+    if (slen < 3){
+      return []
+    }
+    function factorial(x){
+      for(var y = 1; x > 1;  x--) {
+        y *= x
+      }
+      return y;
+    }
+    var lp = Math.random()
+    var rp = Math.random()
+    var xx1 = (x1 + (x2 - x1) / 12 * (4-lp*4)) ^ 0
+    var yy1 = (y1 + (y2 - y1) / 12 * (8+lp*4)) ^ 0
+    var xx2 = (x1 + (x2 - x1) / 12 * (8+rp*4)) ^ 0
+    var yy2 = (y1 + (y2 - y1) / 12 * (4-rp*4)) ^ 0
+    var points = [[x1, y1], [xx1, yy1], [xx2, yy2], [x2, y2]]
+    var N = points.length
+    var n = N - 1 
+    var traces = []
+    var step = slen
+    for (var T = 0; T < step+1; T++) {
+      var t = T*(1/step)
+      var x = 0
+      var y = 0
+      for (var i = 0; i < N; i++) {
+        var B = factorial(n)*t**i*(1-t)**(n-i)/(factorial(i)*factorial(n-i))
+        x += points[i][0]*B
+        y += points[i][1]*B
+      }
+      traces.push([x^0, y^0])
+    }
+    return traces
+  }
+  function touch(x1, y1, x2, y2){
+    if (x2 == undefined && y2 == undefined){
+      x2 = x1
+      y2 = y1
+    }
+    var traces = make_trace(x1, y1, x2, y2)
+    console.log('traces:', traces)
+    for (var i = 0; i < (v_events['touchstart'] || []).length; i++) { v_events['touchstart'][i][1](make_touch(v_events['touchstart'][i][0], 'touchstart', x1, y1)) }
+    for (var j = 0; j < traces.length; j++) {
+      var x = traces[j][0]
+      var y = traces[j][0]
+      for (var i = 0; i < (v_events['touchmove'] || []).length; i++) { v_events['touchmove'][i][1](make_touch(v_events['touchmove'][i][0], 'touchmove', x, y)) }
+    }
+    for (var i = 0; i < (v_events['touchend'] || []).length; i++) { v_events['touchend'][i][1](make_touch(v_events['touchend'][i][0], 'touchend', x2, y2)) }
+  }
+  function mouse_move(x1, y1, x2, y2){
+    if (x2 == undefined && y2 == undefined){
+      x2 = x1
+      y2 = y1
+    }
+    var traces = make_trace(x1, y1, x2, y2)
+    console.log('traces:', traces)
+    for (var j = 0; j < traces.length; j++) {
+      var x = traces[j][0]
+      var y = traces[j][0]
+      for (var i = 0; i < (v_events['mousemove'] || []).length; i++) { v_events['mousemove'][i][1](make_touch(v_events['mousemove'][i][0], 'mousemove', x, y)) }
+    }
+  }
+  window.make_mouse = make_mouse
+  window.mouse_click = mouse_click
+  window.mouse_move = mouse_move
+  window.touch = touch
+  EventTarget.prototype.addEventListener = function(){v_console_log('  [*] EventTarget -> addEventListener[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); add_event(this, [].slice.call(arguments)); return null}
+  EventTarget.prototype.dispatchEvent = function(){v_console_log('  [*] EventTarget -> dispatchEvent[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); add_event(this, [].slice.call(arguments)); return null}
+  EventTarget.prototype.removeEventListener = function(){v_console_log('  [*] EventTarget -> removeEventListener[func]', this===window?'[Window]':this===document?'[Document]':this, [].slice.call(arguments)); add_event(this, [].slice.call(arguments)); return null}
+}
+function v_init_Element_prototype(){
+  Element.prototype.getAnimations          = Element.prototype.getAnimations          || v_saf(function getAnimations(){v_console_log("  [*] Element -> getAnimations[func]", [].slice.call(arguments));})
+  Element.prototype.getAttribute           = Element.prototype.getAttribute           || v_saf(function getAttribute(){v_console_log("  [*] Element -> getAttribute[func]", [].slice.call(arguments));})
+  Element.prototype.getAttributeNS         = Element.prototype.getAttributeNS         || v_saf(function getAttributeNS(){v_console_log("  [*] Element -> getAttributeNS[func]", [].slice.call(arguments));})
+  Element.prototype.getAttributeNames      = Element.prototype.getAttributeNames      || v_saf(function getAttributeNames(){v_console_log("  [*] Element -> getAttributeNames[func]", [].slice.call(arguments));})
+  Element.prototype.getAttributeNode       = Element.prototype.getAttributeNode       || v_saf(function getAttributeNode(){v_console_log("  [*] Element -> getAttributeNode[func]", [].slice.call(arguments));})
+  Element.prototype.getAttributeNodeNS     = Element.prototype.getAttributeNodeNS     || v_saf(function getAttributeNodeNS(){v_console_log("  [*] Element -> getAttributeNodeNS[func]", [].slice.call(arguments));})
+  Element.prototype.getBoundingClientRect  = Element.prototype.getBoundingClientRect  || v_saf(function getBoundingClientRect(){v_console_log("  [*] Element -> getBoundingClientRect[func]", [].slice.call(arguments));})
+  Element.prototype.getClientRects         = Element.prototype.getClientRects         || v_saf(function getClientRects(){v_console_log("  [*] Element -> getClientRects[func]", [].slice.call(arguments));})
+  Element.prototype.getElementsByClassName = Element.prototype.getElementsByClassName || v_saf(function getElementsByClassName(){v_console_log("  [*] Element -> getElementsByClassName[func]", [].slice.call(arguments));})
+  Element.prototype.getElementsByTagName   = Element.prototype.getElementsByTagName   || v_saf(function getElementsByTagName(){v_console_log("  [*] Element -> getElementsByTagName[func]", [].slice.call(arguments));})
+  Element.prototype.getElementsByTagNameNS = Element.prototype.getElementsByTagNameNS || v_saf(function getElementsByTagNameNS(){v_console_log("  [*] Element -> getElementsByTagNameNS[func]", [].slice.call(arguments));})
+  Element.prototype.getInnerHTML           = Element.prototype.getInnerHTML           || v_saf(function getInnerHTML(){v_console_log("  [*] Element -> getInnerHTML[func]", [].slice.call(arguments));})
+  Element.prototype.hasAttribute           = Element.prototype.hasAttribute           || v_saf(function hasAttribute(){v_console_log("  [*] Element -> hasAttribute[func]", [].slice.call(arguments));})
+  Element.prototype.hasAttributeNS         = Element.prototype.hasAttributeNS         || v_saf(function hasAttributeNS(){v_console_log("  [*] Element -> hasAttributeNS[func]", [].slice.call(arguments));})
+  Element.prototype.hasAttributes          = Element.prototype.hasAttributes          || v_saf(function hasAttributes(){v_console_log("  [*] Element -> hasAttributes[func]", [].slice.call(arguments));})
+  Element.prototype.hasPointerCapture      = Element.prototype.hasPointerCapture      || v_saf(function hasPointerCapture(){v_console_log("  [*] Element -> hasPointerCapture[func]", [].slice.call(arguments));})
+  Element.prototype.webkitMatchesSelector  = Element.prototype.webkitMatchesSelector  || v_saf(function webkitMatchesSelector(){v_console_log("  [*] Element -> webkitMatchesSelector[func]", [].slice.call(arguments));})
+}
+function v_init_DOMTokenList_prototype(){
+  DOMTokenList.prototype.add = DOMTokenList.prototype.add || v_saf(function add(){v_console_log("  [*] DOMTokenList -> add[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.contains = DOMTokenList.prototype.contains || v_saf(function contains(){v_console_log("  [*] DOMTokenList -> contains[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.entries = DOMTokenList.prototype.entries || v_saf(function entries(){v_console_log("  [*] DOMTokenList -> entries[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.forEach = DOMTokenList.prototype.forEach || v_saf(function forEach(){v_console_log("  [*] DOMTokenList -> forEach[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.item = DOMTokenList.prototype.item || v_saf(function item(){v_console_log("  [*] DOMTokenList -> item[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.keys = DOMTokenList.prototype.keys || v_saf(function keys(){v_console_log("  [*] DOMTokenList -> keys[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.length = DOMTokenList.prototype.length || v_saf(function length(){v_console_log("  [*] DOMTokenList -> length[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.remove = DOMTokenList.prototype.remove || v_saf(function remove(){v_console_log("  [*] DOMTokenList -> remove[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.replace = DOMTokenList.prototype.replace || v_saf(function replace(){v_console_log("  [*] DOMTokenList -> replace[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.supports = DOMTokenList.prototype.supports || v_saf(function supports(){v_console_log("  [*] DOMTokenList -> supports[func]", [].slice.call(arguments));})
+  DOMTokenList.prototype.toggle = DOMTokenList.prototype.toggle || v_saf(function toggle(){v_console_log("  [*] DOMTokenList -> toggle[func]", [].slice.call(arguments));})
+}
+function v_init_CSSStyleDeclaration_prototype(){
+  CSSStyleDeclaration.prototype["zoom"] = ''
+  CSSStyleDeclaration.prototype["resize"] = ''
+  CSSStyleDeclaration.prototype["text-rendering"] = ''
+  CSSStyleDeclaration.prototype["text-align-last"] = ''
+}
+function v_init_PointerEvent_prototype(){
+  PointerEvent.prototype.getCoalescedEvents = v_saf(function getCoalescedEvents(){v_console_log("  [*] PointerEvent -> getCoalescedEvents[func]", [].slice.call(arguments));})
+  PointerEvent.prototype.getPredictedEvents = v_saf(function getPredictedEvents(){v_console_log("  [*] PointerEvent -> getPredictedEvents[func]", [].slice.call(arguments));})
+}
+function v_init_PerformanceTiming_prototype(){
+  try{
+    Object.defineProperties(PerformanceTiming.prototype, {
+      connectEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function connectEnd(){v_console_log("  [*] PerformanceTiming -> connectEnd[get]", [].slice.call(arguments));})},
+      connectStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function connectStart(){v_console_log("  [*] PerformanceTiming -> connectStart[get]", [].slice.call(arguments));})},
+      domComplete: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domComplete(){v_console_log("  [*] PerformanceTiming -> domComplete[get]", [].slice.call(arguments));})},
+      domContentLoadedEventEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domContentLoadedEventEnd(){v_console_log("  [*] PerformanceTiming -> domContentLoadedEventEnd[get]", [].slice.call(arguments));})},
+      domContentLoadedEventStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domContentLoadedEventStart(){v_console_log("  [*] PerformanceTiming -> domContentLoadedEventStart[get]", [].slice.call(arguments));})},
+      domInteractive: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domInteractive(){v_console_log("  [*] PerformanceTiming -> domInteractive[get]", [].slice.call(arguments));})},
+      domLoading: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domLoading(){v_console_log("  [*] PerformanceTiming -> domLoading[get]", [].slice.call(arguments));})},
+      domainLookupEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domainLookupEnd(){v_console_log("  [*] PerformanceTiming -> domainLookupEnd[get]", [].slice.call(arguments));})},
+      domainLookupStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function domainLookupStart(){v_console_log("  [*] PerformanceTiming -> domainLookupStart[get]", [].slice.call(arguments));})},
+      fetchStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function fetchStart(){v_console_log("  [*] PerformanceTiming -> fetchStart[get]", [].slice.call(arguments));})},
+      loadEventEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function loadEventEnd(){v_console_log("  [*] PerformanceTiming -> loadEventEnd[get]", [].slice.call(arguments));})},
+      loadEventStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function loadEventStart(){v_console_log("  [*] PerformanceTiming -> loadEventStart[get]", [].slice.call(arguments));})},
+      navigationStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function navigationStart(){v_console_log("  [*] PerformanceTiming -> navigationStart[get]", [].slice.call(arguments));})},
+      redirectEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function redirectEnd(){v_console_log("  [*] PerformanceTiming -> redirectEnd[get]", [].slice.call(arguments));})},
+      redirectStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function redirectStart(){v_console_log("  [*] PerformanceTiming -> redirectStart[get]", [].slice.call(arguments));})},
+      requestStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function requestStart(){v_console_log("  [*] PerformanceTiming -> requestStart[get]", [].slice.call(arguments));})},
+      responseEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function responseEnd(){v_console_log("  [*] PerformanceTiming -> responseEnd[get]", [].slice.call(arguments));})},
+      responseStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function responseStart(){v_console_log("  [*] PerformanceTiming -> responseStart[get]", [].slice.call(arguments));})},
+      secureConnectionStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function secureConnectionStart(){v_console_log("  [*] PerformanceTiming -> secureConnectionStart[get]", [].slice.call(arguments));})},
+      unloadEventEnd: {set: undefined, enumerable: true, configurable: true, get: v_saf(function unloadEventEnd(){v_console_log("  [*] PerformanceTiming -> unloadEventEnd[get]", [].slice.call(arguments));})},
+      unloadEventStart: {set: undefined, enumerable: true, configurable: true, get: v_saf(function unloadEventStart(){v_console_log("  [*] PerformanceTiming -> unloadEventStart[get]", [].slice.call(arguments));})},
+    })
+  }catch(e){}
 }
 function mk_atob_btoa(r){var a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",t=new Array(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1);return{atob:function(r){var a,e,o,h,c,i,n;for(i=r.length,c=0,n="";c<i;){do{a=t[255&r.charCodeAt(c++)]}while(c<i&&-1==a);if(-1==a)break;do{e=t[255&r.charCodeAt(c++)]}while(c<i&&-1==e);if(-1==e)break;n+=String.fromCharCode(a<<2|(48&e)>>4);do{if(61==(o=255&r.charCodeAt(c++)))return n;o=t[o]}while(c<i&&-1==o);if(-1==o)break;n+=String.fromCharCode((15&e)<<4|(60&o)>>2);do{if(61==(h=255&r.charCodeAt(c++)))return n;h=t[h]}while(c<i&&-1==h);if(-1==h)break;n+=String.fromCharCode((3&o)<<6|h)}return n},btoa:function(r){var t,e,o,h,c,i;for(o=r.length,e=0,t="";e<o;){if(h=255&r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4),t+="==";break}if(c=r.charCodeAt(e++),e==o){t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2),t+="=";break}i=r.charCodeAt(e++),t+=a.charAt(h>>2),t+=a.charAt((3&h)<<4|(240&c)>>4),t+=a.charAt((15&c)<<2|(192&i)>>6),t+=a.charAt(63&i)}return t}}}
 var atob_btoa = mk_atob_btoa()
@@ -720,6 +1039,17 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
 `v_init_document()`,
 `v_init_canvas()`,
 `v_init_event_target()`,
+`v_init_Element_prototype()`,
+`v_init_DOMTokenList_prototype()`,
+`v_init_CSSStyleDeclaration_prototype()`,
+`v_init_PointerEvent_prototype()`,
+`v_init_PerformanceTiming_prototype()`,
+`window.innerWidth = ${window.innerWidth}`,
+`window.innerHeight = ${window.innerHeight}`,
+`window.outerHeight = ${window.outerHeight}`,
+`window.outerWidth = ${window.outerWidth}`,
+`window.isSecureContext = true`,
+`window.origin = location.origin`,
 ]
 
     var v_getele = eles.v_getele
