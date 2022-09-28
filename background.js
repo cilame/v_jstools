@@ -269,7 +269,7 @@ function get_html(url){
             json_obj[keys[i]] = {}
             json_obj[keys[i]].type = json[keys[i]].type
             json_obj[keys[i]].func = `vilame_run${i}`
-            func_str += script_escape(`vilame_json['vilame_run${i}'] = function (){${json_obj[keys[i]].data}}`) + '\n'
+            func_str += script_escape(`vilame_json['vilame_run${i}'] = function (){${json[keys[i]].data}}`) + '\n'
         }
     }
     var insert_code = `
