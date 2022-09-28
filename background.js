@@ -266,10 +266,10 @@ function get_html(url){
     for (var i = 0; i < keys.length; i++) {
         if (json[keys[i]].type == 'Script' && used_script.indexOf(keys[i]) == -1){
             console.log('not find script...', keys[i], json[keys[i]].data.length)
-            json_obj[keys[i]] = json[keys[i]]
+            json_obj[keys[i]] = {}
+            json_obj[keys[i]].type = json[keys[i]].type
             json_obj[keys[i]].func = `vilame_run${i}`
             func_str += script_escape(`vilame_json['vilame_run${i}'] = function (){${json_obj[keys[i]].data}}`) + '\n'
-            delete json_obj[keys[i]].data
         }
     }
     var insert_code = `

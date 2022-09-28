@@ -67,9 +67,13 @@ document.getElementById('clone_page').addEventListener('click', function(e){
     var url = tabs[0].url
     var html = bg.get_html(url)
     if (html){
-      chrome.tabs.sendMessage(tabs[0].id, {action: {type:'clone_page', info: {status: 'ok', info: html}}}, function(response) {});
+      var url = URL.createObjectURL(new Blob(html.split(''), {type: 'text/html'}))
+      chrome.downloads.download({
+        url: url,
+        filename: 'clone_html.html'
+      });
     }else{
-      chrome.tabs.sendMessage(tabs[0].id, {action: {type:'clone_page', info: {status: 'error', info: html}}}, function(response) {});
+      alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 v_jstools 动态调试”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
     }
   });
 })
