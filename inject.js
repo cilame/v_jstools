@@ -1716,6 +1716,14 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'logtoggle'){
     inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
   }
+  if (msg.action.type == 'clone_page'){
+    var data = msg.action.info
+    if (data.status == 'ok'){
+      inject_script(`(function(str){const el=document.createElement("textarea");el.value=str;el.setAttribute("readonly","");el.style.position="absolute";el.style.left="-9999px";document.body.appendChild(el);const selected=document.getSelection().rangeCount>0?document.getSelection().getRangeAt(0):false;el.select();document.execCommand("copy");document.body.removeChild(el);if(selected){document.getSelection().removeAllRanges();document.getSelection().addRange(selected)}})(${JSON.stringify(data.info)});alert('html内容已经拷贝到剪贴板')`)
+    }else{
+      inject_script(`alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 v_jstools 动态调试”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')`)
+    }
+  }
   if (msg.action.type == 'alerterror'){
     inject_script(`alert(${JSON.stringify(msg.action.info)})`)
   }

@@ -60,3 +60,16 @@ document.getElementById('logtoggle').addEventListener('click', function(e){
     chrome.tabs.sendMessage(tabs[0].id, {action: {type:'logtoggle', info: 'logtoggle'}}, function(response) {});
   });
 })
+
+const bg = chrome.extension.getBackgroundPage()
+document.getElementById('clone_page').addEventListener('click', function(e){
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+    var url = tabs[0].url
+    var html = bg.get_html(url)
+    if (html){
+      chrome.tabs.sendMessage(tabs[0].id, {action: {type:'clone_page', info: {status: 'ok', info: html}}}, function(response) {});
+    }else{
+      chrome.tabs.sendMessage(tabs[0].id, {action: {type:'clone_page', info: {status: 'error', info: html}}}, function(response) {});
+    }
+  });
+})

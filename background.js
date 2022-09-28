@@ -31,11 +31,12 @@ function fillresponse(params, source, body){
     body: body, // body 只能传 base64(指定代码) 
   }, source);
 }
+var save_cache = {}
 chrome.debugger.onEvent.addListener(function (source, method, params){
   switch(method){
     case "Fetch.requestPaused":
       var itheaders = params.responseHeaders;
-      if (itheaders.find(function(v){return v.name == "Location"})) {
+      if (itheaders && itheaders.find(function(v){return v.name == "Location"})) {
         sendCommand("Fetch.continueRequest", { requestId: params.requestId, url: itheaders.value }, source);
         break; }
       if ((params.responseStatusCode || params.responseErrorReason)) {
@@ -44,19 +45,42 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
           break; }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
           var fillfunc = fillresponse.bind(null, params, source)
+
+          if ( params.resourceType == 'Script'
+            || params.resourceType == 'Document'
+            || params.resourceType == 'Stylesheet'
+            || params.resourceType == 'Image'
+            || params.resourceType == 'Font'
+            || params.resourceType == 'Other'
+          ){
+            if (params.resourceType == 'Script'){     var save_info = decodeURIComponent(escape(atob(result.body))) }
+            if (params.resourceType == 'Document'){   var save_info = decodeURIComponent(escape(atob(result.body))) }
+            if (params.resourceType == 'Stylesheet'){ var save_info = decodeURIComponent(escape(atob(result.body))) }
+            if (params.resourceType == 'Image'){      var save_info = result.body }
+            if (params.resourceType == 'Font'){       var save_info = result.body }
+            if (params.resourceType == 'Other'){      var save_info = result.body }
+            function save_html_info(save_info, type, url){
+              save_cache[url] = {data: save_info, type: type}
+            }
+            save_html_info(save_info, params.resourceType, params.request.url)
+          }
+          console.log(params.resourceType, params.request.url)
           if (result.body !== undefined){ // 收到的 result.body 是 base64(代码) 的代码，使用时需要解码一下
-            chrome.storage.local.get(["config-fetch_hook"], function (res) {
-              try{
-                var respboby = decodeURIComponent(escape(atob(result.body)))
-                var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
-                if (params.resourceType == 'Script'){   var replbody = btoa(unescape(encodeURIComponent(replacer(respboby, params.request.url)))) }
-                if (params.resourceType == 'Document'){ var replbody = btoa(unescape(encodeURIComponent(html_script_replacer(respboby, replacer, params.request.url)))) }
-                fillfunc(replbody) }
-              catch(e){ 
-                send_error_info_to_front(e.stack, currtab.tabId, params.request.url)
-                fillfunc(result.body) }
-            })
-            return }
+            if (params.resourceType == 'Script' || params.resourceType == 'Document'){
+              chrome.storage.local.get(["config-fetch_hook"], function (res) {
+                try{
+                  var respboby = decodeURIComponent(escape(atob(result.body)))
+                  var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
+                  if (params.resourceType == 'Script'){   var replbody = (replacer(respboby, params.request.url)) }
+                  if (params.resourceType == 'Document'){ var replbody = (html_script_replacer(respboby, replacer, params.request.url)) }
+                  fillfunc(btoa(unescape(encodeURIComponent(replbody)))) }
+                catch(e){ 
+                  send_error_info_to_front(e.stack, currtab.tabId, params.request.url)
+                  fillfunc(result.body) }
+              })
+              return
+            }
+          }
           fillfunc(result.body) // body 只能传 base64(指定代码) 
         }); 
         break; }
@@ -67,6 +91,7 @@ var attached = false
 var currtab;
 function AttachDebugger() {
   if (attached){ return }
+  save_cache = {}; 
   attached = true
   chrome.tabs.query(
     { active: true, currentWindow: true }, 
@@ -78,6 +103,23 @@ function AttachDebugger() {
           // Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR, Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping, CSPViolationReport, Preflight, Other
           {urlPattern:"*",resourceType:"Script",requestStage:"Response"}, // 暂时先只 hook 少量携带 js 数据类型的请求
           {urlPattern:"*",resourceType:"Document",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Stylesheet",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Image",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Font",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Other",requestStage:"Response"}, 
+          // 
+          // {urlPattern:"*",resourceType:"XHR",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"Fetch",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"WebSocket",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Media",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"Ping",requestStage:"Response"}, 
+          {urlPattern:"*",resourceType:"CSPViolationReport",requestStage:"Response"}, 
+
+          // {urlPattern:"*",resourceType:"TextTrack",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"EventSource",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"Manifest",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"SignedExchange",requestStage:"Response"}, 
+          // {urlPattern:"*",resourceType:"Preflight",requestStage:"Response"}, 
         ] }, currtab);
       });
     }
@@ -113,3 +155,162 @@ chrome.cookies.onChanged.addListener(function(info){
     get_cookie()
   }
 });
+
+function get_html(url){
+    var json = save_cache
+    function replaceX(e, r, n) {
+        var t, u, f, i, l;
+        t = e.indexOf(r);
+        if (t >= 0) {
+            f = e.substr(0, t);
+            u = r.length;
+            i = e.substr(t + u, e.length - (t + u) + 1);
+            l = f + n + i;
+            t = l.indexOf(r);
+            return t >= 0 ? replaceX(l, r, n) : l;
+        }
+        return e;
+    }
+    function script_escape(str){
+        str = str.replace(/<( *\/ *script *>)/g, '\\x3C$1')
+        return str.replace(/<( *script *>)/g, '\\x3C$1')
+    }
+    if (!json[url]){
+        return
+    }
+    var $ = cheerio.load(json[url].data)
+    var keys = Object.keys(json)
+    var used_script = []
+    function get_match(src, type) {
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].indexOf(src) != -1 && json[keys[i]].type == type){
+                if (json[keys[i]].type == 'Script'){
+                    used_script.push(keys[i])
+                }
+                return json[keys[i]].data
+            }
+        }
+    }
+    var scripts = $("script")
+    for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i]
+        if (script.attribs && script.attribs.src){
+            console.log(script.attribs.src)
+            var src = script.attribs.src
+            var rep = get_match(src, 'Script')
+            if (rep){
+                script.children.push({
+                    type: 'text',
+                    data: script_escape(rep),
+                    parent: script,
+                    prev: null,
+                    next: null,
+                })
+                delete script.attribs.src
+            }else{
+                console.log('not find...', src)
+            }
+        }
+    }
+    var links = $("link")
+    for (var i = 0; i < links.length; i++) {
+        var link = links[i]
+        if (link.attribs && link.attribs.href){
+            var href = link.attribs.href
+            var data = get_match(href, 'Stylesheet')
+            if (data){
+                var mlist = data.match(/url\( *[^\( ]+ *\)/g)
+                if (mlist){
+                    mlist = mlist.map(function(e){
+                        return /url\( *([^\( ]+) *\)/g.exec(e)[1]
+                    })
+                    for (var j = 0; j < mlist.length; j++) {
+                        var woff = get_match(mlist[j], 'Font')
+                        if (woff){
+                            console.log(mlist[j])
+                            data = replaceX(data, mlist[j], 'data:application/x-font-woff;charset=utf-8;base64,' + woff)
+                        }
+                    }
+                }
+                var style = cheerio.load("<style>" + data + "</style>")("style")
+                $(link).replaceWith(style);
+            }
+            // var data = get_match(href, 'Font')
+            // if (data){
+            //     console.log(href, href in json)
+            // }
+            var data = get_match(href, 'Other')
+            if (data){
+                link.attribs.href = "data:;base64," + data
+            }
+            // console.log(link)
+            console.log(href)
+        }
+    }
+    var imgs = $('img')
+    for (var i = 0; i < imgs.length; i++) {
+        var img = imgs[i]
+        if (img.attribs && img.attribs.src){
+            var src = img.attribs.src
+            var rep = get_match(src, 'Image')
+            if (rep){
+                console.log('ok', src)
+                img.attribs.src = "data:image/png;base64," + rep
+            }else{
+                console.log('img not find...', src)
+            }
+        }
+    }
+    var json_obj = {};
+    var func_str = ''
+    for (var i = 0; i < keys.length; i++) {
+        if (json[keys[i]].type == 'Script' && used_script.indexOf(keys[i]) == -1){
+            console.log('not find script...', keys[i], json[keys[i]].data.length)
+            json_obj[keys[i]] = json[keys[i]]
+            json_obj[keys[i]].func = `vilame_run${i}`
+            func_str += script_escape(`vilame_json['vilame_run${i}'] = function (){${json_obj[keys[i]].data}}`) + '\n'
+            delete json_obj[keys[i]].data
+        }
+    }
+    var insert_code = `
+    var vilame_json = ` + JSON.stringify(json_obj) + `
+    ` + func_str + `
+    var vilame_keys = Object.keys(vilame_json)
+    function get_match(src){
+        for (var i = 0; i < vilame_keys.length; i++) {
+            if (vilame_keys[i].indexOf(src) != -1){
+                return vilame_json[vilame_json[vilame_keys[i]].func]
+            }
+        }
+    }
+    var v_insertBefore = Node.prototype.insertBefore
+    Node.prototype.insertBefore = function(v){
+        var src;
+        if (v && v.getAttribute && (src = v.getAttribute('src'))){
+            var func = get_match(src)
+            if (func){
+                setTimeout(func, 0)
+                return
+            }
+        }
+        return v_insertBefore.apply(this, arguments)
+    }
+    var v_appendChild = Node.prototype.appendChild
+    Node.prototype.appendChild = function(v){
+        if (v && v.getAttribute && (src = v.getAttribute('src'))){
+            var func = get_match(src)
+            if (func){
+                setTimeout(func, 0)
+                return
+            }
+        }
+        return v_appendChild.apply(this, arguments)
+    }
+    `
+    var insert_script = cheerio.load("<script>" + script_escape(insert_code) + "</script>")("script")[0]
+    var head = $("head")
+    if (head.length){
+        head.append(insert_script)
+    }
+    return $.html()
+}
