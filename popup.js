@@ -9,6 +9,12 @@ document.querySelectorAll("input").forEach(function(v){
   })
   v.addEventListener("change", function (e) {
     if (v.type == 'checkbox'){
+      // console.log(e.target.dataset.key, e.target.checked)
+      if (e.target.dataset.key == 'config-hook-global' && e.target.checked){
+        chrome.browserAction.setBadgeText({text: 'v'});
+      }else{
+        chrome.browserAction.setBadgeText({text: ''});
+      }
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
       })

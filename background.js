@@ -314,3 +314,12 @@ function get_html(url){
     }
     return $.html()
 }
+
+chrome.storage.local.get(['config-hook-global'], function(e){
+  chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
+  if (e['config-hook-global']){
+    chrome.browserAction.setBadgeText({text: 'v'});
+  }else{
+    chrome.browserAction.setBadgeText({text: ''});
+  }
+})
