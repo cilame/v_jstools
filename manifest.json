@@ -72,6 +72,6 @@
   },
   "manifest_version": 2,
   "chrome_url_overrides": {
-    "newtab": "astexplorer_babel.html"
+    "newtab": "new_tab_overwrite.html"
   }
 }

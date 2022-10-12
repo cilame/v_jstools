@@ -568,6 +568,20 @@ proxy_js.addEventListener("click", function(){
   code_model.value = clear_mode(mk_proxy_code)
 })
 
+var code_model = document.getElementById('code_model')
+code_model.ondragover = function(e) {
+    e.preventDefault();
+}
+code_model.ondrop = function(e) {
+    e.preventDefault();
+    var f = e.dataTransfer.files[0];
+    var fr = new FileReader();
+    fr.readAsDataURL(f);
+    fr.onload = function(e) {
+        code_model.value = this.result;
+    }
+}
+
 var add_script_in_all_document = document.getElementById('add_script_in_all_document');
 add_script_in_all_document.addEventListener("click", function(){
   debug_tab = true

@@ -1,4 +1,5 @@
 
+var open_ast_pagetn = document.getElementById('open_ast_page')
 var sojsontn = document.getElementById('sojson')
 var obtn = document.getElementById('ob')
 var jsfuckbtn = document.getElementById('jsfuck')
@@ -8,6 +9,14 @@ var uglifybtn = document.getElementById('uglify')
 var uglify_minibtn = document.getElementById('uglify_mini')
 var txt = document.getElementById('txt')
 var txt2 = document.getElementById('txt2')
+
+open_ast_pagetn.addEventListener('click', function(e){
+  var temp = chrome.runtime.getURL('astexplorer_babel.html')
+  console.log(temp)
+  chrome.tabs.create({
+    url: temp
+  });
+})
 
 babel_aline.addEventListener('click', function(e){
   try{
