@@ -1290,23 +1290,36 @@ function injectfunc(e, window) {
   }
 
   var toggle = true
+  function change_toggle(toggle){
+    e["config-hook-domobj"] = toggle
+    e["config-hook-Function"] = toggle
+    e["config-hook-eval"] = toggle
+    e["config-hook-cookie"] = toggle
+    e["config-hook-settimeout"] = toggle
+    e["config-hook-setinterval"] = toggle
+    e["config-hook-JSON.parse"] = toggle
+    e["config-hook-JSON.stringify"] = toggle
+    e["config-hook-decodeURI"] = toggle
+    e["config-hook-decodeURIComponent"] = toggle
+    e["config-hook-encodeURI"] = toggle
+    e["config-hook-encodeURIComponent"] = toggle
+    e["config-hook-escape"] = toggle
+    e["config-hook-unescape"] = toggle
+    e["config-hook-JSON.parse"] = toggle
+    e["config-hook-JSON.stringify"] = toggle
+    e["config-hook-decodeURI"] = toggle
+    e["config-hook-decodeURIComponent"] = toggle
+    e["config-hook-encodeURI"] = toggle
+    e["config-hook-encodeURIComponent"] = toggle
+    e["config-hook-escape"] = toggle
+    e["config-hook-unescape"] = toggle
+    e["config-hook-atob"] = toggle
+    e["config-hook-btoa"] = toggle
+  }
   e.logtogglefunc = function(event){
     if (event.key == 'w' && event.altKey){
       toggle = !toggle
-      e["config-hook-domobj"] = toggle
-      e["config-hook-Function"] = toggle
-      e["config-hook-eval"] = toggle
-      e["config-hook-cookie"] = toggle
-      e["config-hook-settimeout"] = toggle
-      e["config-hook-setinterval"] = toggle
-      e["config-hook-JSON.parse"] = toggle
-      e["config-hook-JSON.stringify"] = toggle
-      e["config-hook-decodeURI"] = toggle
-      e["config-hook-decodeURIComponent"] = toggle
-      e["config-hook-encodeURI"] = toggle
-      e["config-hook-encodeURIComponent"] = toggle
-      e["config-hook-escape"] = toggle
-      e["config-hook-unescape"] = toggle
+      change_toggle(toggle)
       if (toggle){
         window.v_log('开启日志')
       }else{
@@ -1650,6 +1663,7 @@ var hookers = [
   "config-hook-log-at",
   "config-myinject",
   "config-myinject_toggle",
+  "config-hook-log-toggle",
 ]
 function add_config_hook(input){
   for (var i = 0; i < input.length; i++) {
@@ -1697,7 +1711,12 @@ chrome.storage.local.get(hookers, function (result) {
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
     var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
     result["config-hook-cookie-match"] = (result["config-hook-cookie-match"] || '').trim()
+    var log_toggle = result["config-hook-log-toggle"]
+    delete result["config-hook-log-toggle"] // 分两次注入是因为要保证第一次注入的代码是不变的，这样可以直接在代码处打断点
     inject_script(code_hookdom = `(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
+    if(!log_toggle){
+      inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
+    }
   }
   if (result["config-myinject_toggle"]){
     var myinject = result["config-myinject"]

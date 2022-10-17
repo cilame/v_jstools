@@ -10,10 +10,17 @@ document.querySelectorAll("input").forEach(function(v){
   v.addEventListener("change", function (e) {
     if (v.type == 'checkbox'){
       // console.log(e.target.dataset.key, e.target.checked)
-      if (e.target.dataset.key == 'config-hook-global' && e.target.checked){
-        chrome.browserAction.setBadgeText({text: 'v'});
-      }else{
-        chrome.browserAction.setBadgeText({text: ''});
+      if (e.target.dataset.key == 'config-hook-global'){
+        if (e.target.checked){
+          chrome.browserAction.setBadgeText({text: 'v'});
+        }else{
+          chrome.browserAction.setBadgeText({text: ''});
+        }
+      }
+      if (e.target.dataset.key == 'config-hook-log-toggle'){
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+          chrome.tabs.sendMessage(tabs[0].id, {action: {type:'logtoggle', info: 'logtoggle'}}, function(response) {});
+        });
       }
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
@@ -61,11 +68,11 @@ hook-domobj-显示func输出
   })
 })
 
-document.getElementById('logtoggle').addEventListener('click', function(e){
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-    chrome.tabs.sendMessage(tabs[0].id, {action: {type:'logtoggle', info: 'logtoggle'}}, function(response) {});
-  });
-})
+// document.getElementById('logtoggle').addEventListener('click', function(e){
+//   chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+//     chrome.tabs.sendMessage(tabs[0].id, {action: {type:'logtoggle', info: 'logtoggle'}}, function(response) {});
+//   });
+// })
 
 const bg = chrome.extension.getBackgroundPage()
 document.getElementById('clone_page').addEventListener('click', function(e){
@@ -81,5 +88,17 @@ document.getElementById('clone_page').addEventListener('click', function(e){
     }else{
       alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 v_jstools 动态调试”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
     }
+  });
+})
+
+document.getElementById('update_page').addEventListener('click', function(e){
+  function closePopup() {
+    window.close();
+    document.body.style.opacity = 0;
+    setTimeout(function() { history.go(0); }, 300);
+  }
+  closePopup()
+  chrome.tabs.create({
+    url: 'https://github.com/cilame/v_jstools',
   });
 })
