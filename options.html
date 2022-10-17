@@ -190,6 +190,20 @@
             <hr>
             <label>code</label>
             <textarea id='code_model' style="width: 100%; height: 500px" placeholder="附加功能，拖拽文件到该窗口自动输出base64内容"></textarea>
+
+            <label>快速AES加解密</label>
+            <br/>
+            <button id='myenc'>加密</button><button id='mydec'>解密</button>
+            <br/>
+            <hr>
+            <input type="text" id="my_secret" placeholder="密码" data-key="config-myenc-data">
+            <br/>
+            <hr>
+            <button id="vjsdom">jsdom模板代码</button>
+            <br/>
+            <hr>
+            <label>code</label>
+            <textarea id='my_code_dec' style="width: 100%; height: 500px" placeholder="附加功能，拖拽文件到该窗口自动输出文本内容"></textarea>
         </section>
         <section class="tab">
             <button id='jsobfuscator_btn'>jsobfuscator混淆</button>
@@ -213,5 +227,7 @@
     <script src="tools/btn_utils.js"></script>
     <script src="tools/js_obfuscator.js"></script>
     <script src="tools/aline_js.js"></script>
+    <script src="tools/cryptojs.js"></script>
+    <script src="tools/vjsdom_enc.js"></script>
 </body>
 </html>

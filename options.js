@@ -582,6 +582,20 @@ code_model.ondrop = function(e) {
     }
 }
 
+var my_code_dec = document.getElementById('my_code_dec')
+my_code_dec.ondragover = function(e) {
+    e.preventDefault();
+}
+my_code_dec.ondrop = function(e) {
+    e.preventDefault();
+    var f = e.dataTransfer.files[0];
+    var fr = new FileReader();
+    fr.readAsText(f);
+    fr.onload = function(e) {
+        my_code_dec.value = this.result;
+    }
+}
+
 var add_script_in_all_document = document.getElementById('add_script_in_all_document');
 add_script_in_all_document.addEventListener("click", function(){
   debug_tab = true
@@ -630,3 +644,37 @@ chrome.debugger.onDetach.addListener(function(){
 // proxy_config.addEventListener("change", function(v){
 //   v.target.value
 // })
+
+var mysec = document.getElementById('my_secret')
+var mycode_dec = document.getElementById('my_code_dec')
+document.getElementById('myenc').addEventListener('click', function(e){
+    try{
+        var md5 = CryptoJS.MD5(mysec.value)+''
+        var srcs = CryptoJS.enc.Utf8.parse(mycode_dec.value)
+        var key = CryptoJS.enc.Utf8.parse(md5.slice(0, 16)); //16位
+        var iv = CryptoJS.enc.Utf8.parse(md5.slice(16));
+        var encrypted = CryptoJS.AES.encrypt(srcs, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString()
+        mycode_dec.value = encrypted
+    }catch(e){
+        mycode_dec.value = e
+    }
+})
+document.getElementById('mydec').addEventListener('click', function(e){
+    try{
+        var md5 = CryptoJS.MD5(mysec.value)+''
+        var key = CryptoJS.enc.Utf8.parse(md5.slice(0, 16)); //16位
+        var iv = CryptoJS.enc.Utf8.parse(md5.slice(16));
+        var decrypted = CryptoJS.AES.decrypt(mycode_dec.value, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8)
+        mycode_dec.value = decrypted
+    }catch(e){
+        mycode_dec.value = e
+    }
+})
