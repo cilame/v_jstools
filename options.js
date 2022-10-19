@@ -438,7 +438,7 @@ document.querySelectorAll("input").forEach(function(v){
     if (v.type == 'checkbox'){
       v.checked = result[v.dataset.key];
     }
-    if (v.type == 'text'){
+    if (v.type == 'text' || v.type == 'password'){
       v.value = result[v.dataset.key] || '';
     }
   })
@@ -454,7 +454,7 @@ document.querySelectorAll("input").forEach(function(v){
         [e.target.dataset.key]: e.target.checked
       })
     }
-    if (v.type == 'text'){
+    if (v.type == 'text' || v.type == 'password'){
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.value
       })

@@ -7,3 +7,35 @@ _uglify_es("undefined" == typeof UglifyJS ? UglifyJS = {} : UglifyJS);
 
 
 
+// function compress_js(jscode){
+//     // 关掉所有配置则会使用默认最大压缩方式处理
+//     var ret = UglifyJS.minify(jscode, {
+//         // toplevel: true, 
+//         // mangle: { reserved: ['window'] }
+//         ie8: true,
+//         compress: { 
+//             drop_debugger: false, 
+//             hoist_vars: false, 
+//             join_vars: false,
+//             sequences: false,
+//             inline: false,
+//             loops: false,
+//             reduce_funcs: false,
+//             reduce_vars: false,
+//             collapse_vars: false,
+//             comparisons: false,
+//             computed_props: false,
+//             conditionals: true,
+//             evaluate: true,
+//             expression: false,
+//         },
+//         output: {
+//             bracketize: true,
+//             beautify: true,
+//         },
+//     })
+//     return ret.code?ret.code:ret.error
+// }
+
+// var jscode = compress_js('console.log(123+333)')
+// console.log(jscode)
