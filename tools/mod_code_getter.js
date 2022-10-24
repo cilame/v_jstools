@@ -56,3 +56,13 @@ if (get_code_uglifyjs){
         get_file('tools/uglify_es.js', callback)
     })
 }
+
+var get_code_request = document.getElementById('get_code_request')
+if (get_code_request){
+    get_code_request.addEventListener('click', function(e){
+        function callback(text){
+            document.getElementById('my_code_dec').value = text
+        }
+        get_file('tools/request.js', callback)
+    })
+}
