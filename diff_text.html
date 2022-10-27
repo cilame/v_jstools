@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8">
+</head>
+<body>
+
+<label>文本对比工具</label>
+<button onclick="initUI()">折叠相同内容</button>
+<button onclick="panes=2;initUI()">两文本对比</button>
+<button onclick="panes=3;initUI()">三文本对比</button>
+<hr>
+
+<div id="view" style="height: 100%"></div>
+
+<link rel="stylesheet" type="text/css" href="./tools/merge.css">
+<script type="text/javascript" src="./tools/mergeCodeMirror.min.js"></script>
+<script type="text/javascript" src="./tools/diff_text.js"></script>
+
+</body>
+</html>

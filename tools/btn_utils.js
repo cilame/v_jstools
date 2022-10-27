@@ -1,5 +1,6 @@
 
 var open_ast_pagetn = document.getElementById('open_ast_page')
+var open_diff_texttn = document.getElementById('open_diff_text')
 var sojsontn = document.getElementById('sojson')
 var obtn = document.getElementById('ob')
 var jsfuckbtn = document.getElementById('jsfuck')
@@ -12,6 +13,14 @@ var txt2 = document.getElementById('txt2')
 
 open_ast_pagetn.addEventListener('click', function(e){
   var temp = chrome.runtime.getURL('astexplorer_babel.html')
+  console.log(temp)
+  chrome.tabs.create({
+    url: temp
+  });
+})
+
+open_diff_texttn.addEventListener('click', function(e){
+  var temp = chrome.runtime.getURL('diff_text.html')
   console.log(temp)
   chrome.tabs.create({
     url: temp
