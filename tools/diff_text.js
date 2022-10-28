@@ -29,11 +29,36 @@ function initUI() {
     // connect: connect,
     collapseIdentical: false,
     allowEditingOriginals: true,
+    // onChange: function (cm) {
+    //   console.log(cm.getValue());
+    // },
   });
+  var left = dv.leftOriginal()
+  var curr = dv.editor()
+  var right = dv.rightOriginal()
+  function changer(_saver, cm) {
+    chrome.storage.local.set({
+      [_saver]: cm.getValue(),
+    })
+  }
+  curr.on('change', changer.bind(null, 'diff_value'))
+  if (left){ left.on('change', changer.bind(null, 'diff_orig1')) }
+  if (right){ right.on('change', changer.bind(null, 'diff_orig2')) }
   resize(dv, window.innerHeight-100)
 }
 
-initUI();
+window.onload = function(){
+  chrome.storage.local.get([
+    'diff_value',
+    'diff_orig1',
+    'diff_orig2',
+  ], function (result) {
+    value = result['diff_value'] || ''
+    orig1 = result['diff_orig1'] || ''
+    orig2 = result['diff_orig2'] || ''
+    initUI();
+  })
+}
 window.onresize = function(){
   resize(dv, window.innerHeight-100)
 }
@@ -47,4 +72,23 @@ function resize(mergeView, height) {
     mergeView.rightOriginal().setSize(null, height);
   }
   mergeView.wrap.style.height = height + "px";
+}
+
+var diff_0 = document.getElementById('diff_0')
+if(diff_0){
+  diff_0.addEventListener('click', function(){
+    initUI()
+  })
+}
+var diff_1 = document.getElementById('diff_1')
+if(diff_1){
+  diff_1.addEventListener('click', function(){
+    panes=2;initUI()
+  })
+}
+var diff_2 = document.getElementById('diff_2')
+if(diff_2){
+  diff_2.addEventListener('click', function(){
+    panes=3;initUI()
+  })
 }
