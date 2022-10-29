@@ -86,7 +86,7 @@ document.getElementById('clone_page').addEventListener('click', function(e){
         filename: 'clone_html.html'
       });
     }else{
-      alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 v_jstools 动态调试”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
+      alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 html 调试拷贝”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
     }
   });
 })

@@ -678,3 +678,105 @@ document.getElementById('mydec').addEventListener('click', function(e){
         mycode_dec.value = e
     }
 })
+
+function response_changer_init(idname, titlenames, init_data, callback) {
+    var cid = "#" + idname
+    var trlast = cid + " tr:last"
+    var opindex = titlenames.length
+    var title = "<tr>"
+    for (var i = 0; i < titlenames.length; i++) {
+        title += "<td>" + titlenames[i] + "</td>"
+    }
+    title += "<td>操作</td>"
+    title += "</tr>"
+    title += '<tr><td colspan="5"><button>添加行</button><button>添加示例</button></td></tr>'
+    $(cid).html(title)
+    $($(trlast).find("button")[0]).click(function() {
+        addRow()
+    })
+    $($(trlast).find("button")[1]).click(function() {
+        addRow(["baidu.com", "file:///C:/Users/Administrator/Desktop/test.html"])
+        __cache_data()
+    })
+    init_data = init_data || []
+    for (var i = 0; i < init_data.length; i++) {
+        addRow(init_data[i])
+    }
+    function __cache_data(){
+        var data_list = []
+        var trs = $(cid).find("tr")
+        for (var i = 0; i < trs.length; i++) {
+            var tds = $(trs[i]).find("td")
+            var data_line = []
+            for (var j = 0; j < tds.length; j++) {
+                var ipt = $(tds[j]).find("input")[0]
+                if (ipt){
+                    data_line.push(ipt.value)
+                }
+            }
+            if (data_line.length){
+                data_list.push(data_line)
+            }
+        }
+        while(init_data.length){ init_data.pop() }
+        while(data_list.length){ init_data.unshift(data_list.pop()) }
+        callback(init_data)
+    }
+    function __add_remover(index){
+        $(cid).find("tr").eq(index).find("td").eq(opindex).remove();
+        var htmlStr = "<td><button>删除行</button></td>"
+        $(cid).find("tr").eq(index).append(htmlStr)
+        $(cid).find("tr").eq(index).find("td").find("button").click(function(){
+            removeRow(index)
+        })
+    }
+    function __add_changer(index){
+        var tds = $(cid).find("tr").eq(index).find("td")
+        for (var i = 0; i < tds.length; i++) {
+            var ipt = $(tds[i]).find("input")[0]
+            if (ipt){
+                $(ipt).on("input", function(){
+                    __cache_data()
+                })
+            }
+        }
+    }
+    function addRow(data) {
+        var trArray = $(cid).find("tr");
+        var thisIndex = trArray.length - 1;
+        var addRowHtmlStr = "<tr>"
+        for (var i = 0; i < titlenames.length; i++) {
+            addRowHtmlStr += "<td style='width: 300px'><input type='text' style='width: 300px'></td>"
+        }
+        "<td></td></tr>"
+        $(trlast).before(addRowHtmlStr);
+        __add_changer(thisIndex)
+        __add_remover(thisIndex)
+        if (data){ 
+            var ctds = $(cid).find("tr").eq(thisIndex).find("td")
+            var leng = Math.min(data.length, titlenames.length)
+            for (var i = 0; i < leng; i++) {
+                $(ctds[i]).find('input').val(data[i])
+            }
+        }
+    }
+    function removeRow(index) {
+        $(cid).find("tr").eq(index).remove();
+        var trArrayNow = $(cid).find("tr");
+        for (var i = index; i < trArrayNow.length - 1; i++) {
+            __add_remover(i)
+        }
+        __cache_data()
+    }
+}
+
+chrome.storage.local.get(["response_changer"], function(res){
+    var init_data = JSON.parse(res["response_changer"] || "[]")
+    localStorage.webRedirect = JSON.stringify(init_data)
+    response_changer_init("response_changer", ["(URL)字符串匹配", "重定向地址"], init_data, function(data){
+        chrome.storage.local.set({
+            response_changer: JSON.stringify(data)
+        })
+        localStorage.webRedirect = JSON.stringify(data)
+    })
+})

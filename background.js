@@ -11,17 +11,33 @@
 // });
 // background.js
 chrome.contextMenus.create({
-  title: "打开 v_jstools 动态调试",
+  title: "打开 ast 动态挂钩",
   contexts: ['all'],
   onclick: function(){
+    ast_dyn_hook = true
     AttachDebugger();
   }
 });
+chrome.contextMenus.create({
+  title: "打开 html 调试拷贝",
+  contexts: ['all'],
+  onclick: function(){
+    html_copy = true
+    AttachDebugger();
+  }
+});
+var ast_dyn_hook = false
+var html_copy = false
+function close_debugger(){
+  attached = false
+  ast_dyn_hook = false
+  html_copy = false
+}
 function sendCommand(method, params, source, chainfun){
   chrome.debugger.sendCommand(source, method, params, function(result){
     if (chrome.runtime.lastError) {
       console.error('chrome.runtime.lastError', chrome.runtime.lastError)
-      if (chrome.runtime.lastError.message.indexOf('Cannot access a chrome://') != -1){ attached = false }
+      if (chrome.runtime.lastError.message.indexOf('Cannot access a chrome://') != -1){ close_debugger() }
     } else { if (chainfun){ chainfun(result) } }
   });
 }
@@ -45,48 +61,56 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
           break; }
         sendCommand("Fetch.getResponseBody", { requestId: params.requestId }, source, function(result){
           var fillfunc = fillresponse.bind(null, params, source)
-
-          if ( params.resourceType == 'Script'
-            || params.resourceType == 'Document'
-            || params.resourceType == 'Stylesheet'
-            || params.resourceType == 'Image'
-            || params.resourceType == 'Font'
-            || params.resourceType == 'Other'
-          ){
-            if (params.resourceType == 'Script'){     var save_info = decodeURIComponent(escape(atob(result.body))) }
-            if (params.resourceType == 'Document'){   var save_info = decodeURIComponent(escape(atob(result.body))) }
-            if (params.resourceType == 'Stylesheet'){ var save_info = decodeURIComponent(escape(atob(result.body))) }
-            if (params.resourceType == 'Image'){      var save_info = result.body }
-            if (params.resourceType == 'Font'){       var save_info = result.body }
-            if (params.resourceType == 'Other'){      var save_info = result.body }
-            function save_html_info(save_info, type, url){
-              save_cache[url] = {data: save_info, type: type}
+          chrome.storage.local.get(["config-fetch_hook"], function (res) {
+            if (!result.body){ fillfunc(result.body); return }
+            // save html
+            if (html_copy){
+              if ( params.resourceType == 'Script'
+                || params.resourceType == 'Document'
+                || params.resourceType == 'Stylesheet'
+                || params.resourceType == 'Image'
+                || params.resourceType == 'Font'
+                || params.resourceType == 'Other'
+              ){
+                if (params.resourceType == 'Script'){     var save_info = decodeURIComponent(escape(atob(result.body))) }
+                if (params.resourceType == 'Document'){   var save_info = decodeURIComponent(escape(atob(result.body))) }
+                if (params.resourceType == 'Stylesheet'){ var save_info = decodeURIComponent(escape(atob(result.body))) }
+                if (params.resourceType == 'Image'){      var save_info = result.body }
+                if (params.resourceType == 'Font'){       var save_info = result.body }
+                if (params.resourceType == 'Other'){      var save_info = result.body }
+                function save_html_info(save_info, type, url){
+                  save_cache[url] = {data: save_info, type: type}
+                }
+                save_html_info(save_info, params.resourceType, params.request.url)
+                console.log(params.resourceType, params.request.url)
+              }
             }
-            save_html_info(save_info, params.resourceType, params.request.url)
-          }
-          console.log(params.resourceType, params.request.url)
-          if (result.body !== undefined){ // 收到的 result.body 是 base64(代码) 的代码，使用时需要解码一下
-            if (params.resourceType == 'Script' || params.resourceType == 'Document'){
-              chrome.storage.local.get(["config-fetch_hook"], function (res) {
+            // ast hook
+            if (ast_dyn_hook){
+              if ( params.resourceType == 'Script' 
+                || params.resourceType == 'Document'
+              ){
                 try{
                   var respboby = decodeURIComponent(escape(atob(result.body)))
                   var replacer = eval((res["config-fetch_hook"]||'')+';fetch_hook')
                   if (params.resourceType == 'Script'){   var replbody = (replacer(respboby, params.request.url)) }
                   if (params.resourceType == 'Document'){ var replbody = (html_script_replacer(respboby, replacer, params.request.url)) }
-                  fillfunc(btoa(unescape(encodeURIComponent(replbody)))) }
+                  fillfunc(btoa(unescape(encodeURIComponent(replbody)))) 
+                  return }
                 catch(e){ 
-                  send_error_info_to_front(e.stack, currtab.tabId, params.request.url)
-                  fillfunc(result.body) }
-              })
-              return
+                  send_error_info_to_front(e.stack, currtab.tabId, params.request.url) }
+              }
             }
-          }
-          fillfunc(result.body) // body 只能传 base64(指定代码) 
+            fillfunc(result.body) // body 只能传 base64(指定代码) 
+          })
+          return
         }); 
         break; }
   }
 })
-chrome.debugger.onDetach.addListener(function(){ attached = false })
+chrome.debugger.onDetach.addListener(function(){ 
+  close_debugger() 
+})
 var attached = false
 var currtab;
 function AttachDebugger() {
@@ -315,6 +339,36 @@ function get_html(url){
     return $.html()
 }
 
+
+var typeMap = {
+  "txt"   : "text/plain",
+  "html"  : "text/html",
+  "htm"   : "text/html",
+  "css"   : "text/css",
+  "js"    : "text/javascript",
+  "json"  : "text/json",
+  "xml"   : "text/xml",
+  "jpg"   : "image/jpeg",
+  "gif"   : "image/gif",
+  "png"   : "image/png",
+  "webp"  : "image/webp"
+}
+
+function getLocalFileUrl(url) {
+  var arr = url.split('.');
+  var type = arr[arr.length-1];
+  var xhr = new XMLHttpRequest();
+  xhr.open('get', url, false);
+  xhr.send(null);
+  var content = xhr.responseText || xhr.responseXML;
+  if (!content) {
+    return false;
+  }
+  var wordArray = CryptoJS.enc.Utf8.parse(content);
+  var base64 = CryptoJS.enc.Base64.stringify(wordArray);
+  return ("data:" + (typeMap[type] || typeMap.txt) + ";charset=utf-8;base64," + base64);
+}
+
 chrome.storage.local.get(['config-hook-global'], function(e){
   chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
   if (e['config-hook-global']){
@@ -322,4 +376,32 @@ chrome.storage.local.get(['config-hook-global'], function(e){
   }else{
     chrome.browserAction.setBadgeText({text: ''});
   }
+})
+
+chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    var url = details.url;
+    for (var i = 0; i < webRedirect.length; i++) {
+      var [mstr, rurl] = webRedirect[i]
+      if (url.indexOf(mstr) != -1){
+        if (rurl.trim().indexOf('file:///') == 0){
+          var rdata = getLocalFileUrl(rurl)
+          if (rdata){
+            return { redirectUrl: rdata };
+          }
+        }
+      }
+    }
+    return {}
+  },
+  {urls: ["<all_urls>"]},
+  ["blocking"]
+);
+
+var webRedirect = []
+window.addEventListener('storage', function(){
+  webRedirect = JSON.parse(localStorage.webRedirect || "[]")
+}, false);
+chrome.storage.local.get(["response_changer"], function(res){
+  var init_data = JSON.parse(res["response_changer"] || "[]")
+  webRedirect = init_data
 })

@@ -17,7 +17,7 @@
         <ul>
             <button class="act">dom对象 hook 配置</button>
             <button>注入代码</button>
-            <button>高级 hook ，修改 response 返回值</button>
+            <button>修改返回值</button>
             <button>AST混淆解密</button>
             <button>代码模板(RPC...)</button>
             <button>混淆器</button>
@@ -132,7 +132,14 @@
             <!-- <div>修改代理:<input type="text" data-key="config-proxy_config" id="proxy_config"></div> -->
         </section>
         <section class="tab">
-            <div>这里的功能：在目标网页上右键菜单选择 “打开 v_jstools 动态调试” 即可开启，使用用插件的方式 hook 住目标页面的所有代码，像是在 node 里面一样使用 ast 将原始的代码修改成期望的样子</div>
+            <h2 style="margin-bottom: 0px;margin-top: 50px;">修改匹配URL的返回值</h2>
+            <hr>
+            <div>适用的本地文件后缀：txt,html,htm,css,js,json,xml,jpg,gif,png,webp</div>
+            <table id="response_changer"></table>
+
+            <h2 style="margin-bottom: 0px;margin-top: 50px;">动态修改被调试页面的所有js代码</h2>
+            <hr>
+            <div>这里的功能：在目标网页上右键菜单选择 “打开 ast 动态挂钩” 即可开启，使用用插件的方式 hook 住目标页面的所有代码，像是在 node 里面一样使用 ast 将原始的代码修改成期望的样子</div>
             <div>这里的 hook 功能在一定的扩展之后，能 hook 住 script 链接中的 js 代码，也能 hook 到 html 内的 js 代码。</div>
             <div>*能直接用插件的方式实现 ast 修改代码，用处还是非常大的。不过目前感觉功能稍微有点干瘪，因为暂时还在想有什么 ast 修改模板代码会更好的捕捉代码信息，让代码更方便的调试。</div>
             <HR>
@@ -230,6 +237,7 @@
             <textarea id='jsobfuscator_code' style="width: 100%; height: 500px" placeholder="输出代码"></textarea>
         </section>
     </div>
+    <script src="tools/jquery.min.js"></script>
     <script src="options.js"></script>
     <script src="tools/model_funcs.js"></script>
     <script src="tools/babel_asttool.js"></script>
