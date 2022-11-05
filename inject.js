@@ -1603,15 +1603,23 @@ function make_domhooker_funcs(){
       !function(){
         try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name}, _old_val = _desc.value }catch(e){ return }
         var _new_val = saf(function ${name}(){
+          var err;
+          try{
+            var r = _old_val.apply(this, arguments) 
+          }catch(e){
+            err = e
+          }
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
             var expstr = Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "func")
             if (expurl.v_test(expstr)){
-              window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), get_log_at(expstr.trim())))
+              window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), '===>', err ? '[ERROR]' : r, get_log_at(expstr.trim())))
             }
           }
-          var r = _old_val.apply(this, arguments) 
           inspect_arguments(this, arguments, r, "${obname}", "${name}", "func")
+          if (err){
+            throw err;
+          }
           return r })
         try{ Object.defineProperty(${obname}.prototype, '${name}', { value: _new_val, enumerable: _desc['enumerable'], configurable: _desc['configurable'], writable: _desc['writable'], })
         }catch(e){  }
