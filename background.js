@@ -388,6 +388,9 @@ function sub_logger(){
 sub_logger()
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    if(!JSON.parse(localStorage.webRedirect_toggle || "false")){
+      return {}
+    }
     var url = details.url;
     for (var i = 0; i < webRedirect.length; i++) {
       var [mstr, rurl] = webRedirect[i]
@@ -407,7 +410,6 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
 );
 
 var webRedirect = []
-var webRedirect_toggle = JSON.parse(localStorage.webRedirect_toggle || "false");
 window.addEventListener('storage', function(){
   webRedirect = JSON.parse(localStorage.webRedirect || "[]")
 }, false);
