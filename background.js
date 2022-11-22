@@ -369,14 +369,23 @@ function getLocalFileUrl(url) {
   return ("data:" + (typeMap[type] || typeMap.txt) + ";charset=utf-8;base64," + base64);
 }
 
-chrome.storage.local.get(['config-hook-global'], function(e){
-  chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
-  if (e['config-hook-global']){
-    chrome.browserAction.setBadgeText({text: 'v'});
-  }else{
-    chrome.browserAction.setBadgeText({text: ''});
-  }
-})
+function sub_logger(){
+  chrome.storage.local.get([
+    'config-hook-global',
+    'config-myinject_toggle',
+    ], function(e){
+    chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
+    var info = ''
+    if (e['config-hook-global']){
+      info += 'v'
+    }
+    if (e['config-myinject_toggle']){
+      info += 'i'
+    }
+    chrome.browserAction.setBadgeText({text: info});
+  })
+}
+sub_logger()
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
     var url = details.url;

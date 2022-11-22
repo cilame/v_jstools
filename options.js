@@ -433,6 +433,23 @@ _mk_html(funcs_0, 'funcs_0', 0)
 _mk_html(getsets_1, 'getsets_1', 1)
 _mk_html(funcs_1, 'funcs_1', 1)
 
+function sub_logger(){
+  chrome.storage.local.get([
+    'config-hook-global',
+    'config-myinject_toggle',
+    ], function(e){
+    chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
+    var info = ''
+    if (e['config-hook-global']){
+      info += 'v'
+    }
+    if (e['config-myinject_toggle']){
+      info += 'i'
+    }
+    chrome.browserAction.setBadgeText({text: info});
+  })
+}
+
 document.querySelectorAll("input").forEach(function(v){
   chrome.storage.local.get([v.dataset.key], function (result) {
     if (v.type == 'checkbox'){
@@ -445,14 +462,10 @@ document.querySelectorAll("input").forEach(function(v){
   v.addEventListener("change", function (e) {
     if (v.type == 'checkbox'){
       // console.log(e.target.dataset.key, e.target.checked)
-      if (e.target.dataset.key == 'config-hook-global' && e.target.checked){
-        chrome.browserAction.setBadgeText({text: 'v'});
-      }else{
-        chrome.browserAction.setBadgeText({text: ''});
-      }
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
       })
+      sub_logger()
     }
     if (v.type == 'text' || v.type == 'password'){
       chrome.storage.local.set({
