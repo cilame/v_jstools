@@ -433,23 +433,6 @@ _mk_html(funcs_0, 'funcs_0', 0)
 _mk_html(getsets_1, 'getsets_1', 1)
 _mk_html(funcs_1, 'funcs_1', 1)
 
-function sub_logger(){
-  chrome.storage.local.get([
-    'config-hook-global',
-    'config-myinject_toggle',
-    ], function(e){
-    chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
-    var info = ''
-    if (e['config-hook-global']){
-      info += 'v'
-    }
-    if (e['config-myinject_toggle']){
-      info += 'i'
-    }
-    chrome.browserAction.setBadgeText({text: info});
-  })
-}
-
 document.querySelectorAll("input").forEach(function(v){
   chrome.storage.local.get([v.dataset.key], function (result) {
     if (v.type == 'checkbox'){

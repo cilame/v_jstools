@@ -122,17 +122,21 @@
   </label>
   <div style="float: right; padding: 10px">是否挂钩总开关</div>
   <label class="switch">
-    <input type="checkbox" data-key="config-hook-new-tab"><div class="slider"></div>
-  </label>
-  <div style="float: right; padding: 10px">配置覆盖newTab页</div>
-  <label class="switch">
-    <input type="checkbox" data-key="config-myinject_toggle"><div class="slider"></div>
-  </label>
-  <div style="float: right; padding: 10px">是否启用注入代码</div>
-  <label class="switch">
     <input type="checkbox" data-key="config-hook-log-toggle"><div class="slider"></div>
   </label>
   <div style="float: right; padding: 10px">开关输出日志</div>
+  <label class="switch">
+    <input type="checkbox" data-key="config-myinject_toggle"><div class="slider"></div>
+  </label>
+  <div style="float: right; padding: 10px">是否注入代码</div>
+  <label class="switch">
+    <input type="checkbox" data-key="config-replacer_toggle"><div class="slider"></div>
+  </label>
+  <div style="float: right; padding: 10px">是否替换返回值</div>
+  <label class="switch">
+    <input type="checkbox" data-key="config-hook-new-tab"><div class="slider"></div>
+  </label>
+  <div style="float: right; padding: 10px">配置newTab页</div>
   <div>
     <button id="showoptions" class="button" style="vertical-align:middle"><span>打开配置页面</span></button>
     <button id="addlistener" class="button2" style="vertical-align:middle"><span>生成临时环境</span></button>
@@ -141,6 +145,7 @@
     <hr>
     <button id="update_page" class="button2" style="vertical-align:middle"><span>工具更新地址</span></button>
   </div>
+  <script src="./tools/sub_logger.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -407,10 +407,13 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
 );
 
 var webRedirect = []
+var webRedirect_toggle = JSON.parse(localStorage.webRedirect_toggle || "false");
 window.addEventListener('storage', function(){
   webRedirect = JSON.parse(localStorage.webRedirect || "[]")
 }, false);
-chrome.storage.local.get(["response_changer"], function(res){
+chrome.storage.local.get([
+  "response_changer",
+  ], function(res){
   var init_data = JSON.parse(res["response_changer"] || "[]")
   webRedirect = init_data
 })
