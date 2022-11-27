@@ -26,12 +26,35 @@ chrome.contextMenus.create({
     AttachDebugger();
   }
 });
+chrome.contextMenus.create({
+  title: "修改发送请求",
+  contexts: ['all'],
+  onclick: function(){
+    init_edit_function()
+    edit_request = true
+    AttachDebugger();
+  }
+});
+
+function init_edit_function(){
+  chrome.storage.local.get(["config-request_hook"], function (res) {
+    try{
+      var code = res["config-request_hook"]
+
+    }catch(e){
+      console.log(e)
+    }
+  })
+}
+
 var ast_dyn_hook = false
 var html_copy = false
+var edit_request = false
 function close_debugger(){
   attached = false
   ast_dyn_hook = false
   html_copy = false
+  edit_request = false
 }
 function sendCommand(method, params, source, chainfun){
   chrome.debugger.sendCommand(source, method, params, function(result){
@@ -105,7 +128,24 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
           })
           return
         }); 
-        break; }
+        break; 
+      }else{
+        var options = { requestId: params.requestId }
+        if (edit_request){
+          var url = params.request.url
+          var method = params.request.method
+          var postData = params.request.postData
+          var headers = params.request.headers
+          // console.log(method, url, headers, postData)
+          // 这里处理更新操作
+          // options.url = url
+          // options.method = method
+          // options.postData = postData
+          // options.headers = headers // 这里直接放进去似乎还会有问题
+        }
+        sendCommand("Fetch.continueRequest", options, source);
+        break;
+      }
   }
 })
 chrome.debugger.onDetach.addListener(function(){ 
@@ -144,6 +184,8 @@ function AttachDebugger() {
           // {urlPattern:"*",resourceType:"Manifest",requestStage:"Response"}, 
           // {urlPattern:"*",resourceType:"SignedExchange",requestStage:"Response"}, 
           // {urlPattern:"*",resourceType:"Preflight",requestStage:"Response"}, 
+
+          {urlPattern:"*",requestStage:"request"}, 
         ] }, currtab);
       });
     }
