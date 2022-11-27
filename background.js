@@ -40,7 +40,7 @@ function init_edit_function(){
   chrome.storage.local.get(["config-request_hook"], function (res) {
     try{
       var code = res["config-request_hook"]
-
+      // TODO
     }catch(e){
       console.log(e)
     }
