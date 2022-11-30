@@ -487,10 +487,49 @@ var fetch_hook = document.getElementById('fetch_hook');
 chrome.storage.local.get([fetch_hook.dataset.key], function (result) {
   fetch_hook.value = result[fetch_hook.dataset.key] || '';
 })
-fetch_hook.addEventListener("change", function(v){
+function change_fetch_hook(v){    console.log('change_fetch_hook')
   chrome.storage.local.set({
     [v.target.dataset.key]: v.target.value
   })
+}
+fetch_hook.addEventListener("input", change_fetch_hook)
+fetch_hook.addEventListener("change", change_fetch_hook)
+fetch_hook.addEventListener("blur", change_fetch_hook)
+var request_hook = document.getElementById('request_hook')
+chrome.storage.local.get([request_hook.dataset.key], function (result) {
+  request_hook.value = result[request_hook.dataset.key] || '';
+})
+function change_request_hook(v){    console.log('change_request_hook')
+  chrome.storage.local.set({
+    [v.target.dataset.key]: v.target.value
+  })
+}
+request_hook.addEventListener("input", change_request_hook)
+request_hook.addEventListener("change", change_request_hook)
+request_hook.addEventListener("blur", change_request_hook)
+var default_code_dyn_change_request = document.getElementById('default_code_dyn_change_request')
+default_code_dyn_change_request.addEventListener('click', function(e){
+    request_hook.value = 
+`/* 
+ * 在固定的函数名字里面编写你需要对特定参数修改的处理方式
+ * 请勿修改下面函数的名字，需要的处理在函数内部处理即可
+ * change_request 这个函数用于修改 Request 请求中的数据
+ *     将修改后的值赋值给 config 就可以修改内容
+ */
+
+function change_request(config){
+    var { url, method, postData, headers } = config
+    var new_url = url
+    var new_method = method
+    var new_postData = postData
+    var new_headers = headers
+
+    // do something in here.
+    console.log('new_postData', new_postData)
+
+    config.postData = new_postData
+}`
+    request_hook.focus()
 })
 
 var myinject = document.getElementById('myinject');

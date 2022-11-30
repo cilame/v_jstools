@@ -39,10 +39,10 @@ chrome.contextMenus.create({
 function init_edit_function(){
   chrome.storage.local.get(["config-request_hook"], function (res) {
     try{
-      var code = res["config-request_hook"]
-      // TODO
+      window.eval(res["config-request_hook"])
     }catch(e){
-      console.log(e)
+      change_request = undefined;
+      console.log('evaluate code init change_request func err.', e)
     }
   })
 }
@@ -132,16 +132,45 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
       }else{
         var options = { requestId: params.requestId }
         if (edit_request){
-          var url = params.request.url
-          var method = params.request.method
-          var postData = params.request.postData
-          var headers = params.request.headers
-          // console.log(method, url, headers, postData)
+          var { url, method, postData, headers } = params.request
+          var config = { url, method, postData, headers }
+
+          if (typeof change_request != 'undefined'){
+            try{
+              change_request(config)
+            }catch(e){
+              console.log('run change_request err.', e)
+            }
+          }
+
+          var { url, method, postData, headers } = config
+
+          function base64(str){
+            return CryptoJS.enc.Utf8.parse(str).toString(CryptoJS.enc.Base64)
+          }
           // 这里处理更新操作
-          // options.url = url
-          // options.method = method
-          // options.postData = postData
-          // options.headers = headers // 这里直接放进去似乎还会有问题
+          try{
+            if (url){
+              options.url = url
+            }
+            if (method){
+              options.method = method
+            }
+            if (postData){
+              options.postData = base64(postData)
+            }
+            if (headers){
+              var keys = Object.keys(headers)
+              var headers_list = []
+              for (var i = 0; i < keys.length; i++) {
+                headers_list.push({name:keys[i], value:headers[keys[i]]})
+              }
+              options.headers = headers_list
+            }
+          }catch(e){
+            console.log('set change request err.', e)
+          }
+          console.log('change request options:', options)
         }
         sendCommand("Fetch.continueRequest", options, source);
         break;
