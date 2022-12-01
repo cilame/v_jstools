@@ -1134,6 +1134,7 @@ function injectfunc(e, window) {
   var FuntoString = Function.prototype.toString
   var origslice = [].slice
 
+  var v_Error = Error
   window.globalConfig = e;
   console.log("inject start!", e)
   // 备份 console.log
@@ -1414,7 +1415,7 @@ function injectfunc(e, window) {
           window.v_cookie_get(r)
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
-            var expstr=Error().stack.v_split('\n')[2]
+            var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "get", r)
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
@@ -1430,7 +1431,7 @@ function injectfunc(e, window) {
           window.v_cookie_set(arguments)
         }else{ 
           if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
-            var expstr=Error().stack.v_split('\n')[2]
+            var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "set")
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
@@ -1460,7 +1461,7 @@ function injectfunc(e, window) {
           window.v_settimeout(arguments)
         }else{ 
           if (e["config-hook-settimeout"]){
-            if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
+            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2])){
               window.v_log(..._mk_logs('[settimeout]', ...arguments, get_log_at(expstr.trim())))
             }
           }
@@ -1479,7 +1480,7 @@ function injectfunc(e, window) {
           window.v_setinterval(arguments)
         }else{ 
           if (e["config-hook-setinterval"]){
-            if (expurl.v_test(expstr=Error().stack.v_split('\n')[2])){
+            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2])){
               window.v_log(..._mk_logs('[setinterval]', ...arguments, get_log_at(expstr.trim())) )
             }
           }
@@ -1516,7 +1517,7 @@ function injectfunc(e, window) {
     }
   }
   var v_logs = function (a, b, c) {
-    if (expurl.v_test(expstr=Error().stack.v_split('\n')[3])){
+    if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[3])){
       window.v_log(..._mk_logs('  (*)', a, util.inspect(b), '===>', c, get_log_at(expstr.trim())))
     }
     return c
@@ -1574,7 +1575,7 @@ function make_domhooker_funcs(){
         var _new_get = saf(function get(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
-            var expstr = Error().stack.v_split('\\n')[2]
+            var expstr = v_Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "get", r)
             inspect_arguments(this, arguments, r, "${obname}", "${name}", "get")
             if (expurl.v_test(expstr)){
@@ -1585,7 +1586,7 @@ function make_domhooker_funcs(){
         if (_old_set){
           var _new_set = saf(function set(v){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
-              var expstr = Error().stack.v_split('\\n')[2]
+              var expstr = v_Error().stack.v_split('\\n')[2]
               v_cache_node(expstr, "${obname}", "${name}", "set")
               inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
               if (expurl.v_test(expstr)){
@@ -1612,7 +1613,7 @@ function make_domhooker_funcs(){
             err = e
           }
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
-            var expstr = Error().stack.v_split('\\n')[2]
+            var expstr = v_Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "func")
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), '===>', err ? '[ERROR]' : r, get_log_at(expstr.trim())))
