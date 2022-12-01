@@ -1435,7 +1435,9 @@ function injectfunc(e, window) {
             if (expurl.v_test(expstr)){
               window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
             }
-            if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
+          }
+          if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ 
+            debugger 
           }
         }
         return _old_cookie_set.apply(this, arguments)
