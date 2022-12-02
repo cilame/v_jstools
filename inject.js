@@ -1711,7 +1711,8 @@ function inject_code(){
   try{
     $myinject
   }catch(e){
-    v_log('inject error.')
+    console.log('inject error.')
+    console.log(e)
   }
 }
 

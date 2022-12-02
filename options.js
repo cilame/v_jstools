@@ -525,9 +525,10 @@ function change_request(config){
     var new_headers = headers
 
     // do something in here.
-    console.log('new_postData', new_postData)
-
-    config.postData = new_postData
+    if (method == 'POST'){
+        console.log('new_postData', new_postData)
+        config.postData = new_postData
+    }
 }`
     request_hook.focus()
 })
