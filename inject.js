@@ -1567,7 +1567,7 @@ function make_domhooker_funcs(){
     function v_getset_hook(obname, name){
       var v_model = `
       !function(){
-        // hook ${obname}.prototype.${name} get set
+        if (!e["config-hook-${obname}-${name}"]){ return }
         try{ 
           var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name} 
           var _old_get = _desc.get, _old_set = _desc.set
@@ -1604,6 +1604,7 @@ function make_domhooker_funcs(){
     function v_valuefunc_hook(obname, name){
       var v_model = `
       !function(){
+        if (!e["config-hook-${obname}-${name}"]){ return }
         try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name}, _old_val = _desc.value }catch(e){ return }
         var _new_val = saf(function ${name}(){
           var err;
