@@ -1148,7 +1148,25 @@ function injectfunc(e, window) {
     })
   }
   !function(){ 
-    window.v_log = console.log
+    var log_limit = e["config-hook-log-limit-num"] || Infinity
+    var regexp = /^ *\([\*f]\)/
+    var rtest = regexp.test.bind(regexp)
+    var cache = {}
+    var close_tog = {}
+    var v_console_log = console.log
+    window.v_log = function(...a){
+      if (typeof a[0] == 'string' && rtest(a[0])){
+        cache[a[0]] = (cache[a[0]] || 0) + 1
+        if (cache[a[0]] > log_limit){
+          if (!close_tog[a[0]]){
+            close_tog[a[0]] = true
+            v_console_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.')
+          }
+          return
+        }
+      }
+      v_console_log(...a)
+    }
   }()
   // 保护 toString 函数
   var saf,saf_class;
@@ -1193,11 +1211,14 @@ function injectfunc(e, window) {
       if (selected) {
         document.getSelection().removeAllRanges();
         document.getSelection().addRange(selected);
+        alert('已将代码存放到剪贴板中。')
+      }else{
+        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。')
+        console.log(str)
       }
     };
     var mkstr = make_v([v_env_cache, v_getelement_all])
     copyToClipboard(mkstr)
-    alert('已将代码存放到剪贴板中。')
   }
 
   // var v_addlistener_cache = {
@@ -1418,7 +1439,7 @@ function injectfunc(e, window) {
             var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "get", r)
             if (expurl.v_test(expstr)){
-              window.v_log(..._mk_logs('[cookie get]', r, get_log_at(expstr.trim())))
+              window.v_log(..._mk_logs('(*) [cookie get]', r, get_log_at(expstr.trim())))
             }
             if (e["config-hook-cookie-add-debugger"] && r.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
           }
@@ -1434,7 +1455,7 @@ function injectfunc(e, window) {
             var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "set")
             if (expurl.v_test(expstr)){
-              window.v_log(..._mk_logs('[cookie set]', v, get_log_at(expstr.trim())) )
+              window.v_log(..._mk_logs('(*) [cookie set]', v, get_log_at(expstr.trim())) )
             }
           }
           if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ 
@@ -1579,7 +1600,7 @@ function make_domhooker_funcs(){
             v_cache_node(expstr, "${obname}", "${name}", "get", r)
             inspect_arguments(this, arguments, r, "${obname}", "${name}", "get")
             if (expurl.v_test(expstr)){
-              window.v_log(..._mk_logs('[${obname} ${name} get]', r, get_log_at(expstr.trim())))
+              window.v_log(..._mk_logs('(*) [${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
           }
           return r })
@@ -1590,7 +1611,7 @@ function make_domhooker_funcs(){
               v_cache_node(expstr, "${obname}", "${name}", "set")
               inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
               if (expurl.v_test(expstr)){
-                window.v_log(..._mk_logs('[${obname} ${name} set]', v, get_log_at(expstr.trim())))
+                window.v_log(..._mk_logs('(*) [${obname} ${name} set]', v, get_log_at(expstr.trim())))
               }
             }
             return _old_set.apply(this, arguments) })
@@ -1676,6 +1697,7 @@ var hookers = [
   "config-myinject",
   "config-myinject_toggle",
   "config-hook-log-toggle",
+  "config-hook-log-limit-num",
 ]
 function add_config_hook(input){
   for (var i = 0; i < input.length; i++) {
