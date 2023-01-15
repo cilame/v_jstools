@@ -1151,7 +1151,7 @@ function injectfunc(e, window) {
     })
   }
   !function(){ 
-    var log_limit = e["config-hook-log-limit-num"] || Infinity
+    var log_limit = e["config-hook-log-limit-num"] || 30
     var regexp = /^ *\([\*f]\)/
     var rtest = regexp.test.bind(regexp)
     var cache = {}
