@@ -1137,6 +1137,9 @@ function injectfunc(e, window) {
   var v_Error = Error
   window.globalConfig = e;
   console.log("inject start!", e)
+  if (e["config-hook-regexp-url"].trim()){
+    console.log('[*] 配置了只收集对某个js路径才输出的配置（如出现控制台不输出hook，注意配置该项为空）:', e["config-hook-regexp-url"])
+  }
   // 备份 console.log
   function _mk_logs(){
     return origslice.call(arguments).map(function(e){
@@ -1160,7 +1163,7 @@ function injectfunc(e, window) {
         if (cache[a[0]] > log_limit){
           if (!close_tog[a[0]]){
             close_tog[a[0]] = true
-            v_console_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.')
+            v_console_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.（默认30，可在 “dom对象hook配置” 的红色窗口中配置）')
           }
           return
         }
