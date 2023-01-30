@@ -1137,7 +1137,7 @@ function injectfunc(e, window) {
   var v_Error = Error
   window.globalConfig = e;
   console.log("inject start!", e)
-  if (e["config-hook-regexp-url"].trim()){
+  if ((e["config-hook-regexp-url"] || '').trim()){
     console.log('[*] 配置了只收集对某个js路径才输出的配置（如出现控制台不输出hook，注意配置该项为空）:', e["config-hook-regexp-url"])
   }
   // 备份 console.log
