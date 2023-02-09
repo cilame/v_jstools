@@ -72,8 +72,8 @@
     "open_in_tab": true,
     "page": "options.html"
   },
-  "manifest_version": 2,
-  "chrome_url_overrides": {
-    "newtab": "new_tab_overwrite.html"
-  }
+  // "chrome_url_overrides": {
+  //   "newtab": "new_tab_overwrite.html"
+  // },
+  "manifest_version": 2
 }
