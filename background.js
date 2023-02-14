@@ -18,12 +18,173 @@ chrome.contextMenus.create({
     AttachDebugger();
   }
 });
+function add_hook_event_code(tabs, callback){
+  var run_code_before = `
+  !function(){
+    var toggle = true
+    var elelist = []
+    var v_stringify = JSON.stringify
+    function log_ele(name, e){
+      if (toggle){
+        elelist.push([name, e, v_stringify({type:name, x: e.clientX, y: e.clientY, screenX: e.screenX, screenY: e.screenY, timeStamp: e.timeStamp})])
+      }
+    }
+    function copyToClipboard(str, maxtime){
+      if (maxtime === undefined){ maxtime = 2 }
+      const el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      const selected =
+        document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+        alert('已将代码存放到剪贴板中。')
+      }else{
+        if (maxtime > 0){
+          return copyToClipboard(str, maxtime-1)
+        }
+        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。')
+        console.log(str)
+      }
+    };
+    function make_log_str(elelist){
+      var ret = []
+      for (var i = 0; i < elelist.length; i++) {
+        ret.push('    ' + elelist[i][2] + ',')
+      }
+      var enter = String.fromCharCode(10)
+      return '[' + enter + ret.join(enter) + enter + ']'
+    }
+    document.addEventListener('keyup',(e)=>{
+      if (e.keyCode===27){
+        if (toggle){
+          console.log(elelist)
+          copyToClipboard(make_log_str(elelist))
+          elelist = []
+        }
+        toggle = !toggle
+      }
+    })
+    document.addEventListener('mousemove', function(e){
+      var nDiv = document.createElement('div')
+      var e = event || window.event
+      nDiv.style.cssText = "position:absolute; width:5px; height:5px; background-color:red; border-radius:50%"   
+      nDiv.style.left = e.pageX + 5 + "px"
+      nDiv.style.top = e.pageY + 5 + "px"
+      document.body.appendChild(nDiv)
+      setTimeout(function(){ nDiv.remove(); },1000)
+      log_ele.bind(null, 'mousemove')(e)
+    })
+    function log2_ele(name, e){
+      if (toggle){
+        elelist.push([name, e, v_stringify({type:name, key: e.key, keyCode: e.keyCode, code: e.code, timeStamp: e.timeStamp})])
+      }
+    }
+    document.addEventListener('mousedown', log_ele.bind(null, 'mousedown'), true)
+    document.addEventListener('mouseup', log_ele.bind(null, 'mouseup'), true)
+    document.addEventListener('click', log_ele.bind(null, 'click'), true)
+    document.addEventListener('keydown', log2_ele.bind(null, 'keydown'), true)
+    document.addEventListener('keyup', log2_ele.bind(null, 'keyup'), true)
+  }()
+  `
+  var currtab = { tabId: tabs[0].id };
+  chrome.debugger.attach(currtab, "1.2", function () {
+    chrome.debugger.sendCommand(currtab, "Page.enable", function(){
+      chrome.debugger.sendCommand(currtab, "Page.addScriptToEvaluateOnNewDocument", {
+        source: run_code_before
+      }, function(){
+        callback()
+      });
+    });
+  });
+}
+function flash_page(tabs){
+  var codeToExec = `setTimeout(function(){ location = location }, 100); `
+  chrome.tabs.executeScript( tabs[0].id, {code:codeToExec}, function(result) { 
+    console.log('Result = ' + result); } 
+  );
+}
 chrome.contextMenus.create({
-  title: "打开 html 调试拷贝",
+  title: "挂钩并记录事件",
   contexts: ['all'],
   onclick: function(){
-    html_copy = true
-    AttachDebugger();
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+      alert(`准备开始挂钩事件记录。\n\n\n页面刷新后，所有事件都将被记录操作，直到你按下 ESC 键停止记录，并将结果保存到剪贴板里面。`)
+      add_hook_event_code(tabs, function(){
+        flash_page(tabs)
+      })
+    });
+  }
+});
+chrome.contextMenus.create({
+  title: "拷贝当前页面资源",
+  contexts: ['all'],
+  onclick: function(){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+      function format_cache(){
+        function base64(str){
+          return CryptoJS.enc.Utf8.parse(str).toString(CryptoJS.enc.Base64)
+        }
+        var keys = Object.keys(save_cache).sort()
+        var rets = []
+        for (var i = 0; i < keys.length; i++) {
+          var s = document.createElement('a')
+          s.href = keys[i]
+          var url = s.href
+          var odata = save_cache[keys[i]]
+          if (odata.type == 'Script'||
+            odata.type == 'Document'||
+            odata.type == 'Stylesheet'){
+            rets.push('    ' + JSON.stringify([url, base64(odata.data), 'base64'])+',')
+          }else{
+            rets.push('    ' + JSON.stringify([url, odata.data])+',')
+          }
+        }
+        return rets.join('\n').trim() 
+      }
+      var html = format_cache()
+      if (html && html_copy){
+        var url = URL.createObjectURL(new Blob(html.split(''), {type: 'text/javascript'}))
+        chrome.downloads.download({
+          url: url,
+          filename: 'clone_cache.js'
+        });
+      }else{
+        alert(`准备打开调试拷贝。\n\n\n请在打开调试模式之后，手动刷新页面等待页面资源加载充足后，再次右键选择 "拷贝当前页面资源"`)
+        html_copy = true
+        AttachDebugger();
+        flash_page(tabs)
+      }
+    });
+  }
+});
+chrome.contextMenus.create({
+  title: "拷贝当前页面",
+  contexts: ['all'],
+  onclick: function(){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+      var url = tabs[0].url
+      var html = get_html(url)
+      if (html && html_copy){
+        var url = URL.createObjectURL(new Blob(html.split(''), {type: 'text/html'}))
+        chrome.downloads.download({
+          url: url,
+          filename: 'clone_html.html'
+        });
+      }else{
+        alert(`准备打开调试拷贝。\n\n\n请在打开调试模式之后，手动刷新页面等待页面资源加载充足后，再次右键选择 "拷贝当前页面"`)
+        html_copy = true
+        AttachDebugger();
+        flash_page(tabs)
+      }
+    });
   }
 });
 chrome.contextMenus.create({
