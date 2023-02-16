@@ -33,13 +33,19 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
     }
     var url = details.url;
     for (var i = 0; i < webRedirect.length; i++) {
-      var [mstr, rurl] = webRedirect[i]
+      var [mstr, rurl_or_data, type] = webRedirect[i]
       if (url.indexOf(mstr) != -1){
-        if (rurl.trim().indexOf('file:///') == 0){
-          var rdata = getLocalFileUrl(rurl)
+        if (type == 'redirect local.' && rurl_or_data.trim().indexOf('file:///') == 0){
+          var rdata = getLocalFileUrl(rurl_or_data)
           if (rdata){
             return { redirectUrl: rdata };
           }
+        }
+        if (type == 'change return data.'){
+          var arr = url.split('.')
+          var rdata = "data:" + (typeMap[arr[arr.length-1]] || typeMap.txt) + ";charset=utf-8;base64," 
+                              + CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(rurl_or_data));
+          return { redirectUrl: rdata };
         }
       }
     }

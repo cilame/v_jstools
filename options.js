@@ -721,17 +721,21 @@ function response_changer_init(idname, titlenames, init_data, callback) {
     var opindex = titlenames.length
     var title = "<tr>"
     for (var i = 0; i < titlenames.length; i++) {
-        title += "<td>" + titlenames[i] + "</td>"
+        title += "<td>" + titlenames[i].split('|')[0] + "</td>"
     }
     title += "<td>操作</td>"
     title += "</tr>"
-    title += '<tr><td colspan="5"><button>添加行</button><button>添加示例</button></td></tr>'
+    title += '<tr><td colspan="5"><button>添加行</button><button>添加示例1(重定向到本地文件)</button><button>添加示例2(直接修改返回值)</button></td></tr>'
     $(cid).html(title)
     $($(trlast).find("button")[0]).click(function() {
         addRow()
     })
     $($(trlast).find("button")[1]).click(function() {
-        addRow(["baidu.com", "file:///C:/Users/Administrator/Desktop/test.html"])
+        addRow(["baidu.com", "file:///C:/Users/Administrator/Desktop/test.html", "redirect local."]) // 这里的最后一个值不能随意修改
+        __cache_data()
+    })
+    $($(trlast).find("button")[2]).click(function() {
+        addRow(["baidu.com", "console.log(123)", "change return data."]) // 这里的最后一个值不能随意修改
         __cache_data()
     })
     init_data = init_data || []
@@ -782,7 +786,14 @@ function response_changer_init(idname, titlenames, init_data, callback) {
         var thisIndex = trArray.length - 1;
         var addRowHtmlStr = "<tr>"
         for (var i = 0; i < titlenames.length; i++) {
-            addRowHtmlStr += "<td style='width: 300px'><input type='text' style='width: 300px'></td>"
+            var [name, style, disabled] = titlenames[i].split('|')
+            style = style || 'width: 300px'
+            if (disabled == 'true'){
+                disabled = 'disabled="disabled" readonly="readonly"'
+            }else if (disabled == 'false' || disabled == '' || disabled === undefined){
+                disabled = ''
+            }else { throw Error('not in "true" or "false" string.') }
+            addRowHtmlStr += `<td style='width: 300px'><input type='text' style='${style}' ${disabled}></td>`
         }
         "<td></td></tr>"
         $(trlast).before(addRowHtmlStr);
@@ -809,7 +820,7 @@ function response_changer_init(idname, titlenames, init_data, callback) {
 chrome.storage.local.get(["response_changer"], function(res){
     var init_data = JSON.parse(res["response_changer"] || "[]")
     localStorage.webRedirect = JSON.stringify(init_data)
-    response_changer_init("response_changer", ["(URL)字符串匹配", "重定向地址"], init_data, function(data){
+    response_changer_init("response_changer", ["(URL)字符串匹配", "重定向地址或修改的字符串", "类型|width:120px|true"], init_data, function(data){
         chrome.storage.local.set({
             response_changer: JSON.stringify(data)
         })
