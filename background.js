@@ -142,9 +142,9 @@ chrome.contextMenus.create({
           if (odata.type == 'Script'||
             odata.type == 'Document'||
             odata.type == 'Stylesheet'){
-            rets.push('    ' + JSON.stringify([url, base64(odata.data), 'base64'])+',')
+            rets.push('    ' + JSON.stringify([url, base64(odata.data), 'base64', odata.responseHeaders, odata.responseStatusCode])+',')
           }else{
-            rets.push('    ' + JSON.stringify([url, odata.data])+',')
+            rets.push('    ' + JSON.stringify([url, odata.data, 'null', odata.responseHeaders, odata.responseStatusCode])+',')
           }
         }
         return rets.join('\n').trim() 
@@ -263,7 +263,7 @@ chrome.debugger.onEvent.addListener(function (source, method, params){
                 if (params.resourceType == 'Font'){       var save_info = result.body }
                 if (params.resourceType == 'Other'){      var save_info = result.body }
                 function save_html_info(save_info, type, url){
-                  save_cache[url] = {data: save_info, type: type}
+                  save_cache[url] = {data: save_info, type: type, responseHeaders: params.responseHeaders, responseStatusCode: params.responseStatusCode}
                 }
                 save_html_info(save_info, params.resourceType, params.request.url)
                 console.log(params.resourceType, params.request.url)
