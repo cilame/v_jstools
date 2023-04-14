@@ -3,6 +3,7 @@ function sub_logger(){
     'config-hook-global',
     'config-myinject_toggle',
     'config-replacer_toggle',
+    'config-pac_proxy',
     ], function(e){
     chrome.browserAction.setBadgeBackgroundColor({color: '#BC1717'});
     var info = ''
@@ -11,6 +12,9 @@ function sub_logger(){
     }
     if (e['config-myinject_toggle']){
       info += 'I'
+    }
+    if (e['config-pac_proxy']){
+      info += 'P'
     }
     if (e['config-replacer_toggle']){
       info += 'R'

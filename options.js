@@ -448,6 +448,17 @@ document.querySelectorAll("input").forEach(function(v){
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
       })
+      if (e.target.dataset.key == 'config-pac_proxy'){
+        if (e.target.checked){
+          chrome.storage.local.get(['config-proxy_config'], function(res){
+            if (res['config-proxy_config']){
+              set_my_proxy(res['config-proxy_config'])
+            }
+          })
+        }else{
+          set_my_proxy()
+        }
+      }
       sub_logger()
     }
     if (v.type == 'text' || v.type == 'password'){
@@ -676,10 +687,22 @@ chrome.debugger.onDetach.addListener(function(){
   debug_tab = false 
 })
 
-// var proxy_config = document.getElementById('proxy_config');
-// proxy_config.addEventListener("change", function(v){
-//   v.target.value
-// })
+var proxy_config = document.getElementById('proxy_config')
+proxy_config.placeholder = `// 请在第一行输出你使用的 pac 路径例如： 
+// 1: PROXY 127.0.0.1:8888
+// 2: HTTPS hk2.link.ac.cn:152;HTTPS fmt1.link.ac.cn:995
+`
+chrome.storage.local.get([proxy_config.dataset.key], function (result) {
+  proxy_config.value = result[proxy_config.dataset.key] || '';
+})
+function change_proxy_config(v){    console.log('change_proxy_config')
+  chrome.storage.local.set({
+    [v.target.dataset.key]: v.target.value
+  })
+}
+proxy_config.addEventListener("input", change_proxy_config)
+proxy_config.addEventListener("change", change_proxy_config)
+proxy_config.addEventListener("blur", change_proxy_config)
 
 var mysec = document.getElementById('my_secret')
 var mycode_dec = document.getElementById('my_code_dec')

@@ -15,6 +15,17 @@ document.querySelectorAll("input").forEach(function(v){
           chrome.tabs.sendMessage(tabs[0].id, {action: {type:'logtoggle', info: 'logtoggle'}}, function(response) {});
         });
       }
+      if (e.target.dataset.key == 'config-pac_proxy'){
+        if (e.target.checked){
+          chrome.storage.local.get(['config-proxy_config'], function(res){
+            if (res['config-proxy_config']){
+              set_my_proxy(res['config-proxy_config'])
+            }
+          })
+        }else{
+          set_my_proxy()
+        }
+      }
       chrome.storage.local.set({
         [e.target.dataset.key]: e.target.checked
       })
@@ -69,30 +80,50 @@ hook-domobj-显示func输出
 // })
 
 const bg = chrome.extension.getBackgroundPage()
-document.getElementById('clone_page').addEventListener('click', function(e){
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-    var url = tabs[0].url
-    var html = bg.get_html(url)
-    if (html){
-      var url = URL.createObjectURL(new Blob(html.split(''), {type: 'text/html'}))
-      chrome.downloads.download({
-        url: url,
-        filename: 'clone_html.html'
-      });
-    }else{
-      alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 html 调试拷贝”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
-    }
-  });
-})
+var clone_page = document.getElementById('clone_page')
+if (clone_page){
+  clone_page.addEventListener('click', function(e){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+      var url = tabs[0].url
+      var html = bg.get_html(url)
+      if (html){
+        var url = URL.createObjectURL(new Blob(html.split(''), {type: 'text/html'}))
+        chrome.downloads.download({
+          url: url,
+          filename: 'clone_html.html'
+        });
+      }else{
+        alert('获取html结构失败，请右键需要拷贝的页面的空白处，选择“打开 html 调试拷贝”。刷新页面后，确保页面资源加载充足后再重新点击“拷贝当前页面”')
+      }
+    });
+  })
+}
 
-document.getElementById('update_page').addEventListener('click', function(e){
-  function closePopup() {
-    window.close();
-    document.body.style.opacity = 0;
-    setTimeout(function() { history.go(0); }, 300);
-  }
-  closePopup()
+var update_page = document.getElementById('update_page')
+if(update_page){
+  update_page.addEventListener('click', function(e){
+    function closePopup() {
+      window.close();
+      document.body.style.opacity = 0;
+      setTimeout(function() { history.go(0); }, 300);
+    }
+    closePopup()
+    chrome.tabs.create({
+      url: 'https://github.com/cilame/v_jstools',
+    });
+  })
+}
+
+document.getElementById('ast_page')?.addEventListener('click', function(){
+  var temp = chrome.runtime.getURL('astexplorer_babel.html')
   chrome.tabs.create({
-    url: 'https://github.com/cilame/v_jstools',
+    url: temp
+  });
+  
+})
+document.getElementById('diff_page')?.addEventListener('click', function(){
+  var temp = chrome.runtime.getURL('diff_text.html')
+  chrome.tabs.create({
+    url: temp
   });
 })

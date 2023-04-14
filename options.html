@@ -17,7 +17,7 @@
         <ul>
             <button class="act">dom对象 hook 配置</button>
             <button>注入代码</button>
-            <button>修改返回值</button>
+            <button>修改代理/返回值</button>
             <button>AST混淆解密</button>
             <button>代码模板(RPC...)</button>
             <button>混淆器</button>
@@ -139,6 +139,11 @@
             <!-- <div>修改代理:<input type="text" data-key="config-proxy_config" id="proxy_config"></div> -->
         </section>
         <section class="tab">
+            <h2 style="margin-bottom: 0px;margin-top: 50px;">pac代理地址</h2>
+            <label ><input type="checkbox" data-key="config-pac_proxy">是否打开返回值替换开关</label>
+            <hr>
+            <textarea id='proxy_config' data-key="config-proxy_config" style="width: 100%; height: 200px"></textarea>
+
             <h2 style="margin-bottom: 0px;margin-top: 50px;">修改匹配URL的返回值</h2>
             <label ><input type="checkbox" data-key="config-replacer_toggle">是否打开返回值替换开关</label>
             <hr>
@@ -252,6 +257,7 @@
         </section>
     </div>
     <script src="tools/jquery.min.js"></script>
+    <script src="./tools/common.js"></script>
     <script src="./tools/sub_logger.js"></script>
     <script src="options.js"></script>
     <script src="tools/model_funcs.js"></script>
