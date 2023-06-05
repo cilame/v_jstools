@@ -91,12 +91,15 @@ function ConditionVarToIf(path) {
     //  |
     //  |
     //  v
+    // var a;
     // if (m) {
-    //   var a = 11;
+    //   a = 11;
     // } else {
-    //   var a = 22;
+    //   a = 22;
     // }
+    // let 和 const 的作用域为块，所以不能直接把定义用的 kind 放在 if 的子块里面
     if (t.isForStatement(path.parentPath)) return;
+    if (path.node.kind == 'const') return;
     var decl = path.node.declarations
     var rpls = []
     var togg = false
@@ -104,10 +107,11 @@ function ConditionVarToIf(path) {
         if (t.isConditionalExpression(decl[i].init)){
             togg = true
             let {test, consequent, alternate} = decl[i].init;
+            rpls.push(t.variableDeclaration(path.node.kind, [t.variableDeclarator(decl[i].id)]))
             rpls.push(t.ifStatement(
                 test,
-                t.blockStatement([t.variableDeclaration(path.node.kind, [t.variableDeclarator(decl[i].id, consequent)]),]),
-                t.blockStatement([t.variableDeclaration(path.node.kind, [t.variableDeclarator(decl[i].id, alternate)]),])
+                t.blockStatement([t.ExpressionStatement(t.AssignmentExpression("=", decl[i].id, consequent))]),
+                t.blockStatement([t.ExpressionStatement(t.AssignmentExpression("=", decl[i].id, alternate))]),
             ))
         }else{
             rpls.push(t.VariableDeclaration(path.node.kind, [decl[i]]))
@@ -412,15 +416,47 @@ function calcBinary(path){
 }
 
 function clearNotuseFunc(path){
+    if (!path.getFunctionParent()){ return }
     var id = path.node.id;
-    var binding = path.scope.getBinding(id.name);
-    //如果变量被修改过，则不能进行删除动作。
-    if (!binding || binding.constantViolations.length > 0) {
-        return;
+    function is_used(path, name){
+        var binding = path.scope.getBinding(name);
+        if (!binding || binding.constantViolations.length > 0) {
+            return;
+        }
+        if (binding.referencePaths.length === 0) {
+            return true
+        }
     }
-    //长度为0，说明变量没有被使用过。
-    if (binding.referencePaths.length === 0) {
+    if (is_used(path, id.name)){
         path.remove();
+    }
+}
+
+function clearNotuseVar(path){
+    if (!path.getFunctionParent()){ return }
+    var _new_var = []
+    function is_used(path, name){
+        var binding = path.scope.getBinding(name);
+        if (!binding || binding.constantViolations.length > 0) {
+            return;
+        }
+        if (binding.referencePaths.length === 0) {
+            return true
+        }
+    }
+    for (var i = 0; i < path.node.declarations.length; i++) {
+        var inode = path.node.declarations[i]
+        if (t.isIdentifier(inode.id) 
+            && is_used(path, inode.id.name) 
+            ){
+        }else{
+            _new_var.push(inode)
+        }
+    }
+    if (_new_var.length){
+        path.node.declarations = _new_var
+    }else{
+        path.remove()
     }
 }
 
@@ -776,10 +812,6 @@ function del_ob_extra(ast){
     var once = false
     function remove_a(path){
         if ( path.node.value == '(((.+)+)+)+$' 
-          && path.parentPath.node.type == 'CallExpression'
-          && path.parentPath.node.callee.type == 'MemberExpression'
-          && path.parentPath.node.callee.property.type == 'Identifier'
-          && path.parentPath.node.callee.property.name == 'search'
           && !once
           ){
             var a = path.getFunctionParent().parentPath
@@ -854,12 +886,12 @@ function del_ob_extra(ast){
             var ra = a.node.callee.name
             var rb = b.node.id.name
             function remove_a1(path){
-                if (path.node.id.name == ra && path.getFunctionParent() == c || path.getFunctionParent() == null){
+                if (path.node.id.name == ra && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
                     path.remove()
                 }
             }
             function remove_a2(path){
-                if (path.node.callee.name == rb && path.getFunctionParent() == c || path.getFunctionParent() == null){
+                if (path.node.callee.name == rb && (path.getFunctionParent() == c || path.getFunctionParent() == null)){
                     path.remove()
                 }
             }
@@ -882,6 +914,121 @@ function del_ob_extra(ast){
     }catch(e){
         console.log('自动去除 ob 检测处理失败')
         console.log(e)
+    }
+}
+
+function cache_const_var(path){
+    // 收集匹配某种模式的对象， VariableDeclaration 下的 ObjectExpression 
+    // 并且每个键值对都是 Identifier: (StringLiteral/NumericLiteral)
+    // 收集后存储到对象的 getFunctionParent 的 body 中
+    // const _0xd8926c = {
+    //     _0x77eed: 0xef,
+    //     _0x1e4fbf: 0xf1,
+    //     _0x71271e: 0x11f,
+    //     _0xfa6d5d: 0xf7
+    //   }
+    //     , _0x42f139 = {
+    //     _0x55d096: 0x104,
+    //     _0x2c29ee: 0x107
+    //   }
+    //     , _0x3c47ca = {
+    //     _0x3a14ec: 0x118,
+    //     _0x158b76: 0x10f,
+    //     _0x35fcb5: 0x11d
+    //   }
+    var parent = path.getFunctionParent()
+    if (!parent){ return }
+    var pbody = parent.node.body
+    for (var i = 0; i < path.node.declarations.length; i++) {
+        var temp = path.node.declarations[i]
+        if (t.isObjectExpression(temp.init) && t.isIdentifier(temp.id)){
+            var is_ok = true
+            for (var j = 0; j < temp.init.properties.length; j++) {
+                var temp2 = temp.init.properties[j]
+                if (!(
+                    t.isNumericLiteral(temp2.value) || 
+                    t.isStringLiteral(temp2.value))
+                    ){
+                    is_ok = false
+                }
+            }
+            if (!is_ok){ return }
+            for (var j = 0; j < temp.init.properties.length; j++) {
+                var temp2 = temp.init.properties[j]
+                var name;
+                if (t.isIdentifier(temp2.key)){
+                    name = temp2.key.name
+                }
+                if (t.isStringLiteral(temp2.key)){
+                    name = temp2.key.value
+                }
+                pbody.dec_number = pbody.dec_number || {}
+                pbody.dec_number[temp.id.name] = pbody.dec_number[temp.id.name] || {}
+                pbody.dec_number[temp.id.name][name] = temp2.value.value
+            }
+            temp.is_remove = true
+            temp.init.properties = []
+        }
+    }
+    var newlist = []
+    for (var i = 0; i < path.node.declarations.length; i++) {
+        var temp = path.node.declarations[i]
+        if (temp.is_remove){
+        }else{
+            newlist.push(temp)
+        }
+    }
+    if (newlist.length){
+        path.node.declarations = newlist
+    }else{
+        path.remove()
+    }
+}
+
+function dec_obj_numbers(path){
+    // 使用 cache_const_var 函数收集到的对象
+    // 将使用到这些常量的地方直接修改成目标常量
+    // const _0xd8926c = {
+    //     _0xfa6d5d: 123
+    //   }
+    // console.log(_0xd8926c._0xfa6d5d)
+    //   |
+    //   |
+    //   |
+    //   v
+    // console.log(123)
+    var parent = path.getFunctionParent()
+    if (!parent){ return }
+    if (t.isIdentifier(path.node.object)){
+        var objname = path.node.object.name
+        var propname;
+        if (t.isIdentifier(path.node.property)){
+            propname = path.node.property.name
+        }
+        else if (t.isStringLiteral(path.node.property)){
+            propname = path.node.property.value
+        }
+        else{
+            return
+        }
+    }
+    var temp = path.getFunctionParent()
+    while(temp){
+        if(temp.node.body.dec_number){
+            var dec_number = temp.node.body.dec_number
+            if (dec_number[objname] && typeof dec_number[objname][propname] != 'undefined'){
+                if (typeof dec_number[objname][propname] == 'number'){
+                    path.replaceWith(t.NumericLiteral(dec_number[objname][propname]))
+                    return
+                }else if(typeof dec_number[objname][propname] == 'string'){
+                    path.replaceWith(t.StringLiteral(dec_number[objname][propname]))
+                    return
+                }else{
+                    throw Error(`unhandle type ${typeof dec_number[objname][propname]}`)
+                }
+            }
+        }
+        temp = temp.getFunctionParent()
     }
 }
 
@@ -1018,8 +1165,12 @@ function muti_process_sojsondefusion(jscode){
     return code;
 }
 
-function muti_process_obdefusion(jscode){
+function muti_process_obdefusion(jscode, config){
     var ast = parser.parse(jscode);
+    config = config || {}
+
+    traverse(ast, {VariableDeclaration: cache_const_var})
+    traverse(ast, {MemberExpression: dec_obj_numbers})
 
     // ob 解混淆处理部分
     pas_ob_encfunc(ast)
@@ -1042,10 +1193,16 @@ function muti_process_obdefusion(jscode){
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
-    // traverse(ast, {FunctionDeclaration: clearNotuseFunc})       // 该处有问题 // 该处可以使用 Uglify 库优化功能自动删除
 
-    // ob 解混淆部分，去除额外代码
-    del_ob_extra(ast)
+    if (config.clear_not_use){
+        var ast = parser.parse(generator(ast).code)             // 更新一下 ast 节点信息，否则清理未使用的变量可能出现问题
+        traverse(ast, {FunctionDeclaration: clearNotuseFunc})   // 不知道现在还有没有问题，不管了
+        traverse(ast, {VariableDeclaration: clearNotuseVar})    // 不知道现在还有没有问题，不管了
+    }
+
+    if (config.clear_ob_extra){
+        del_ob_extra(ast)                                       // ob 解混淆部分，去除额外代码
+    }
 
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
@@ -1077,8 +1234,8 @@ function muti_process_jsfuckdefusion(jscode){
 }
 
 function muti_process_aline(jscode){
-	var ast = parser.parse(jscode)
-	traverse(ast, {enter: function(path){t.removeComments(path.node);}})
+    var ast = parser.parse(jscode)
+    traverse(ast, {enter: function(path){t.removeComments(path.node);}})
     return generator(ast, {minified:true}).code
 }
 

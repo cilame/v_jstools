@@ -27,6 +27,7 @@
         <section class="tab">
             <div>
                   <label ><input type="checkbox" data-key="config-hook-global">是否挂钩总开关</label> 
+                  <label id='debug_hook' style="color: #FFEEEE">cilame</label>
                   <br/>
                   <!-- <label ><input type="checkbox" data-key="config-hook-alt-w">启动 alt + w 快捷键（快捷键开启/关闭日志，当前焦点需在网页上才有效）</label> 
                   <br/> -->
@@ -194,6 +195,10 @@
             <button id='uglify_mini'>完全压缩脚本[uglify-es]</button>
             <button id='open_diff_text'>打开文本对比工具</button>
             <label id='env' style="color: #FFEEEE">cilame</label>
+            <br/>
+            <label ><input type="checkbox" id="clear_not_use" data-key="config-clear_not_use">【解密ob高级混淆】 尝试清理未被使用到的变量和函数</label>
+            <br/>
+            <label ><input type="checkbox" id="clear_ob_extra" data-key="config-clear_ob_extra">【解密ob高级混淆】 尝试清理ob混淆的反调试代码</label>
             <br/>
             <label>source</label>
             <textarea id='txt' style="width: 100%; height: 500px"></textarea>

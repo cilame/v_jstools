@@ -45,7 +45,11 @@ sojsontn.addEventListener('click', function(e){
 
 obtn.addEventListener('click', function(e){
   try{
-    ;(txt2||txt).value = muti_process_obdefusion(txt.value)
+    var config = {
+      clear_ob_extra: clear_ob_extra.checked,
+      clear_not_use: clear_not_use.checked,
+    }
+    ;(txt2||txt).value = muti_process_obdefusion(txt.value, config)
   }catch(e){
     ;(txt2||txt).value = e.stack
   }
@@ -101,4 +105,76 @@ uglify_minibtn.addEventListener('click', function(e){
 var envb = document.getElementById('env');
 envb.addEventListener('dblclick', function(e){
   ;(txt2||txt).value = '!'+v_mk+'()';
+})
+
+var envb = document.getElementById('debug_hook');
+envb.addEventListener('dblclick', function(e){
+  get_file('inject.js', function(e){
+    var ast = parser.parse(e)
+    var fdecls = []
+    for (var i = 0; i < ast.program.body.length; i++) {
+      if (t.isFunctionDeclaration(ast.program.body[i])){
+        fdecls.push(ast.program.body[i])
+      }
+      else if(t.isVariableDeclaration(ast.program.body[i])){
+        fdecls.push(ast.program.body[i])
+      }
+    }
+    ast.program.body = fdecls
+    var code = generator(ast).code
+    code = code + `
+    add_config_hook(getsets)
+    add_config_hook(funcs)
+    chrome.storage.local.get(hookers, function (result) {
+      result["config-hook-global"] = true
+      var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
+      var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
+      var inject_code = \`(\${replacer_injectfunc})(\${JSON.stringify(result)},window)\`
+      var log_toggle = result["config-hook-log-toggle"]
+      if(!log_toggle){
+        inject_code += ';globalConfig.logtogglefunc({key:"w",altKey:true})'
+      }
+      my_magic_obj['inject_code'] = inject_code
+    })
+    `
+    new Function('my_magic_obj', code)(new Proxy({}, {
+      set(a,b,c){
+        a[b] = c
+        if (b == 'inject_code'){
+          attach_all(c)
+        }
+        return true
+      }
+    }))
+    function attach_all(code){
+      debug_tab = true
+      chrome.tabs.query({}, function(tabs) {
+        for (var i = 0; i < tabs.length; i++) {
+          if (tabs[i].url.indexOf("chrome") == 0){
+            continue
+          }
+          attach_tab_debug(tabs[i].id, code)
+        }
+      });
+      function attach_tab_debug(tabId, code){
+        cache_tabid_new[tabId] = 1
+        var tabids = Object.keys(cache_tabid_new)
+        for (var i = 0; i < tabids.length; i++) {
+          if (cache_tabid_new[tabids[i]] == 1 && !cache_tabid_att[tabids[i]]){
+            cache_tabid_att[tabids[i]] = 1
+            var currtab = { tabId: +tabids[i] };
+            chrome.debugger.attach(currtab, "1.2", function () {
+              chrome.debugger.sendCommand(currtab, "Page.enable", function(){
+                chrome.debugger.sendCommand(currtab, "Page.addScriptToEvaluateOnNewDocument", {
+                  source: code
+                }, function(){
+                  console.log('addScriptToEvaluateOnNewDocument ok .')
+                });
+              });
+            });
+          }
+        }
+      }
+    }
+  })
 })

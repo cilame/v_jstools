@@ -1441,7 +1441,7 @@ function injectfunc(e, window) {
           if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
             var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "get", r)
-            if (expurl.v_test(expstr)){
+            if (expurl.v_test(expstr) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('(*) [cookie get]', r, get_log_at(expstr.trim())))
             }
             if (e["config-hook-cookie-add-debugger"] && r.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
@@ -1457,7 +1457,7 @@ function injectfunc(e, window) {
           if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
             var expstr=v_Error().stack.v_split('\n')[2]
             v_cache_node(expstr, "Document", "cookie", "set")
-            if (expurl.v_test(expstr)){
+            if (expurl.v_test(expstr) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('(*) [cookie set]', v, get_log_at(expstr.trim())) )
             }
           }
@@ -1485,7 +1485,7 @@ function injectfunc(e, window) {
           window.v_settimeout(arguments)
         }else{ 
           if (e["config-hook-settimeout"]){
-            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2])){
+            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2]) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('[settimeout]', ...arguments, get_log_at(expstr.trim())))
             }
           }
@@ -1504,7 +1504,7 @@ function injectfunc(e, window) {
           window.v_setinterval(arguments)
         }else{ 
           if (e["config-hook-setinterval"]){
-            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2])){
+            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2]) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('[setinterval]', ...arguments, get_log_at(expstr.trim())) )
             }
           }
@@ -1541,7 +1541,7 @@ function injectfunc(e, window) {
     }
   }
   var v_logs = function (a, b, c) {
-    if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[3])){
+    if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[3]) && typeof expstr == 'string'){
       window.v_log(..._mk_logs('  (*)', a, util.inspect(b), '===>', c, get_log_at(expstr.trim())))
     }
     return c
@@ -1602,22 +1602,22 @@ function make_domhooker_funcs(){
             var expstr = v_Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "get", r)
             inspect_arguments(this, arguments, r, "${obname}", "${name}", "get")
-            if (expurl.v_test(expstr)){
+            if (expurl.v_test(expstr) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('(*) [${obname} ${name} get]', r, get_log_at(expstr.trim())))
             }
           }
-          return r })
+          return r }, 'get ${name}')
         if (_old_set){
           var _new_set = saf(function set(v){
             if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
               var expstr = v_Error().stack.v_split('\\n')[2]
               v_cache_node(expstr, "${obname}", "${name}", "set")
               inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
-              if (expurl.v_test(expstr)){
+              if (expurl.v_test(expstr) && typeof expstr == 'string'){
                 window.v_log(..._mk_logs('(*) [${obname} ${name} set]', v, get_log_at(expstr.trim())))
               }
             }
-            return _old_set.apply(this, arguments) })
+            return _old_set.apply(this, arguments) }, 'set ${name}')
         }else{ _new_set = undefined }
         Object.defineProperty(${obname}.prototype, '${name}', { get: _new_get, set: _new_set, enumerable: _desc['enumerable'], configurable: _desc['configurable'], })
       }()
@@ -1640,7 +1640,7 @@ function make_domhooker_funcs(){
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
             var expstr = v_Error().stack.v_split('\\n')[2]
             v_cache_node(expstr, "${obname}", "${name}", "func")
-            if (expurl.v_test(expstr)){
+            if (expurl.v_test(expstr) && typeof expstr == 'string'){
               window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), '===>', err ? '[ERROR]' : r, get_log_at(expstr.trim())))
             }
           }
