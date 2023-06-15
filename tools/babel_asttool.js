@@ -642,7 +642,7 @@ function pas_ob_encfunc(ast, obsortname){
         eval(obfuncstr.join(';'))
     }else{
         function find_outer_def_by_name(ast, v_name){
-        	function find_ob_root_def_by_name(ast, v_name){
+            function find_ob_root_def_by_name(ast, v_name){
                 function get_deep(path){
                     var idx = 0
                     while (path = path.getFunctionParent()){
@@ -674,12 +674,14 @@ function pas_ob_encfunc(ast, obsortname){
                 find_root_def(ast, v_name)
                 def_list.sort(function(a,b){return a[0]-b[0]})
                 var def_first = def_list[0]
-                return def_first[1]+''
+                return def_first && def_first[1]+''
             }
             try{
                 var name = find_ob_root_def_by_name(ast, v_name)
                 if (name){
                     v_name = name
+                }else{
+                    throw ReferenceError(`"${v_name}" not find.`)
                 }
             }catch(e){
                 console.log(e)
@@ -764,17 +766,42 @@ function pas_ob_encfunc(ast, obsortname){
                     }
                 }
             }})
+            var __collect_env_sort = []
             for (var idx = 0; idx < collect_env_sort.length; idx++) {
+                var is_decl = t.isDeclaration(collect_env_sort[idx].node)
                 var str = generator(collect_env_sort[idx].node, {minified:true}).code
-                collect_env_sort[idx].remove()
-                collect_env_sort[idx] = str
+                // collect_env_sort[idx].remove()
+                if (is_decl){
+                    __collect_env_sort[idx] = str
+                }else{
+                    __collect_env_sort[idx] = `
+                    try{
+                    ${str}
+                    vilame_ob_remove_sign.push(${idx})
+                    }catch(e){
+                    }
+                    `
+                }
             }
-            return [v_name, collect_env_sort.join('\n')]
+            function remove_sign(listidx){
+                for (var i = 0; i < listidx.length; i++) {
+                    try{
+                        collect_env_sort[listidx[i]].remove()
+                    }catch(e){
+                        console.log(e)
+                    }
+                }
+            }
+            __collect_env_sort.unshift('var vilame_ob_remove_sign = []')
+            return [v_name, __collect_env_sort.join('\n'), remove_sign]
         }
-        var [obsortname, evalstr] = find_outer_def_by_name(ast, obsortname)
+        var [obsortname, evalstr, remove_sign] = find_outer_def_by_name(ast, obsortname)
         console.log(evalstr)
         console.log('--------------- evalstr end ---------------')
         eval(evalstr)
+        if (typeof vilame_ob_remove_sign != 'undefined'){
+            remove_sign(vilame_ob_remove_sign)
+        }
         obdecname = obsortname
     }
 
