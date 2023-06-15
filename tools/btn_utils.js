@@ -35,9 +35,17 @@ babel_aline.addEventListener('click', function(e){
   }
 })
 
+function get_ob_config(){
+  return {
+    clear_ob_extra: clear_ob_extra.checked,
+    clear_not_use: clear_not_use.checked,
+    ob_dec_name: ob_dec_name.value,
+  }
+}
+
 sojsontn.addEventListener('click', function(e){
   try{
-    ;(txt2||txt).value = muti_process_sojsondefusion(txt.value)
+    ;(txt2||txt).value = muti_process_sojsondefusion(txt.value, get_ob_config())
   }catch(e){
     ;(txt2||txt).value = e.stack
   }
@@ -45,19 +53,29 @@ sojsontn.addEventListener('click', function(e){
 
 obtn.addEventListener('click', function(e){
   try{
-    var config = {
-      clear_ob_extra: clear_ob_extra.checked,
-      clear_not_use: clear_not_use.checked,
-    }
-    ;(txt2||txt).value = muti_process_obdefusion(txt.value, config)
+    ;(txt2||txt).value = muti_process_obdefusion(txt.value, get_ob_config())
   }catch(e){
+    if (e.__proto__.name == 'ReferenceError'){
+      var mth = /^(.*) is not defined/.exec(e.message)
+      if (mth){
+        console.log(`出现 ReferenceError: '${mth[1]}' is not defined 的异常，尝试用 '${mth[1]}' 作为解密名字二次解密。`)
+        var config = get_ob_config()
+        config.ob_dec_name = mth[1]
+        try{
+          ;(txt2||txt).value = muti_process_obdefusion(txt.value, config)
+        }catch(e){
+          ;(txt2||txt).value = e.stack
+        }
+        return
+      }
+    }
     ;(txt2||txt).value = e.stack
   }
 })
 
 obnormal.addEventListener('click', function(e){
   try{
-    ;(txt2||txt).value = muti_process_defusion(txt.value)
+    ;(txt2||txt).value = muti_process_defusion(txt.value, get_ob_config())
   }catch(e){
     ;(txt2||txt).value = e.stack
   }

@@ -196,9 +196,11 @@
             <button id='open_diff_text'>打开文本对比工具</button>
             <label id='env' style="color: #FFEEEE">cilame</label>
             <br/>
-            <label ><input type="checkbox" id="clear_not_use" data-key="config-clear_not_use">【解密ob高级混淆】 尝试清理未被使用到的变量和函数</label>
+            <label ><input type="checkbox" id="clear_not_use" data-key="config-clear_not_use">【解密sojson/普通/ob高级混淆】 尝试清理未被使用到的变量和函数</label>
             <br/>
-            <label ><input type="checkbox" id="clear_ob_extra" data-key="config-clear_ob_extra">【解密ob高级混淆】 尝试清理ob混淆的反调试代码</label>
+            <label ><input type="checkbox" id="clear_ob_extra" data-key="config-clear_ob_extra">【解密sojson/ob高级混淆】 尝试清理ob混淆的反调试代码（有时候清理会存在问题，报错了请尝试取消该选项）</label>
+            <br/>
+            <label ><input type="text" id="ob_dec_name">【解密ob高级混淆】 指定解密函数的名字</label>
             <br/>
             <label>source</label>
             <textarea id='txt' style="width: 100%; height: 500px"></textarea>

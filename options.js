@@ -434,6 +434,7 @@ _mk_html(getsets_1, 'getsets_1', 1)
 _mk_html(funcs_1, 'funcs_1', 1)
 
 document.querySelectorAll("input").forEach(function(v){
+  if(!v.dataset.key) return
   chrome.storage.local.get([v.dataset.key], function (result) {
     if (v.type == 'checkbox'){
       v.checked = result[v.dataset.key];

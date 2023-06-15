@@ -599,7 +599,7 @@ function ReplaceWhile(path) {
 
 
 
-function pas_ob_encfunc(ast){
+function pas_ob_encfunc(ast, obsortname){
     // 找到关键的函数
     var obfuncstr = []
     var obdecname;
@@ -635,10 +635,148 @@ function pas_ob_encfunc(ast){
             }
         }
     }
-    traverse(ast, {ExpressionStatement: findobsortfunc})
-    traverse(ast, {FunctionDeclaration: findobsortlist})
-    traverse(ast, {FunctionDeclaration: findobfunc})
-    eval(obfuncstr.join(';'))
+    if (!obsortname){
+        traverse(ast, {ExpressionStatement: findobsortfunc})
+        traverse(ast, {FunctionDeclaration: findobsortlist})
+        traverse(ast, {FunctionDeclaration: findobfunc})
+        eval(obfuncstr.join(';'))
+    }else{
+        function find_outer_def_by_name(ast, v_name){
+        	function find_ob_root_def_by_name(ast, v_name){
+                function get_deep(path){
+                    var idx = 0
+                    while (path = path.getFunctionParent()){
+                        idx++
+                    }
+                    return idx
+                }
+                var def_list = []
+                function find_root_def(ast, v_name){
+                    var is_stop = false
+                    traverse(ast, {Identifier: function(path){
+                        if (path.node.name == v_name && !is_stop){
+                            var temp = path.scope.getBinding(v_name)
+                            if (t.isVariableDeclarator(temp.path.node) && t.isIdentifier(temp.path.node.init)){
+                                find_root_def(ast, temp.path.node.init.name)
+                                is_stop = true
+                            }
+                            else if(t.isVariableDeclarator(temp.path.node) && t.isFunctionExpression(temp.path.node.init)){
+                                def_list.push([get_deep(path), path])
+                                is_stop = true
+                            }
+                            else if (t.isFunctionDeclaration(temp.path.node)){
+                                def_list.push([get_deep(path), path])
+                                is_stop = true
+                            }
+                        }
+                    }})
+                }
+                find_root_def(ast, v_name)
+                def_list.sort(function(a,b){return a[0]-b[0]})
+                var def_first = def_list[0]
+                return def_first[1]+''
+            }
+            try{
+                var name = find_ob_root_def_by_name(ast, v_name)
+                if (name){
+                    v_name = name
+                }
+            }catch(e){
+                console.log(e)
+            }
+            function get_deep(path){
+                var idx = 0
+                while (path = path.getFunctionParent()){
+                    idx++
+                }
+                return idx
+            }
+            var def_list = []
+            function get_env(path){
+                return path.findParent(function(e){return t.isFunction(e) || t.isProgram(e)})
+            }
+            function v_find_func(path){
+                if (t.isVariableDeclaration(path.node)){
+                    var declarations = path.node.declarations
+                    for (var i = 0; i < declarations.length; i++) {
+                        if (t.isIdentifier(declarations[i].id) && t.isFunctionExpression(declarations[i].init)){
+                            if (declarations[i].id.name == v_name){
+                                def_list.push([get_deep(path), path, get_env(path)])
+                            }
+                        }
+                    }
+                }
+                else if (t.isFunctionDeclaration(path.node)){
+                    if (t.isIdentifier(path.node.id) && path.node.id.name == v_name){
+                        def_list.push([get_deep(path), path, get_env(path)])
+                    }
+                }
+            }
+            traverse(ast, {'VariableDeclaration|FunctionDeclaration': v_find_func})
+            def_list.sort(function(a,b){return a[0]-b[0]})
+            var first_outer_def = def_list[0]
+            var collect_env = []
+            var _cache = []
+            function get_all_related(_path, _env){
+                if (!_path) return 
+                if (_cache.indexOf(_path) !== -1){ return }
+                _cache.push(_path)
+                _path.traverse({Identifier: function(path){
+                    function get_stat(tpath){
+                        return tpath.findParent(function(e){return get_env(e)==_env&&(t.isDeclaration(e)||t.isStatement(e))})
+                    }
+                    if (path.node.name != v_name && get_env(path) !== _env){
+                        var target = path.scope.getBinding(path.node.name)
+                        if (target){
+                            if (collect_env.indexOf(target.path) == -1){
+                                if (_env === get_env(target.path)){
+                                    collect_env.push(get_stat(target.path)||target.path)
+                                    var binds = target.path.scope.bindings
+                                    var okeys = Object.keys(binds)
+                                    for (var idx = 0; idx < okeys.length; idx++) {
+                                        for (var idx2 = 0; idx2 < binds[okeys[idx]].referencePaths.length; idx2++) {
+                                            var t_name = okeys[idx]
+                                            if (t_name !== v_name){
+                                                var temp = binds[t_name].referencePaths[idx2]
+                                                var temp = temp.findParent(function(e){return get_env(e)==_env&&(t.isDeclaration(e)||t.isStatement(e))})
+                                                if (temp && collect_env.indexOf(temp) == -1){
+                                                    collect_env.push(temp)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    get_all_related(target.path, _env)
+                                }
+                            }
+                        }
+                    }
+                }})
+            }
+            if (!(first_outer_def && first_outer_def.length)){
+                return
+            }
+            get_all_related(first_outer_def[1], first_outer_def[2])
+            var collect_env_sort = []
+            first_outer_def[2].traverse({'Declaration|Statement': function(path){
+                if (collect_env.indexOf(path) != -1){
+                    if (collect_env_sort.indexOf(path) == -1){
+                        collect_env_sort.push(path)
+                    }
+                }
+            }})
+            for (var idx = 0; idx < collect_env_sort.length; idx++) {
+                var str = generator(collect_env_sort[idx].node, {minified:true}).code
+                collect_env_sort[idx].remove()
+                collect_env_sort[idx] = str
+            }
+            return [v_name, collect_env_sort.join('\n')]
+        }
+        var [obsortname, evalstr] = find_outer_def_by_name(ast, obsortname)
+        console.log(evalstr)
+        console.log('--------------- evalstr end ---------------')
+        eval(evalstr)
+        obdecname = obsortname
+    }
 
     // 收集必要的函数进行批量还原
     var collects = []
@@ -966,23 +1104,23 @@ function cache_const_var(path){
                 pbody.dec_number[temp.id.name] = pbody.dec_number[temp.id.name] || {}
                 pbody.dec_number[temp.id.name][name] = temp2.value.value
             }
-            temp.is_remove = true
-            temp.init.properties = []
+            // temp.is_remove = true
+            // temp.init.properties = []
         }
     }
-    var newlist = []
-    for (var i = 0; i < path.node.declarations.length; i++) {
-        var temp = path.node.declarations[i]
-        if (temp.is_remove){
-        }else{
-            newlist.push(temp)
-        }
-    }
-    if (newlist.length){
-        path.node.declarations = newlist
-    }else{
-        path.remove()
-    }
+    // var newlist = []
+    // for (var i = 0; i < path.node.declarations.length; i++) {
+    //     var temp = path.node.declarations[i]
+    //     if (temp.is_remove){
+    //     }else{
+    //         newlist.push(temp)
+    //     }
+    // }
+    // if (newlist.length){
+    //     path.node.declarations = newlist
+    // }else{
+    //     path.remove()
+    // }
 }
 
 function dec_obj_numbers(path){
@@ -1016,15 +1154,16 @@ function dec_obj_numbers(path){
     while(temp){
         if(temp.node.body.dec_number){
             var dec_number = temp.node.body.dec_number
-            if (dec_number[objname] && typeof dec_number[objname][propname] != 'undefined'){
-                if (typeof dec_number[objname][propname] == 'number'){
-                    path.replaceWith(t.NumericLiteral(dec_number[objname][propname]))
+            var dec_obj = dec_number[objname]
+            if (dec_obj && typeof dec_obj[propname] != 'undefined'){
+                if (typeof dec_obj[propname] == 'number'){
+                    path.replaceWith(t.NumericLiteral(dec_obj[propname]))
                     return
-                }else if(typeof dec_number[objname][propname] == 'string'){
-                    path.replaceWith(t.StringLiteral(dec_number[objname][propname]))
+                }else if(typeof dec_obj[propname] == 'string'){
+                    path.replaceWith(t.StringLiteral(dec_obj[propname]))
                     return
                 }else{
-                    throw Error(`unhandle type ${typeof dec_number[objname][propname]}`)
+                    throw Error(`unhandle type ${typeof dec_obj[propname]}`)
                 }
             }
         }
@@ -1105,7 +1244,7 @@ function v_Call1(path){
 
 
 
-function muti_process_defusion(jscode){
+function muti_process_defusion(jscode, config){
     var ast = parser.parse(jscode);
 
     // 通用解混淆部分
@@ -1121,11 +1260,20 @@ function muti_process_defusion(jscode){
     traverse(ast, {IfStatement: ClearDeadCode});                // 清理死代码
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
+
+    if (config.clear_not_use){
+        var ast = parser.parse(generator(ast).code)             // 更新一下 ast 节点信息，否则清理未使用的变量可能出现问题
+        traverse(ast, {FunctionDeclaration: clearNotuseFunc})   // 不知道现在还有没有问题，不管了
+        traverse(ast, {VariableDeclaration: clearNotuseVar})    // 不知道现在还有没有问题，不管了
+        traverse(ast, {StringLiteral: delExtra,})               // 清理二进制显示内容
+        traverse(ast, {NumericLiteral: delExtra,})              // 清理二进制显示内容
+    }
+    
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
 
-function muti_process_sojsondefusion(jscode){
+function muti_process_sojsondefusion(jscode, config){
     var ast = parser.parse(jscode);
 
     if (ast.program.body.length == 1){
@@ -1159,7 +1307,17 @@ function muti_process_sojsondefusion(jscode){
     traverse(ast, {BinaryExpression: {exit: calcBinary}})       // 二元运算合并
     traverse(ast, {CatchClause: AddCatchLog});                  // 给所有的 catch(e){} 后面第一条语句添加异常输出。
 
-    del_sojson_extra(ast)
+    if (config.clear_not_use){
+        var ast = parser.parse(generator(ast).code)             // 更新一下 ast 节点信息，否则清理未使用的变量可能出现问题
+        traverse(ast, {FunctionDeclaration: clearNotuseFunc})   // 不知道现在还有没有问题，不管了
+        traverse(ast, {VariableDeclaration: clearNotuseVar})    // 不知道现在还有没有问题，不管了
+        traverse(ast, {StringLiteral: delExtra,})               // 清理二进制显示内容
+        traverse(ast, {NumericLiteral: delExtra,})              // 清理二进制显示内容
+    }
+
+    if (config.clear_ob_extra){
+        del_sojson_extra(ast)                                   // ob 解混淆部分，去除额外代码
+    }
 
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
@@ -1173,7 +1331,7 @@ function muti_process_obdefusion(jscode, config){
     traverse(ast, {MemberExpression: dec_obj_numbers})
 
     // ob 解混淆处理部分
-    pas_ob_encfunc(ast)
+    pas_ob_encfunc(ast, (config.ob_dec_name || '').trim())
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
     traverse(ast, {VariableDeclarator: {exit: MergeObj},});     // 可能出问题（不可通用）
     traverse(ast, {BinaryExpression: {exit: calcBinary}})
@@ -1198,12 +1356,13 @@ function muti_process_obdefusion(jscode, config){
         var ast = parser.parse(generator(ast).code)             // 更新一下 ast 节点信息，否则清理未使用的变量可能出现问题
         traverse(ast, {FunctionDeclaration: clearNotuseFunc})   // 不知道现在还有没有问题，不管了
         traverse(ast, {VariableDeclaration: clearNotuseVar})    // 不知道现在还有没有问题，不管了
+        traverse(ast, {StringLiteral: delExtra,})               // 清理二进制显示内容
+        traverse(ast, {NumericLiteral: delExtra,})              // 清理二进制显示内容
     }
 
     if (config.clear_ob_extra){
         del_ob_extra(ast)                                       // ob 解混淆部分，去除额外代码
     }
-
     var { code } = generator(ast, { jsescOption: { minimal: true, } });
     return code;
 }
