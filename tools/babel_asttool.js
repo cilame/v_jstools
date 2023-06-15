@@ -768,7 +768,7 @@ function pas_ob_encfunc(ast, obsortname){
             }})
             var __collect_env_sort = []
             for (var idx = 0; idx < collect_env_sort.length; idx++) {
-                var is_decl = t.isDeclaration(collect_env_sort[idx].node)
+                var is_decl = t.isFunctionDeclaration(collect_env_sort[idx].node)
                 var str = generator(collect_env_sort[idx].node, {minified:true}).code
                 // collect_env_sort[idx].remove()
                 if (is_decl){
@@ -798,7 +798,13 @@ function pas_ob_encfunc(ast, obsortname){
         var [obsortname, evalstr, remove_sign] = find_outer_def_by_name(ast, obsortname)
         console.log(evalstr)
         console.log('--------------- evalstr end ---------------')
+        var v_setTimeout = setTimeout
+        var v_setInterval = setInterval
+        setTimeout = function(a,b){return v_setTimeout(a,0)}
+        setInterval = function(a,b){return v_setTimeout(a,0)}
         eval(evalstr)
+        setTimeout = v_setTimeout
+        setInterval = v_setInterval
         if (typeof vilame_ob_remove_sign != 'undefined'){
             remove_sign(vilame_ob_remove_sign)
         }
