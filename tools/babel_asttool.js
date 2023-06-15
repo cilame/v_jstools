@@ -1275,6 +1275,7 @@ function muti_process_defusion(jscode, config){
 
 function muti_process_sojsondefusion(jscode, config){
     var ast = parser.parse(jscode);
+    config = config || {}
 
     if (ast.program.body.length == 1){
         ast.program.body = ast.program.body[0].expression.callee.body.body

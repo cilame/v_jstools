@@ -45,7 +45,14 @@ function get_ob_config(){
 
 sojsontn.addEventListener('click', function(e){
   try{
-    ;(txt2||txt).value = muti_process_sojsondefusion(txt.value, get_ob_config())
+    try{
+      ;(txt2||txt).value = muti_process_sojsondefusion(txt.value, get_ob_config())
+    }catch(e){
+      console.log('解密失败，尝试不配置清理 clear_ob_extra 再次解密')
+      var config = get_ob_config()
+      delete config.clear_ob_extra
+      ;(txt2||txt).value = muti_process_sojsondefusion(txt.value)
+    }
   }catch(e){
     ;(txt2||txt).value = e.stack
   }
