@@ -66,3 +66,13 @@ if (get_code_request){
         get_file('tools/request.js', callback)
     })
 }
+
+var get_code_jsencrypt = document.getElementById('get_code_jsencrypt')
+if (get_code_jsencrypt){
+    get_code_jsencrypt.addEventListener('click', function(e){
+        function callback(text){
+            document.getElementById('my_code_dec').value = text
+        }
+        get_file('tools/jsencrypt.js', callback)
+    })
+}
