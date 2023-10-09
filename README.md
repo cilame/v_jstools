@@ -1,12 +1,2 @@
 # v_jstools
-模仿着写一个开源的 chrome 插件，用来快速调试前端 js 代码。
-
-
-
-- 微信赞助
-
-> ![image](https://raw.githubusercontent.com/cilame/v_jstools/main/tools/wx.png)
-
-
-
-
+一个 chrome 插件，用来快速调试前端 js 代码。
