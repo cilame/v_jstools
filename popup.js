@@ -109,7 +109,7 @@ if(update_page){
     }
     closePopup()
     chrome.tabs.create({
-      url: 'https://github.com/cilame/v_jstools',
+      url: 'https://qm.qq.com/q/ZpEfmZxdKy'
     });
   })
 }

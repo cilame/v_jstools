@@ -1216,7 +1216,7 @@ function injectfunc(e, window) {
         document.getSelection().addRange(selected);
         alert('已将代码存放到剪贴板中。')
       }else{
-        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。')
+        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。(因为可能会保存失败，可以多点几次 “生成临时环境”)')
         console.log(str)
       }
     };

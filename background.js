@@ -50,7 +50,7 @@ function add_hook_event_code(tabs, callback){
         if (maxtime > 0){
           return copyToClipboard(str, maxtime-1)
         }
-        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。')
+        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。(因为可能会保存失败，可以多点几次 “生成临时环境”)')
         console.log(str)
       }
     };
@@ -66,7 +66,7 @@ function add_hook_event_code(tabs, callback){
       if (e.keyCode===27){
         if (toggle){
           console.log(elelist)
-          copyToClipboard(make_log_str(elelist))
+          copyToClipboard(make_log_str(elelist), 2)
           elelist = []
         }
         toggle = !toggle
