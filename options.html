@@ -193,6 +193,7 @@
             <button id='babel_aline'>将代码变成一行，不压缩[babel]</button>
             <button id='uglify'>仅变量压缩[uglify-es]</button>
             <button id='uglify_mini'>完全压缩脚本[uglify-es]</button>
+            <button id='terser_mini'>完全压缩脚本[terser]</button>
             <button id='open_diff_text'>打开文本对比工具</button>
             <label id='env' style="color: #FFEEEE">cilame</label>
             <br/>
@@ -245,6 +246,9 @@
             <button id="get_code_uglifyjs">uglifyjs模板代码</button>
             <button id="get_code_request">request模板代码</button>
             <button id="get_code_jsencrypt">jsencrypt(RSA)模板代码</button>
+            <button id="get_code_cheerio">cheerio模板代码</button>
+            <button id="get_code_terser">terser模板代码</button>
+            <button id="get_code_parse5">parse5模板代码</button>
             <br/>
             <hr>
             <label>code</label>
@@ -267,10 +271,12 @@
     <script src="tools/jquery.min.js"></script>
     <script src="./tools/common.js"></script>
     <script src="./tools/sub_logger.js"></script>
+    <script src="./tools/_config_hook_list.js"></script>
     <script src="options.js"></script>
     <script src="tools/model_funcs.js"></script>
     <script src="tools/babel_asttool.js"></script>
     <script src="tools/uglify_es.js"></script>
+    <script src="tools/terser.js"></script>
     <script src="tools/env_maker.js"></script>
     <script src="tools/btn_utils.js"></script>
     <script src="tools/js_obfuscator.js"></script>

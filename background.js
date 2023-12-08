@@ -24,9 +24,41 @@ function add_hook_event_code(tabs, callback){
     var toggle = true
     var elelist = []
     var v_stringify = JSON.stringify
+    var v_parse = JSON.parse
     function log_ele(name, e){
       if (toggle){
-        elelist.push([name, e, v_stringify({type:name, x: e.clientX, y: e.clientY, screenX: e.screenX, screenY: e.screenY, timeStamp: e.timeStamp})])
+        if (!e.target.tagName){
+          var css = ''
+        }else{
+          var css = e.target.tagName.toLowerCase()
+                    + (e.target.id ? '#' + e.target.id : '') 
+                    + (e.target.classList.length ? '.' + e.target.classList[0] : '')
+        }
+        function tofixnum(dict, num){
+          num = num || 1
+          var keys = Object.keys(v_parse(v_stringify(dict)))
+          for (var i = 0; i < keys.length; i++) {
+            if (typeof dict[keys[i]] == 'number'){
+              dict[keys[i]] = +dict[keys[i]].toFixed(num)
+            }
+          }
+          return dict
+        }
+        elelist.push([name, e, 
+        v_stringify({
+          type:name, 
+          x: e.clientX, 
+          y: e.clientY, 
+          screenX: e.screenX, 
+          screenY: e.screenY, 
+          timeStamp: e.timeStamp, 
+          css: {
+            selector: css,
+            rect: tofixnum(e.target.getBoundingClientRect ? e.target.getBoundingClientRect() : {}),
+            tagName: e.target.tagName || undefined,
+            id: e.target.id || undefined,
+          }, 
+        })])
       }
     }
     function copyToClipboard(str, maxtime){

@@ -310,10 +310,22 @@ function make_v(envs, keys){
         HTMLAnchorElement:{
             __init__:{
                 value: `v_hook_href(this, 'HTMLAnchorElement', location.href)`
-            }
+            },
+            href: { ban: true },
+            protocol: { ban: true },
+            host: { ban: true },
+            search: { ban: true },
+            hash: { ban: true },
+            hostname: { ban: true },
+            port: { ban: true },
+            pathname: { ban: true },
         },
     }
+    var avoid_obj = ['URL']
     function make_chain(name){
+        if (avoid_obj.indexOf(name) != -1){
+            return []
+        }
         var _name = name
         var list = []
         if (window[_name]){
@@ -621,6 +633,7 @@ function make_v(envs, keys){
             v_new_htmlmap[v_eles[i]] = htmlmap[v_eles[i]]
         }
     }
+    v_new_htmlmap['HTMLAnchorElement'] = ["a"]; // 确保a标签存在
     var v_createE = JSON.stringify(v_new_htmlmap, 0, 0)
     var v_cele = []
     if (v_createE.length > 3){
@@ -661,12 +674,13 @@ function make_v(envs, keys){
                     _global.push(`if (typeof Buffer != 'undefined'){ Buffer = undefined }`)
                     _global.push(`var __globalThis__ = typeof global != 'undefined' ? global : this`)
                     _global.push(`var window = new Proxy(v_new(Window), {`)
-                    _global.push(`  get(a,b){ return a[b] || __globalThis__[b] },`)
+                    _global.push(`  get(a,b){ if(b=='global'){return}return a[b] || __globalThis__[b] },`)
                     _global.push(`  set(a,b,c){ `)
                     _global.push(`    if (b == 'onclick' && typeof c == 'function') { window.addEventListener('click', c) }`)
                     _global.push(`    if (b == 'onmousedown' && typeof c == 'function') { window.addEventListener('mousedown', c) }`)
                     _global.push(`    if (b == 'onmouseup' && typeof c == 'function') { window.addEventListener('mouseup', c) }`)
                     _global.push(`    __globalThis__[b] = a[b] = c `)
+                    _global.push(`    return true `)
                     _global.push(`  },`)
                     _global.push(`})`)
                     _global.push(`var v_hasOwnProperty = Object.prototype.hasOwnProperty`)
@@ -694,6 +708,32 @@ function make_v(envs, keys){
             }
         }
     }
+    _global.push(`
+var win = {
+  window: window,
+  frames: window,
+  parent: window,
+  self: window,
+  top: window,
+}
+function v_repair_this(){
+  win = {
+    window: __globalThis__,
+    frames: __globalThis__,
+    parent: __globalThis__,
+    self: __globalThis__,
+    top: __globalThis__,
+  }
+}
+Object.defineProperties(window, {
+  window: {get:function(){return win.window},set:function(e){return win.window = e}},
+  frames: {get:function(){return win.frames},set:function(e){return win.frames = e}},
+  parent: {get:function(){return win.parent},set:function(e){return win.parent = e}},
+  self:   {get:function(){return win.self},  set:function(e){return win.self = e}},
+  top:    {get:function(){return win.top},   set:function(e){return win.top = e}},
+})
+      `)
+
     var tail = [
 `function init_cookie(cookie){
   var cache = (cookie || "").trim();
@@ -738,10 +778,10 @@ function make_v(envs, keys){
 function v_hook_href(obj, name, initurl){
   var r = Object.defineProperty(obj, 'href', {
     get: function(){
-      if (!(this.protocol) && !(this.host)){
+      if (!(this.protocol) && !(this.hostname)){
         r = ''
       }else{
-        r = this.protocol + "//" + this.host + (this.port ? ":" + this.port : "") + this.pathname + this.search + this.hash;
+        r = this.protocol + "//" + this.hostname + (this.port ? ":" + this.port : "") + this.pathname + this.search + this.hash;
       }
       v_console_log(\`  [*] \${name||obj.constructor.name} -> href[get]:\`, JSON.stringify(r))
       return r
@@ -751,16 +791,16 @@ function v_hook_href(obj, name, initurl){
       v_console_log(\`  [*] \${name||obj.constructor.name} -> href[set]:\`, JSON.stringify(href))
       if (href.startsWith("http://") || href.startsWith("https://")){/*ok*/}
       else if(href.startsWith("//")){ href = (this.protocol?this.protocol:'http:') + href}
-      else{ href = this.protocol+"//"+this.host + (this.port?":"+this.port:"") + '/' + ((href[0]=='/')?href.slice(1):href) }
+      else{ href = this.protocol+"//"+this.hostname + (this.port?":"+this.port:"") + '/' + ((href[0]=='/')?href.slice(1):href) }
       var a = href.match(/([^:]+:)\\/\\/([^/:?#]+):?(\\d+)?([^?#]*)?(\\?[^#]*)?(#.*)?/);
       this.protocol = a[1] ? a[1] : "";
-      this.host     = a[2] ? a[2] : "";
+      this.hostname = a[2] ? a[2] : "";
       this.port     = a[3] ? a[3] : "";
       this.pathname = a[4] ? a[4] : "";
       this.search   = a[5] ? a[5] : "";
       this.hash     = a[6] ? a[6] : "";
-      this.hostname = this.host;
-      this.origin   = this.protocol + "//" + this.host + (this.port ? ":" + this.port : "");
+      this.host     = this.hostname + (this.port?":"+this.port:"") ;
+      this.origin   = this.protocol + "//" + this.hostname + (this.port ? ":" + this.port : "");
     }
   });
   if (initurl && initurl.trim()){ var temp=v_new_toggle; v_new_toggle = true; r.href = initurl; v_new_toggle = temp; }
@@ -1035,6 +1075,8 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
 
 `init_cookie(${JSON.stringify(document.cookie)})`,
 `v_hook_href(window.location, 'location', ${JSON.stringify(location.href)})`,
+`Location.prototype.toString = v_saf(function toString(){ return ${JSON.stringify(location.href)} })`,
+`window.alert = v_saf(function alert(){})`,
 `v_hook_storage()`,
 `v_init_document()`,
 `v_init_canvas()`,
@@ -1112,7 +1154,10 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
     tail.push(`})();`)
     tail.push(`var v_to_time = +new v_Date`)
     tail.push(`// var v_to_time = +new v_Date('Sat Sep 03 2022 11:11:58 GMT+0800') // 自定义起始时间`)
+    tail.push(``)
+    tail.push(`v_repair_this() // 修复 window 指向global`)
     tail.push('v_new_toggle = undefined')
+    tail.push('// v_console_log = function(){} // 关闭日志输出')
     var rets = [
         `var v_saf;!function(){var n=Function.toString,t=[],i=[],o=[].indexOf.bind(t),e=[].push.bind(t),r=[].push.bind(i);function u(n,t){return-1==o(n)&&(e(n),r(\`function \${t||n.name||""}() { [native code] }\`)),n}Object.defineProperty(Function.prototype,"toString",{enumerable:!1,configurable:!0,writable:!0,value:function(){return"function"==typeof this&&i[o(this)]||n.call(this)}}),u(Function.prototype.toString,"toString"),v_saf=u}();`,
         '\n',
@@ -1187,7 +1232,34 @@ function injectfunc(e, window) {
 
   var expurl = RegExp((e["config-hook-regexp-url"] || '').trim())
   RegExp.prototype.v_test = RegExp.prototype.test
-  String.prototype.v_split = String.prototype.split
+  var c_split = String.prototype.split
+  String.prototype.v_split = function(){
+    if (typeof this == 'string'){
+      return c_split.apply(this, arguments)
+    }else{
+      return 'error v_split'
+    }
+  }
+  function openwin(txt) {
+      var OpenWindow = window.open("about:blank", "1", "height=600, width=800,toolbar=no,scrollbars=" + scroll + ",menubar=no");
+      OpenWindow.document.write(`
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <title></title>
+  </head>
+  <body>
+  <h3>从下面的窗口直接复制生成的代码使用</h3>
+  <textarea style="width: 100%; height: 1500px" id="txt" spellcheck="false"></textarea>
+  </body>
+  </html>
+  `)
+      var left = 100
+      var top = 100
+      OpenWindow.moveTo(left, top);
+      OpenWindow.document.close()
+      return OpenWindow.txt.value = txt || ''
+  }
 
   var v_window_cache = {}
   var v_winkeys = Object.getOwnPropertyNames(window)
@@ -1200,24 +1272,28 @@ function injectfunc(e, window) {
   window.v_log_env = function (){
     $make_v_func
     function copyToClipboard(str){
-      const el = document.createElement('textarea');
-      el.value = str;
-      el.setAttribute('readonly', '');
-      el.style.position = 'absolute';
-      el.style.left = '-9999px';
-      document.body.appendChild(el);
-      const selected =
-        document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      if (selected) {
-        document.getSelection().removeAllRanges();
-        document.getSelection().addRange(selected);
-        alert('已将代码存放到剪贴板中。')
-      }else{
-        alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。(因为可能会保存失败，可以多点几次 “生成临时环境”)')
-        console.log(str)
+      try{
+        openwin(str)
+      }catch(e){
+        const el = document.createElement('textarea');
+        el.value = str;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        const selected =
+          document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        if (selected) {
+          document.getSelection().removeAllRanges();
+          document.getSelection().addRange(selected);
+          alert('已将代码存放到剪贴板中。')
+        }else{
+          alert('保存至剪贴板失败。尝试直接将代码用 console.log 直接输出在控制台中。(因为可能会保存失败，可以多点几次 “生成临时环境”)')
+          console.log(str)
+        }
       }
     };
     var mkstr = make_v([v_env_cache, v_getelement_all])
@@ -1776,10 +1852,46 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'alerterror'){
     inject_script(`alert(${JSON.stringify(msg.action.info)})`)
   }
+  if (msg.action.type == 'run_in_page'){
+    inject_script(`${msg.action.info}`)
+  }
   if (msg.action.type == 'getcookie'){
     // 有些 onlyhttp 的 cookie 直接通过 js 拿不到，所以这个插件会主动在 js 环境下注入一个 vilame_setter 参数。
     // 通过 vilame_setter 参数可以直接拿到所有当前页面 domain 下的 cookie 包括 httponly 类型的 cookie。
     inject_script('window.vilame_setter='+JSON.stringify(msg.action.info))
+  }
+  if (msg.action.type == 'eval'){
+    var jscode = msg.action.info
+    jscode = `
+    ${jscode}
+    var envstr = (function(txt){
+      txt = txt.split('http://pls_init_href_first/test1/test2').join(location.href)
+      txt = txt.split('// $$$referrer').join('document[_y].referrer = "' + (document.referrer || '') + '"')
+      txt = txt.split('// $$$init_cookie').join('window[_y].init_cookie("' + document.cookie + '")')
+      return txt
+    })(window.v_mk())
+    ;(function openwin(txt) {
+      var OpenWindow = window.open("about:blank", "1", "height=600, width=800,toolbar=no,scrollbars=" + scroll + ",menubar=no");
+      OpenWindow.document.write(\`
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title></title>
+    </head>
+    <body>
+    <h3>从下面的窗口直接复制生成的代码使用</h3>
+    <textarea style="width: 100%; height: 1500px" id="txt" spellcheck="false"></textarea>
+    </body>
+    </html>
+    \`)
+        var left = 100
+        var top = 100
+        OpenWindow.moveTo(left, top);
+        OpenWindow.document.close()
+        return OpenWindow.txt.value = txt || ''
+    })(envstr)
+    `
+    inject_script(jscode)
   }
   sendResponse({})
 });

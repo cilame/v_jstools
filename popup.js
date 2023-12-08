@@ -52,25 +52,72 @@ document.getElementById('showoptions').addEventListener('click', function(e){
 })
 
 document.getElementById('addlistener').addEventListener('click', function(e){
-  chrome.storage.local.get([ "config-hook-domobj", "config-hook-domobj-get", "config-hook-domobj-set", "config-hook-domobj-func" ], function (result) {
-    if (!(result["config-hook-domobj"] && result["config-hook-domobj-get"] && result["config-hook-domobj-set"] && result["config-hook-domobj-func"])){
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        chrome.tabs.sendMessage(tabs[0].id, {action: {type:'alerterror', info: `请在配置页面中将DOM挂钩功能全部选中。
+  var check_list = [ "config-hook-global", "config-hook-domobj", "config-hook-domobj-get", "config-hook-domobj-set", "config-hook-domobj-func" ]
+  chrome.storage.local.get(check_list, function (result) {
+    if (!(result["config-hook-global"] && result["config-hook-domobj"] && result["config-hook-domobj-get"] && result["config-hook-domobj-set"] && result["config-hook-domobj-func"])){
+      var result = confirm(`
+启用该功能需要让以下四个配置选中：
+1: 是否启用挂钩 DOM 对象的原型的功能调试输出
+2: hook-domobj-显示get输出
+3: hook-domobj-显示set输出
+4: hook-domobj-显示func输出
 
-以下四个必选：
-是否启用挂钩 DOM 对象的原型的功能调试输出
-hook-domobj-显示get输出
-hook-domobj-显示set输出
-hook-domobj-显示func输出
-
-后面的选项，你也需要全选。`}}, function(response) {});
-      });
+点击 “确认” 会刷新页面并自动选中所需配置，
+然后重新点击 “生成临时环境” 即可生成代码。`);
+      if(result){
+        function make_hook(input, name){
+          var ret = ['config-hook-all-'+name]
+          for (var i = 0; i < input.length; i++) {
+            var kv = input[i]
+            var k = kv[0]
+            var v = kv[1]
+            ret.push(`config-hook-${k}-${v}`)
+          }
+          return ret
+        }
+        var all_list = ["config-hook-log-toggle"]
+        .concat(check_list)
+        .concat(make_hook(getsets_0, 'getsets_0'))
+        .concat(make_hook(funcs_0, 'funcs_0'))
+        .concat(make_hook(getsets_1, 'getsets_1'))
+        .concat(make_hook(funcs_1, 'funcs_1'))
+        var config_target = {}
+        for (var i = 0; i < all_list.length; i++) {
+          config_target[all_list[i]] = true
+        }
+        chrome.storage.local.set(config_target, function(e){
+          chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+            chrome.tabs.sendMessage(tabs[0].id, {action: {type:'run_in_page', info: `
+              window.open(location, '_self')
+            `}}, function(response) {});
+          });
+          sub_logger()
+          window.close()
+        })
+        // chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+        //   chrome.tabs.sendMessage(tabs[0].id, {action: {type:'alerterror', info: `123123`}}, function(response) {});
+        // });
+      }
       return
     }
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
       chrome.tabs.sendMessage(tabs[0].id, {action: {type:'addlistener', info: 'addlistener'}}, function(response) {});
     });
   })
+})
+
+
+document.getElementById('create_high_env').addEventListener('click', function(e){
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+    function send(info){
+      chrome.tabs.sendMessage(tabs[0].id, {action: {type:'eval', info: info}}, function(response) {});
+    }
+    get_file("./tools/env_maker.js", send)
+  });
+})
+
+get_file("./tools/env_maker.js", function(){}, function(){
+  document.getElementById('create_high_env').remove()
 })
 
 // document.getElementById('logtoggle').addEventListener('click', function(e){

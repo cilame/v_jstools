@@ -2,7 +2,7 @@ function errorHandler(e){
     console.log(e)
 }
 
-function get_file(filename, callback){
+function get_file(filename, callback, errcallback){
     chrome.runtime.getPackageDirectoryEntry(function(root) {
         root.getFile(filename, {}, function(fileEntry) {
             fileEntry.file(function(file) {
@@ -12,8 +12,8 @@ function get_file(filename, callback){
                     callback(this.result)
                 }
                 reader.readAsText(file);
-            }, errorHandler);
-        }, errorHandler);
+            }, (errcallback||errorHandler));
+        }, (errcallback||errorHandler));
     });
 }
 
@@ -74,5 +74,35 @@ if (get_code_jsencrypt){
             document.getElementById('my_code_dec').value = text
         }
         get_file('tools/jsencrypt.js', callback)
+    })
+}
+
+var get_code_cheerio = document.getElementById('get_code_cheerio')
+if (get_code_cheerio){
+    get_code_cheerio.addEventListener('click', function(e){
+        function callback(text){
+            document.getElementById('my_code_dec').value = text
+        }
+        get_file('tools/cheerio.js', callback)
+    })
+}
+
+var get_code_terser = document.getElementById('get_code_terser')
+if (get_code_terser){
+    get_code_terser.addEventListener('click', function(e){
+        function callback(text){
+            document.getElementById('my_code_dec').value = text
+        }
+        get_file('tools/terser.js', callback)
+    })
+}
+
+var get_code_parse5 = document.getElementById('get_code_parse5')
+if (get_code_parse5){
+    get_code_parse5.addEventListener('click', function(e){
+        function callback(text){
+            document.getElementById('my_code_dec').value = text
+        }
+        get_file('tools/parse5.js', callback)
     })
 }
