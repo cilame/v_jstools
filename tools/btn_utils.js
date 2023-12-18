@@ -7,6 +7,7 @@ var jsfuckbtn = document.getElementById('jsfuck')
 var obnormalbtn = document.getElementById('obnormal')
 var babel_aline = document.getElementById('babel_aline')
 var uglifybtn = document.getElementById('uglify')
+var terserbtn = document.getElementById('terser')
 var uglify_minibtn = document.getElementById('uglify_mini')
 var terser_minibtn = document.getElementById('terser_mini')
 var txt = document.getElementById('txt')
@@ -126,6 +127,18 @@ uglifybtn.addEventListener('click', function(e){
 uglify_minibtn.addEventListener('click', function(e){
   var r = UglifyJS.minify(txt.value)
   ;(txt2||txt).value = r.code?r.code:r.error;
+})
+
+terserbtn.addEventListener('click', function(e){
+  terser.charlist = '0123456789'
+  terser.prefix = 'vvv_'
+  terser.tail = '_'
+  terser.minify(txt.value, {compress:false,output:{beautify:true}}).then(function(e){
+    terser.charlist = undefined
+    terser.prefix = undefined
+    terser.tail = undefined
+    ;(txt2||txt).value = e.code?e.code:e.error;
+  })
 })
 
 terser_minibtn.addEventListener('click', function(e){
