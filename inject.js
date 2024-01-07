@@ -506,7 +506,7 @@ function make_v(envs, keys){
         `    constructor: { value: t, writable: !0, configurable: !0 }`,
         `  }), e && Object.setPrototypeOf(t, e) }`,
         `Object.defineProperty(Object.prototype, Symbol.toStringTag, {`,
-        `  get() { return Object.getPrototypeOf(this).constructor.name }`,
+        `  get() { return Object.getPrototypeOf(this).constructor.name }, configurable:true,`,
         `});`,
 
         'var v_new_toggle = true',

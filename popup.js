@@ -156,7 +156,37 @@ if(update_page){
     }
     closePopup()
     chrome.tabs.create({
+      url: 'https://github.com/cilame/v_jstools'
+    });
+  })
+}
+
+var qq_group_page = document.getElementById('qq_group_page')
+if(qq_group_page){
+  qq_group_page.addEventListener('click', function(e){
+    function closePopup() {
+      window.close();
+      document.body.style.opacity = 0;
+      setTimeout(function() { history.go(0); }, 300);
+    }
+    closePopup()
+    chrome.tabs.create({
       url: 'https://qm.qq.com/q/ZpEfmZxdKy'
+    });
+  })
+}
+
+var wx_zsxq_page = document.getElementById('wx_zsxq_page')
+if(wx_zsxq_page){
+  wx_zsxq_page.addEventListener('click', function(e){
+    function closePopup() {
+      window.close();
+      document.body.style.opacity = 0;
+      setTimeout(function() { history.go(0); }, 300);
+    }
+    closePopup()
+    chrome.tabs.create({
+      url: 'https://wx.zsxq.com/dweb2/index/group/15552845822482'
     });
   })
 }
