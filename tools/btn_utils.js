@@ -5,6 +5,7 @@ var sojsontn = document.getElementById('sojson')
 var obtn = document.getElementById('ob')
 var jsfuckbtn = document.getElementById('jsfuck')
 var obnormalbtn = document.getElementById('obnormal')
+var tr2es5btn = document.getElementById('tr2es5')
 var babel_aline = document.getElementById('babel_aline')
 var uglifybtn = document.getElementById('uglify')
 var terserbtn = document.getElementById('terser')
@@ -85,6 +86,14 @@ obtn.addEventListener('click', function(e){
 obnormal.addEventListener('click', function(e){
   try{
     ;(txt2||txt).value = muti_process_defusion(txt.value, get_ob_config())
+  }catch(e){
+    ;(txt2||txt).value = e.stack
+  }
+})
+
+tr2es5.addEventListener('click', function(e){
+  try{
+    ;(txt2||txt).value = transform_jscode_to_es5(txt.value, get_ob_config())
   }catch(e){
     ;(txt2||txt).value = e.stack
   }
