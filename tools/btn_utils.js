@@ -183,11 +183,12 @@ envb.addEventListener('dblclick', function(e){
       result["config-hook-global"] = true
       var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
       var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
-      var inject_code = \`(\${replacer_injectfunc})(\${JSON.stringify(result)},window)\`
       var log_toggle = result["config-hook-log-toggle"]
+      var temp_toggle = false
       if(!log_toggle){
-        inject_code += ';globalConfig.logtogglefunc({key:"w",altKey:true})'
+        temp_toggle = true
       }
+      var inject_code = \`(\${replacer_injectfunc})(\${JSON.stringify(result)},window,\${temp_toggle})\`
       my_magic_obj['inject_code'] = inject_code
     })
     `
@@ -204,7 +205,7 @@ envb.addEventListener('dblclick', function(e){
       debug_tab = true
       chrome.tabs.query({}, function(tabs) {
         for (var i = 0; i < tabs.length; i++) {
-          if (tabs[i].url.indexOf("chrome") == 0){
+          if (tabs[i].url.startsWith("chrome")){
             continue
           }
           attach_tab_debug(tabs[i].id, code)

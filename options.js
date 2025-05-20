@@ -482,3 +482,47 @@ chrome.storage.local.get(["response_changer"], function(res){
         localStorage.webRedirect = JSON.stringify(data)
     })
 })
+
+normal_config.addEventListener("click", function(e){
+  // chrome.storage.local.set({
+  //   'config-hook-log-toggle': 1,
+  // })
+  var openlist = [
+    'config-hook-global',
+    'config-hook-log-toggle',
+    'config-hook-log-at',
+    'config-hook-cookie',
+    'config-hook-cookie-get',
+    'config-hook-cookie-set',
+    'config-hook-encrypt-normal',
+    'config-hook-JSON.parse',
+    'config-hook-JSON.stringify',
+    'config-hook-decodeURI',
+    'config-hook-decodeURIComponent',
+    'config-hook-encodeURI',
+    'config-hook-encodeURIComponent',
+    'config-hook-escape',
+    'config-hook-unescape',
+    'config-hook-atob',
+    'config-hook-btoa',
+    'config-hook-domobj',
+    'config-hook-domobj-get',
+    'config-hook-domobj-set',
+    'config-hook-domobj-func',
+  ]
+  var setd = {}
+  setd['config-hook-log-toggle'] = true
+  document.querySelectorAll("input").forEach(function(v){
+    if (openlist.indexOf(v.dataset.key) != -1
+      || v.className?.indexOf('getsets_0') != -1
+      || v.className?.indexOf('funcs_0') != -1
+      || v.className?.indexOf('getsets_1') != -1
+      || v.className?.indexOf('funcs_1') != -1
+    ){
+      setd[v.dataset.key] = v.checked = true
+    }else{
+      setd[v.dataset.key] = v.checked = false
+    }
+  })
+  chrome.storage.local.set(setd)
+})

@@ -1,7 +1,7 @@
 function make_v(envs, keys){
-    _envs = envs
-    envs = _envs[0]
-    eles = _envs[1]
+    var _envs = envs
+    var envs = _envs[0]
+    var eles = _envs[1]
     var configs = {
         EventTarget: {
             addEventListener: { ban: true },
@@ -481,7 +481,7 @@ function make_v(envs, keys){
             maxlen = ls.length > maxlen ? ls.length : maxlen
         }
     }
-    if (!maxlen){ return }
+    // if (!maxlen){ return }
     for (var i = 0; i < collect.length; i++) {
         var len = maxlen - collect[i].length
         for (var j = 0; j < len; j++) {
@@ -1175,12 +1175,12 @@ window.atob = window.atob || v_saf(atob_btoa.atob, 'atob')
 
 
 
-function injectfunc(e, window) {
+function injectfunc(e, window, init_log) {
   var FuntoString = Function.prototype.toString
+  var v_Function = Function
   var origslice = [].slice
 
   var v_Error = Error
-  window.globalConfig = e;
   console.log("inject start!", e)
   if ((e["config-hook-regexp-url"] || '').trim()){
     console.log('[*] 配置了只收集对某个js路径才输出的配置（如出现控制台不输出hook，注意配置该项为空）:', e["config-hook-regexp-url"])
@@ -1195,29 +1195,30 @@ function injectfunc(e, window) {
       }
     })
   }
+  var v_console_dbg_log = console.log
+  var check_over_limit;
   !function(){ 
     var log_limit = e["config-hook-log-limit-num"] || 30
     var regexp = /^ *\([\*f]\)/
     var rtest = regexp.test.bind(regexp)
     var cache = {}
     var close_tog = {}
-    var v_console_log = console.log
-    window.v_log = function(...a){
+    check_over_limit = function(...a){
       if (typeof a[0] == 'string' && rtest(a[0])){
         cache[a[0]] = (cache[a[0]] || 0) + 1
         if (cache[a[0]] > log_limit){
           if (!close_tog[a[0]]){
             close_tog[a[0]] = true
-            v_console_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.（默认30，可在 “dom对象hook配置” 的红色窗口中配置）')
+            v_console_dbg_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.（默认30，可在 “dom对象hook配置” 的红色窗口中配置）')
           }
           return
         }
       }
-      v_console_log(...a)
+      return true
     }
   }()
   // 保护 toString 函数
-  var saf,saf_class;
+  var saf;
   !function() {
     var v=console.log,n=Function,t="prototype",e="toString",o=n[e],i=Symbol("(".concat("",")_",(Math.random() + "")[e](36))),c=function() {
       try{return"function"==typeof this&&this[i]||o.call(this);}catch(n){return v("[ERROR toString]",this+''),"";}};
@@ -1225,6 +1226,17 @@ function injectfunc(e, window) {
     delete n[t][e],r(n[t],e,c),r(n[t][e],i,"function toString() { [native code] }"),
     saf=function(n,m){return r(n,i,`function ${m?m:n.name||""}() { [native code] }`),n;};
   }();
+  function saf_noprototype(f, name, length){
+    var nf = {v(){
+        return f.apply(this, arguments)
+    }}.v
+    var r = saf(nf, name)
+    Object.defineProperties(r, {
+      length: {value: typeof length=='number'?length:f.length, writable: false, enumerable: false, configurable: true},
+      name: {value: name||f.name, writable: false, enumerable: false, configurable: true},
+    })
+    return r
+  }
 
   if (e["config-hook-test"]) {
     debugger
@@ -1232,7 +1244,8 @@ function injectfunc(e, window) {
 
   var expurl = RegExp((e["config-hook-regexp-url"] || '').trim())
   RegExp.prototype.v_test = RegExp.prototype.test
-  var c_split = String.prototype.split
+  var c_split = Date.call.bind(String.prototype.split)
+
   String.prototype.v_split = function(){
     if (typeof this == 'string'){
       return c_split.apply(this, arguments)
@@ -1269,7 +1282,7 @@ function injectfunc(e, window) {
     }
   }
   var v_env_cache = {}
-  window.v_log_env = function (){
+  var v_env_list_log = function (){
     $make_v_func
     function copyToClipboard(str){
       try{
@@ -1355,10 +1368,10 @@ function injectfunc(e, window) {
     return attoggle?(' '.repeat(30)+log_at):''
   }
   if (e["config-hook-random"] && e["config-hook-random-freeze"]){
-    Math.random = saf(function random(){ return 0.5 })
+    Math.random = saf_noprototype(function random(){ return 0.5 })
   }
   if (e["config-hook-random"] && e["config-hook-random-fake"]){
-    Math.random = saf((function(seed){ return function random() { return (seed = (seed * 9301 + 49297) % 233280) / 233280 } })(123))
+    Math.random = saf_noprototype((function(seed){ return function random() { return (seed = (seed * 9301 + 49297) % 233280) / 233280 } })(123))
   }
   if (e["config-hook-random"] && e["config-hook-time-freeze"]){
     var v_Date = Date
@@ -1383,29 +1396,21 @@ function injectfunc(e, window) {
       Date.prototype = _Date.prototype
       return saf(Date);
     }(Date);
-    Date.now = saf(function now(){ return ftime })
+    Date.now = saf_noprototype(function now(){ return ftime })
   }
   if (e["config-hook-random"] && e["config-hook-time-performance"]){
     var v_perfnow = 1024 // 固定返回一个数字
-    Performance.prototype.now = saf(function now(){ return v_perfnow })
+    Performance.prototype.now = saf_noprototype(function now(){ return v_perfnow })
   }
 
   var toggle = true
   function change_toggle(toggle){
     e["config-hook-domobj"] = toggle
+    e["config-hook-cookie"] = toggle
     e["config-hook-Function"] = toggle
     e["config-hook-eval"] = toggle
-    e["config-hook-cookie"] = toggle
     e["config-hook-settimeout"] = toggle
     e["config-hook-setinterval"] = toggle
-    e["config-hook-JSON.parse"] = toggle
-    e["config-hook-JSON.stringify"] = toggle
-    e["config-hook-decodeURI"] = toggle
-    e["config-hook-decodeURIComponent"] = toggle
-    e["config-hook-encodeURI"] = toggle
-    e["config-hook-encodeURIComponent"] = toggle
-    e["config-hook-escape"] = toggle
-    e["config-hook-unescape"] = toggle
     e["config-hook-JSON.parse"] = toggle
     e["config-hook-JSON.stringify"] = toggle
     e["config-hook-decodeURI"] = toggle
@@ -1417,35 +1422,36 @@ function injectfunc(e, window) {
     e["config-hook-atob"] = toggle
     e["config-hook-btoa"] = toggle
   }
-  e.logtogglefunc = function(event){
+  var logtogglefunc = function(event){
     if (event.key == 'w' && event.altKey){
       toggle = !toggle
       change_toggle(toggle)
       if (toggle){
-        window.v_log('开启日志')
+        v_console_dbg_log('[*] vvv dbg:', '开启日志')
       }else{
-        window.v_log('关闭日志')
+        v_console_dbg_log('[*] vvv dbg:', '关闭日志')
       }
     }
   }
-  if (e["config-hook-alt-w"]) {
-    document.onkeydown = e.logtogglefunc
-  }
-  if (e["config-hook-console"]){
-    Object.keys(console).map(function(e){console[e] = eval(`saf(function ${e}(){})`)})
+
+  // 
+  // var frameElement_getter = Date.call.bind(Object.getOwnPropertyDescriptors(window).frameElement.get)
+
+  if (init_log){
+    logtogglefunc({key:"w",altKey:true})
   }
   if (e["config-hook-Function"]){
     !function(){
       // hook function
       var _oldFunction = Function
-      var _newFunction = function Function(){
-        if (window.v_func){
-          // modify on outside: 
-          //   window.v_func = function(e){e[e.length-1]=e[e.length-1].replace(/debugger/g, '        ')}
-          window.v_func(arguments)
-        }else{ 
-          if (e["config-hook-Function"]){
-            window.v_log(..._mk_logs('Function code:', arguments[arguments.length-1]) )
+      var _newFunction = function Function(a){
+        if (v_change_Function){
+          v_change_Function(arguments)
+        }
+        if (e["config-hook-Function"]){
+          var loglist = _mk_logs('Function code:', arguments[arguments.length-1]) ; 
+          if (check_over_limit(loglist)){ 
+              v_console_dbg_log(...loglist) 
           }
         }
         return _oldFunction.apply(this, arguments)
@@ -1465,21 +1471,23 @@ function injectfunc(e, window) {
     !function(){
       // hook eval
       var _oldeval = eval
-      eval = function eval(){
-        if (window.v_eval){
-          // modify on outside: 
-          //   window.v_eval = function(e){e[e.length-1]=e[e.length-1].replace(/debugger/g, '        ')}
-          window.v_eval(arguments)
-        }else{ 
-          if (e["config-hook-eval"]){
-            window.v_log(..._mk_logs('eval code:', arguments[arguments.length-1]) )
+      eval = function eval(a){
+        if (v_change_eval){
+          v_change_eval(arguments)
+        }
+        if (e["config-hook-eval"]){
+          var loglist = _mk_logs('eval code:', arguments[arguments.length-1]) ; 
+          if (check_over_limit(loglist)){ 
+              v_console_dbg_log(...loglist) 
           }
         }
         return _oldeval.apply(this, arguments)
       }
-      saf(eval)
+      saf_noprototype(eval)
     }()
   }
+  var v_change_Function;
+  var v_change_eval;
   if (e["config-hook-remove-dyn-debugger"]){
     !function(){
       function mk_func(fname){
@@ -1488,63 +1496,67 @@ function injectfunc(e, window) {
           if (/debugger/.test(e[e.length-1])){
             if (temp.indexOf(e[e.length-1]) == -1){
               temp.push(e[e.length-1])
-              window.v_log(..._mk_logs(`[replace_debugger:${fname}]: debugger is exist, replace it with empty string.`))
+              var loglist = _mk_logs(`[replace_debugger:${fname}]: debugger is exist, replace it with empty string.`); 
+              if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
+              }
             }
             e[e.length-1]=e[e.length-1].replace(/debugger/g, '    ')
           }else{ 
             if (temp.indexOf(e[e.length-1]) == -1){
               temp.push(e[e.length-1])
-              window.v_log(..._mk_logs(`[replace_debugger:${fname}]: ${e[e.length-1]}`) )
+              var loglist = _mk_logs(`[replace_debugger:${fname}]: ${e[e.length-1]}`) ; 
+              if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
+              }
             }
           }
         }
         return replace_debugger
       }
-      window.v_func = mk_func('Function')
-      window.v_eval = mk_func('eval')
+      v_change_Function = mk_func('Function')
+      v_change_eval = mk_func('eval')
     }()
   }
   if (e["config-hook-cookie"]){
     !function(){
       // hook cookie get set
-      var _old_cookie_get = Object.getOwnPropertyDescriptors(document.__proto__.__proto__).cookie.get
-      var _old_cookie_set = Object.getOwnPropertyDescriptors(document.__proto__.__proto__).cookie.set
+      var _old_cookie_get = Object.getOwnPropertyDescriptors(Document.prototype).cookie.get
+      var _old_cookie_set = Object.getOwnPropertyDescriptors(Document.prototype).cookie.set
       var _new_cookie_get = function get(){
         var r = _old_cookie_get.apply(this, arguments)
-        if (window.v_cookie_get){
-          window.v_cookie_get(r)
-        }else{ 
-          if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
-            var expstr=v_Error().stack.v_split('\n')[2]
-            v_cache_node(expstr, "Document", "cookie", "get", r)
-            if (expurl.v_test(expstr) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('(*) [cookie get]', r, get_log_at(expstr.trim())))
+        if (e["config-hook-cookie"] && e["config-hook-cookie-get"]){
+          var expstr=c_split(v_Error().stack||"", '\n')[3]
+          v_cache_node(expstr, "Document", "cookie", "get", r)
+          if (expurl.v_test(expstr) && typeof expstr == 'string'){
+            var loglist = _mk_logs('(*) [cookie get]', r, get_log_at(expstr.trim())); 
+            if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
             }
-            if (e["config-hook-cookie-add-debugger"] && r.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
           }
+          if (e["config-hook-cookie-add-debugger"] && r.indexOf(e["config-hook-cookie-match"]) != -1){ debugger }
         }
         return r
       }
-      saf(_new_cookie_get)
+      saf_noprototype(_new_cookie_get, 'get cookie')
       var _new_cookie_set = function set(v){
-        if (window.v_cookie_set){
-          window.v_cookie_set(arguments)
-        }else{ 
-          if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
-            var expstr=v_Error().stack.v_split('\n')[2]
-            v_cache_node(expstr, "Document", "cookie", "set")
-            if (expurl.v_test(expstr) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('(*) [cookie set]', v, get_log_at(expstr.trim())) )
+        if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
+          var expstr=c_split(v_Error().stack||"", '\n')[3]
+          v_cache_node(expstr, "Document", "cookie", "set")
+          if (expurl.v_test(expstr) && typeof expstr == 'string'){
+            var loglist = _mk_logs('(*) [cookie set]', v, get_log_at(expstr.trim())) ; 
+            if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
             }
           }
-          if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ 
-            debugger 
-          }
+        }
+        if (e["config-hook-cookie-add-debugger"] && v.indexOf(e["config-hook-cookie-match"]) != -1){ 
+          debugger 
         }
         return _old_cookie_set.apply(this, arguments)
       }
-      saf(_new_cookie_set)
-      Object.defineProperty(document.__proto__.__proto__, 'cookie', {
+      saf_noprototype(_new_cookie_get, 'set cookie')
+      Object.defineProperty(Document.prototype, 'cookie', {
         get: _new_cookie_get, 
         set: _new_cookie_set,
         enumerable: true, 
@@ -1556,38 +1568,34 @@ function injectfunc(e, window) {
     !function(){
       // hook setTimeout
       var _setTimeout = setTimeout
-      setTimeout = function setTimeout(){
-        if (window.v_settimeout){
-          window.v_settimeout(arguments)
-        }else{ 
-          if (e["config-hook-settimeout"]){
-            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2]) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('[settimeout]', ...arguments, get_log_at(expstr.trim())))
+      setTimeout = saf_noprototype(function setTimeout(){
+        if (e["config-hook-settimeout"]){
+          if (expurl.v_test(expstr=c_split(v_Error().stack||"", '\n')[3]) && typeof expstr == 'string'){
+            var loglist = _mk_logs('[settimeout]', ...arguments, get_log_at(expstr.trim())); 
+            if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
             }
           }
         }
-        _setTimeout.apply(this, arguments)
-      }
-      saf(setTimeout)
+        _setTimeout(...arguments)
+      })
     }()
   }
   if (e["config-hook-setinterval"]){
     !function(){
       // hook setInterval
       var _setInterval = setInterval
-      setInterval = function setInterval(){
-        if (window.v_setinterval){
-          window.v_setinterval(arguments)
-        }else{ 
-          if (e["config-hook-setinterval"]){
-            if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[2]) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('[setinterval]', ...arguments, get_log_at(expstr.trim())) )
+      setInterval = saf_noprototype(function setInterval(){
+        if (e["config-hook-setinterval"]){
+          if (expurl.v_test(expstr=c_split(v_Error().stack||"", '\n')[3]) && typeof expstr == 'string'){
+            var loglist = _mk_logs('[setinterval]', ...arguments, get_log_at(expstr.trim())) ; 
+            if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
             }
           }
         }
-        _setInterval.apply(this, arguments)
-      }
-      saf(setInterval)
+        _setInterval(...arguments)
+      })
     }()
   }
   var v_parse = JSON.parse
@@ -1600,41 +1608,100 @@ function injectfunc(e, window) {
   var v_unescape = unescape
   var v_atob = atob
   var v_btoa = btoa
-  // var util = require('util')
-  var util = {
-    inspect:function(e){
-      var r;
-      if (typeof e == 'string'){
-        r=e+'';
-        if(r.length>100){
-          r=r.slice(0,100)+'...'
-        };
-      }else if( Object.prototype.toString.call(e) == '[object Arguments]' ){
-        r = origslice.call(e)
-      }
-      else{ r = e }
-      return r
-    }
-  }
-  var v_logs = function (a, b, c) {
-    if (expurl.v_test(expstr=v_Error().stack.v_split('\n')[3]) && typeof expstr == 'string'){
-      window.v_log(..._mk_logs('  (*)', a, util.inspect(b), '===>', c, get_log_at(expstr.trim())))
-    }
-    return c
-  }
 
   if (e["config-hook-encrypt-normal"]){
-    if (e["config-hook-JSON.parse"]){ JSON.parse = saf(function parse(){ return e["config-hook-JSON.parse"]?v_logs('[JSON.parse]:', arguments, v_parse.apply(this, arguments)):v_parse.apply(this, arguments) }) }
-    if (e["config-hook-JSON.stringify"]){ JSON.stringify = saf(function stringify(){ return e["config-hook-JSON.stringify"]?v_logs('[JSON.stringify]:', arguments, v_stringify.apply(this, arguments)):v_stringify.apply(this, arguments) }) }
-    if (e["config-hook-decodeURI"]){ decodeURI = saf(function decodeURI(){ return e["config-hook-decodeURI"]?v_logs('[decodeURI]:', arguments, v_decodeURI.apply(this, arguments)):v_decodeURI.apply(this, arguments) }) }
-    if (e["config-hook-decodeURIComponent"]){ decodeURIComponent = saf(function decodeURIComponent(){ return e["config-hook-decodeURIComponent"]?v_logs('[decodeURIComponent]:', arguments, v_decodeURIComponent.apply(this, arguments)):v_decodeURIComponent.apply(this, arguments) }) }
-    if (e["config-hook-encodeURI"]){ encodeURI = saf(function encodeURI(){ return e["config-hook-encodeURI"]?v_logs('[encodeURI]:', arguments, v_encodeURI.apply(this, arguments)):v_encodeURI.apply(this, arguments) }) }
-    if (e["config-hook-encodeURIComponent"]){ encodeURIComponent = saf(function encodeURIComponent(){ return e["config-hook-encodeURIComponent"]?v_logs('[encodeURIComponent]:', arguments, v_encodeURIComponent.apply(this, arguments)):v_encodeURIComponent.apply(this, arguments) }) }
-    if (e["config-hook-escape"]){ escape = saf(function escape(){ return e["config-hook-escape"]?v_logs('[escape]:', arguments, v_escape.apply(this, arguments)):v_escape.apply(this, arguments) }) }
-    if (e["config-hook-unescape"]){ unescape = saf(function unescape(){ return e["config-hook-unescape"]?v_logs('[unescape]:', arguments, v_unescape.apply(this, arguments)):v_unescape.apply(this, arguments) }) }
-    if (e["config-hook-atob"]){ atob = saf(function atob(){ return e["config-hook-atob"]?v_logs('[atob]:', arguments, v_atob.apply(this, arguments)):v_atob.apply(this, arguments) }) }
-    if (e["config-hook-btoa"]){ btoa = saf(function btoa(){ return e["config-hook-btoa"]?v_logs('[btoa]:', arguments, v_btoa.apply(this, arguments)):v_btoa.apply(this, arguments) }) }
+    if (e["config-hook-JSON.parse"]){ 
+        JSON.parse = saf_noprototype(function parse(a,b){ 
+            var temp;
+            return e["config-hook-JSON.parse"]?
+                (v_console_dbg_log('  (*) [JSON.parse]:', ..._mk_logs(...arguments), '===>', temp=v_parse.apply(this, arguments)), temp)
+                :v_parse.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-JSON.stringify"]){ 
+        JSON.stringify = saf_noprototype(function stringify(a,b,c){ 
+            var temp;
+            return e["config-hook-JSON.stringify"]?
+                (v_console_dbg_log('  (*) [JSON.stringify]:', ..._mk_logs(...arguments), '===>', temp=v_stringify.apply(this, arguments)), temp)
+                :v_stringify.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-decodeURI"]){ 
+        decodeURI = saf_noprototype(function decodeURI(a){ 
+            var temp;
+            return e["config-hook-decodeURI"]?
+                (v_console_dbg_log('  (*) [decodeURI]:', ..._mk_logs(...arguments), '===>', temp=v_decodeURI.apply(this, arguments)), temp)
+                :v_decodeURI.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-decodeURIComponent"]){ 
+        decodeURIComponent = saf_noprototype(function decodeURIComponent(a){ 
+            var temp;
+            return e["config-hook-decodeURIComponent"]?
+                (v_console_dbg_log('  (*) [decodeURIComponent]:', ..._mk_logs(...arguments), '===>', temp=v_decodeURIComponent.apply(this, arguments)), temp)
+                :v_decodeURIComponent.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-encodeURI"]){ 
+        encodeURI = saf_noprototype(function encodeURI(a){ 
+            var temp;
+            return e["config-hook-encodeURI"]?
+                (v_console_dbg_log('  (*) [encodeURI]:', ..._mk_logs(...arguments), '===>', temp=v_encodeURI.apply(this, arguments)), temp)
+                :v_encodeURI.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-encodeURIComponent"]){ 
+        encodeURIComponent = saf_noprototype(function encodeURIComponent(a){ 
+            var temp;
+            return e["config-hook-encodeURIComponent"]?
+                (v_console_dbg_log('  (*) [encodeURIComponent]:', ..._mk_logs(...arguments), '===>', temp=v_encodeURIComponent.apply(this, arguments)), temp)
+                :v_encodeURIComponent.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-escape"]){ 
+        escape = saf_noprototype(function escape(a){ 
+            var temp;
+            return e["config-hook-escape"]?
+                (v_console_dbg_log('  (*) [escape]:', ..._mk_logs(...arguments), '===>', temp=v_escape.apply(this, arguments)), temp)
+                :v_escape.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-unescape"]){ 
+        unescape = saf_noprototype(function unescape(a){ 
+            var temp;
+            return e["config-hook-unescape"]?
+                (v_console_dbg_log('  (*) [unescape]:', ..._mk_logs(...arguments), '===>', temp=v_unescape.apply(this, arguments)), temp)
+                :v_unescape.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-atob"]){ 
+        atob = saf_noprototype(function atob(a){ 
+            var temp;
+            return e["config-hook-atob"]?
+                (v_console_dbg_log('  (*) [atob]:', ..._mk_logs(...arguments), '===>', temp=v_atob.apply(this, arguments)), temp)
+                :v_atob.apply(this, arguments) 
+        }) 
+    }
+    if (e["config-hook-btoa"]){ 
+        btoa = saf_noprototype(function btoa(a){ 
+            var temp;
+            return e["config-hook-btoa"]?
+                (v_console_dbg_log('  (*) [btoa]:', ..._mk_logs(...arguments), '===>', temp=v_btoa.apply(this, arguments)), temp)
+                :v_btoa.apply(this, arguments) 
+        }) 
+    }
   }
+
+  var CustomEvent_detail_getter = Date.call.bind(Object.getOwnPropertyDescriptor(CustomEvent.prototype, 'detail').get)
+  window.addEventListener('$magic_listener', function(e){
+    var detail=CustomEvent_detail_getter(e)//.detail
+    v_console_dbg_log('[*] vvv dbg:', detail)
+    if (detail){
+      if (detail.action == 'eval'){
+        v_Function('v_env_list_log,logtogglefunc', detail.data)(v_env_list_log,logtogglefunc)
+      }
+    }
+  })
 
   if (e["config-hook-domobj"]){
     $domobj_placeholder
@@ -1672,28 +1739,34 @@ function make_domhooker_funcs(){
           var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name} 
           var _old_get = _desc.get, _old_set = _desc.set
         }catch(e){ return }
-        var _new_get = saf(function get(){
+        var _new_get = saf_noprototype(function get(){
           var r = _old_get.apply(this, arguments)
           if (e["config-hook-domobj"] && e["config-hook-domobj-get"] && e["config-hook-${obname}-${name}"]){ 
-            var expstr = v_Error().stack.v_split('\\n')[2]
+            var expstr = c_split(v_Error().stack||"", '\\n')[3]
             v_cache_node(expstr, "${obname}", "${name}", "get", r)
             inspect_arguments(this, arguments, r, "${obname}", "${name}", "get")
             if (expurl.v_test(expstr) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('(*) [${obname} ${name} get]', r, get_log_at(expstr.trim())))
+              var loglist = _mk_logs('(*) [${obname} ${name} get]', r, get_log_at(expstr.trim())); 
+              if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
+              }
             }
           }
           return r }, 'get ${name}')
         if (_old_set){
-          var _new_set = saf(function set(v){
-            if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
-              var expstr = v_Error().stack.v_split('\\n')[2]
-              v_cache_node(expstr, "${obname}", "${name}", "set")
-              inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
-              if (expurl.v_test(expstr) && typeof expstr == 'string'){
-                window.v_log(..._mk_logs('(*) [${obname} ${name} set]', v, get_log_at(expstr.trim())))
+          var _new_set = saf_noprototype(function set(v){
+          if (e["config-hook-domobj"] && e["config-hook-domobj-set"] && e["config-hook-${obname}-${name}"]){ 
+            var expstr = c_split(v_Error().stack||"", '\\n')[3]
+            v_cache_node(expstr, "${obname}", "${name}", "set")
+            inspect_arguments(this, arguments, null, "${obname}", "${name}", "set")
+            if (expurl.v_test(expstr) && typeof expstr == 'string'){
+              var loglist = _mk_logs('(*) [${obname} ${name} set]', v, get_log_at(expstr.trim())); 
+              if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
               }
             }
-            return _old_set.apply(this, arguments) }, 'set ${name}')
+          }
+          return _old_set.apply(this, arguments) }, 'set ${name}')
         }else{ _new_set = undefined }
         Object.defineProperty(${obname}.prototype, '${name}', { get: _new_get, set: _new_set, enumerable: _desc['enumerable'], configurable: _desc['configurable'], })
       }()
@@ -1706,7 +1779,8 @@ function make_domhooker_funcs(){
       !function(){
         if (!e["config-hook-${obname}-${name}"]){ return }
         try{ var _desc = Object.getOwnPropertyDescriptors(${obname}.prototype).${name}, _old_val = _desc.value }catch(e){ return }
-        var _new_val = saf(function ${name}(){
+        var deep = 2
+        function ${name}(){
           var err;
           try{
             var r = _old_val.apply(this, arguments) 
@@ -1714,17 +1788,32 @@ function make_domhooker_funcs(){
             err = e
           }
           if (e["config-hook-domobj"] && e["config-hook-domobj-func"] && e["config-hook-${obname}-${name}"]){ 
-            var expstr = v_Error().stack.v_split('\\n')[2]
+            var expstr = c_split(v_Error().stack||"", '\\n')[deep]
             v_cache_node(expstr, "${obname}", "${name}", "func")
             if (expurl.v_test(expstr) && typeof expstr == 'string'){
-              window.v_log(..._mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), '===>', err ? '[ERROR]' : r, get_log_at(expstr.trim())))
+              var loglist = _mk_logs('  (f) [${obname} ${name} func]', origslice.call(arguments), '===>', err ? '[ERROR]' : r, get_log_at(expstr.trim())); 
+              if (check_over_limit(loglist)){ 
+                v_console_dbg_log(...loglist) 
+              }
             }
           }
           inspect_arguments(this, arguments, r, "${obname}", "${name}", "func")
           if (err){
             throw err;
           }
-          return r })
+          return r }
+        if (_old_val.prototype){
+            var _new_val = saf(${name})
+            try{
+                Object.defineProperties(_new_val, {
+                  length: {value: _old_val.length, writable: false, enumerable: false, configurable: true},
+                  name: {value: _old_val.name, writable: false, enumerable: false, configurable: true},
+                })
+            }catch(e){  }
+        }else{
+            deep = 3
+            var _new_val = saf_noprototype(${name}, _old_val.name, _old_val.length)
+        }
         try{ Object.defineProperty(${obname}.prototype, '${name}', { value: _new_val, enumerable: _desc['enumerable'], configurable: _desc['configurable'], writable: _desc['writable'], })
         }catch(e){  }
       }()
@@ -1766,7 +1855,6 @@ var hookers = [
   "config-hook-unescape",
   "config-hook-atob",
   "config-hook-btoa",
-  "config-hook-alt-w",
   "config-hook-domobj",
   "config-hook-domobj-get",
   "config-hook-domobj-set",
@@ -1820,16 +1908,34 @@ function inject_code(){
 
 var code_hookdom;
 var code_inject;
+
+function simple_hash(){
+  // 要尽量让相同机器生成相同的值，因为多次调试时候需要调试代码不变化
+  // 也要保证随机性，不能让别人直接用固定特征直接搞检测
+  var digits = 10
+  var str = navigator.userAgent + "simple_hash ver 1.0"
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  var max = Math.pow(10, digits);
+  var num = Math.abs(hash) % max;
+  return num.toString().padStart(digits, '0');
+}
+
+var code_listener = 'v_'+simple_hash()
 chrome.storage.local.get(hookers, function (result) {
   if (result["config-hook-global"]){
     var replacer_injectfunc = (injectfunc + '').replace('$domobj_placeholder', make_domhooker_funcs())
     var replacer_injectfunc = replacer_injectfunc.replace('$make_v_func', make_v+';')
+    var replacer_injectfunc = replacer_injectfunc.replace('$magic_listener', code_listener)
     result["config-hook-cookie-match"] = (result["config-hook-cookie-match"] || '').trim()
     var log_toggle = result["config-hook-log-toggle"]
     delete result["config-hook-log-toggle"] // 分两次注入是因为要保证第一次注入的代码是不变的，这样可以直接在代码处打断点
     inject_script(code_hookdom = `(${replacer_injectfunc})(${JSON.stringify(result)},window)`);
     if(!log_toggle){
-      inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
+      delay_inject(`logtogglefunc({key:'w',altKey:true})`)
     }
   }
   if (result["config-myinject_toggle"]){
@@ -1839,15 +1945,21 @@ chrome.storage.local.get(hookers, function (result) {
   }
 })
 
+function delay_inject(estr){
+    window.dispatchEvent(new CustomEvent(code_listener, {
+      detail: { action: "eval", data: estr }
+    }));
+}
+
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'error'){
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
   if (msg.action.type == 'addlistener'){
-    inject_script(`try{v_log_env()}catch(e){debugger;alert('请打开调试总开关，同时将dom挂钩全部选中后，再刷新页面点击代码生成按钮。')}`)
+    delay_inject(`try{v_env_list_log()}catch(e){debugger;alert('请打开调试总开关，同时将dom挂钩全部选中后，再刷新页面点击代码生成按钮。')}`)
   }
   if (msg.action.type == 'logtoggle'){
-    inject_script(`globalConfig.logtogglefunc({key:'w',altKey:true})`)
+    delay_inject(`logtogglefunc({key:'w',altKey:true})`)
   }
   if (msg.action.type == 'alerterror'){
     inject_script(`alert(${JSON.stringify(msg.action.info)})`)
@@ -1858,7 +1970,9 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'getcookie'){
     // 有些 onlyhttp 的 cookie 直接通过 js 拿不到，所以这个插件会主动在 js 环境下注入一个 vilame_setter 参数。
     // 通过 vilame_setter 参数可以直接拿到所有当前页面 domain 下的 cookie 包括 httponly 类型的 cookie。
-    inject_script('window.vilame_setter='+JSON.stringify(msg.action.info))
+
+    // 禁用这个功能，防止特征检测
+    // inject_script('window.vilame_setter='+JSON.stringify(msg.action.info))
   }
   if (msg.action.type == 'eval'){
     var jscode = msg.action.info
@@ -1891,7 +2005,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         return OpenWindow.txt.value = txt || ''
     })(envstr)
     `
-    inject_script(jscode)
+    delay_inject(jscode)
   }
   sendResponse({})
 });
