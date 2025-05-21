@@ -1203,13 +1203,13 @@ function injectfunc(e, window, init_log) {
     var rtest = regexp.test.bind(regexp)
     var cache = {}
     var close_tog = {}
-    check_over_limit = function(...a){
+    check_over_limit = function(a){
       if (typeof a[0] == 'string' && rtest(a[0])){
         cache[a[0]] = (cache[a[0]] || 0) + 1
         if (cache[a[0]] > log_limit){
           if (!close_tog[a[0]]){
             close_tog[a[0]] = true
-            v_console_dbg_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.（默认30，可在 “dom对象hook配置” 的红色窗口中配置）')
+            v_console_dbg_log(a[0], '超过接口的输出上限:', log_limit, ', 停止输出该接口的日志.（默认30，可在 “打开配置页面” ==> “dom对象hook配置” ==> 红色窗口中配置）')
           }
           return
         }
