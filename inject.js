@@ -1951,7 +1951,7 @@ function delay_inject(estr){
     }));
 }
 
-chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action.type == 'error'){
     inject_script(`console.error(${JSON.stringify(msg.action.info)})`)
   }
@@ -2009,7 +2009,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
   }
   sendResponse({})
 });
-chrome.extension.sendMessage({getcookie:true, domain:document.domain}, function(res){})
+chrome.runtime.sendMessage({getcookie:true, domain:document.domain}, function(res){})
 
 
 

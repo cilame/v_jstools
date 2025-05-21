@@ -1,4 +1,10 @@
-// importScripts("./tools/babel_asttool.js", "./tools/cheerio.js", "./tools/replacer.js", "./tools/error_front.js")
+// importScripts(
+//   "./tools/babel_asttool.js", 
+//   "./tools/cheerio.js", 
+//   "./tools/replacer.js", 
+//   "./tools/error_front.js",
+//   "./tools/sub_logger.js"
+// )
 // chrome.contextMenus.create({
 //   id: "v_menu",
 //   title: "打开 v_jstools 动态调试",

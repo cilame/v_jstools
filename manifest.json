@@ -1,8 +1,16 @@
 // {
 //   "name": "v_jstools",
-//   "version": "0.0.0",
+//   "version": "1.0.0",
 //   "description": "v_jstools js hook工具",
-//   "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "debugger", "storage", "contextMenus"],
+//   "permissions": [
+//     "unlimitedStorage", 
+//     "activeTab", 
+//     "tabs", 
+//     "debugger", 
+//     "storage", 
+//     "contextMenus",
+//     "scripting"
+//   ],
 //   "content_security_policy": {
 //    // "extension_pages": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 //   },
