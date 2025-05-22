@@ -525,4 +525,5 @@ normal_config.addEventListener("click", function(e){
     }
   })
   chrome.storage.local.set(setd)
+  sub_logger()
 })

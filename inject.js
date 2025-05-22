@@ -1230,7 +1230,7 @@ function injectfunc(e, window, init_log) {
     var nf = {v(){
         return f.apply(this, arguments)
     }}.v
-    var r = saf(nf, name)
+    var r = saf(nf, name||f.name)
     Object.defineProperties(r, {
       length: {value: typeof length=='number'?length:f.length, writable: false, enumerable: false, configurable: true},
       name: {value: name||f.name, writable: false, enumerable: false, configurable: true},
@@ -1246,13 +1246,6 @@ function injectfunc(e, window, init_log) {
   RegExp.prototype.v_test = RegExp.prototype.test
   var c_split = Date.call.bind(String.prototype.split)
 
-  String.prototype.v_split = function(){
-    if (typeof this == 'string'){
-      return c_split.apply(this, arguments)
-    }else{
-      return 'error v_split'
-    }
-  }
   function openwin(txt) {
       var OpenWindow = window.open("about:blank", "1", "height=600, width=800,toolbar=no,scrollbars=" + scroll + ",menubar=no");
       OpenWindow.document.write(`
@@ -1538,7 +1531,7 @@ function injectfunc(e, window, init_log) {
         }
         return r
       }
-      saf_noprototype(_new_cookie_get, 'get cookie')
+      _new_cookie_get = saf_noprototype(_new_cookie_get, 'get cookie')
       var _new_cookie_set = function set(v){
         if (e["config-hook-cookie"] && e["config-hook-cookie-set"]){
           var expstr=c_split(v_Error().stack||"", '\n')[3]
@@ -1555,7 +1548,7 @@ function injectfunc(e, window, init_log) {
         }
         return _old_cookie_set.apply(this, arguments)
       }
-      saf_noprototype(_new_cookie_get, 'set cookie')
+      _new_cookie_set = saf_noprototype(_new_cookie_set, 'set cookie')
       Object.defineProperty(Document.prototype, 'cookie', {
         get: _new_cookie_get, 
         set: _new_cookie_set,
